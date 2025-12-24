@@ -16,7 +16,7 @@ small_ctor = "~0.1"
 cargo_metadata = "~0.20"
 tokio = { version = "~1.48", features = ["full"] }
 tokio-util = "=0.7.10"
-rust-embed = "~6.8"
+rust-embed = "~8.9"
 zip = "~0.6"
 zip-extract = "~0.1"
 actix-multipart = "~0.6"
