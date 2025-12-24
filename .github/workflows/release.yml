@@ -42,7 +42,7 @@ jobs:
         run: cargo build --release --target ${{ matrix.target }}
 
       - name: Show version
-        run: ./target/${{ matrix.target }}/release/wparse --version
+        run: ./target/${{ matrix.target }}/release/wp-editer --version
 
       - name: Archive (UNIX)
         run: |

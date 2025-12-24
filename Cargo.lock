@@ -5521,6 +5521,7 @@ dependencies = [
  "anyhow",
  "cargo_metadata",
  "chrono",
+ "clap",
  "config",
  "futures-util",
  "mime_guess",
