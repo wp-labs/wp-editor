@@ -6,7 +6,7 @@ use wp_editer::api;
 
 #[derive(Deserialize)]
 struct VersionResponse {
-    warp_editer: String,
+    wp_editer: String,
     warp_parse: String,
 }
 
@@ -24,6 +24,6 @@ async fn api_get_version_returns_versions() {
     let version: VersionResponse =
         serde_json::from_slice(&body_bytes).expect("parse version response failed");
 
-    assert!(!version.warp_editer.is_empty());
+    assert!(!version.wp_editer.is_empty());
     assert!(!version.warp_parse.is_empty());
 }
