@@ -157,7 +157,7 @@ src_ip     = take(option:[src-ip,sip,source-ip] );
     { title: 'no', dataIndex: 'no', key: 'no', width: 60 },
     { title: 'meta', dataIndex: 'meta', key: 'meta', width: 120 },
     { title: 'name', dataIndex: 'name', key: 'name', width: 150 },
-    { title: 'value', dataIndex: 'value', key: 'value', ellipsis: true },
+    { title: 'value', dataIndex: 'value', key: 'value', style: { wordWrap: 'break-word', wordBreak: 'break-all', maxWidth: 300 } },
   ];
 
   /**
@@ -281,27 +281,26 @@ src_ip     = take(option:[src-ip,sip,source-ip] );
   return (
     <>
       <aside className="side-nav" data-group="simulate-debug">
-        <h2>模拟调试</h2>
         <button
           type="button"
           className={`side-item ${activeKey === 'parse' ? 'is-active' : ''}`}
           onClick={() => setActiveKey('parse')}
         >
-          解析
+        <h2>解析调试</h2>
         </button>
         <button
           type="button"
           className={`side-item ${activeKey === 'convert' ? 'is-active' : ''}`}
           onClick={() => setActiveKey('convert')}
         >
-          转换
+          <h2>转换调试</h2>
         </button>
         <button
           type="button"
           className={`side-item ${activeKey === 'knowledge' ? 'is-active' : ''}`}
           onClick={() => setActiveKey('knowledge')}
         >
-          帮助中心
+          <h2>帮助中心</h2>
         </button>
       </aside>
 
@@ -399,14 +398,14 @@ src_ip     = take(option:[src-ip,sip,source-ip] );
                       <div className={`mode-content ${viewMode === 'table' ? 'is-active' : ''}`}>
                         {result ? (
                           <Table
-                            size="small"
-                            columns={resultColumns}
-                            dataSource={filterFieldsByShowEmpty(result.fields, showEmpty)}
-                            pagination={false}
-                            rowKey="no"
-                            className="data-table compact"
-                            scroll={{ x: 'max-content', y: 400 }}
-                          />
+                              size="small"
+                              columns={resultColumns}
+                              dataSource={filterFieldsByShowEmpty(result.fields, showEmpty)}
+                              pagination={false}
+                              rowKey="no"
+                              className="data-table compact"
+                              scroll={{ y: 400 }}
+                            />
                         ) : (
                           <div style={{ padding: '40px', textAlign: 'center', color: '#999' }}>
                             点击"解析"按钮查看结果
@@ -415,7 +414,7 @@ src_ip     = take(option:[src-ip,sip,source-ip] );
                       </div>
                       <div className={`mode-content ${viewMode === 'json' ? 'is-active' : ''}`}>
                         {result ? (
-                          <pre className="code-block">
+                          <pre className="code-block" style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}>
                             {JSON.stringify(
                               {
                                 ...result,
@@ -519,7 +518,7 @@ src_ip     = take(option:[src-ip,sip,source-ip] );
                           pagination={false}
                           rowKey="no"
                           className="data-table compact"
-                          scroll={{ x: 'max-content', y: 300 }}
+                          scroll={{ y: 300 }}
                         />
                       ) : (
                         <div style={{ padding: '40px', textAlign: 'center', color: '#999' }}>
@@ -529,7 +528,7 @@ src_ip     = take(option:[src-ip,sip,source-ip] );
                     </div>
                     <div className={`mode-content ${transformParseViewMode === 'json' ? 'is-active' : ''}`}>
                       {transformParseResult ? (
-                        <pre className="code-block">
+                        <pre className="code-block" style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}>
                           {JSON.stringify(
                             {
                               ...transformParseResult,
@@ -593,7 +592,7 @@ src_ip     = take(option:[src-ip,sip,source-ip] );
                           pagination={false}
                           rowKey="no"
                           className="data-table compact"
-                          scroll={{ x: 'max-content', y: 300 }}
+                          scroll={{ y: 300 }}
                         />
                       ) : (
                         <div style={{ padding: '40px', textAlign: 'center', color: '#999' }}>
@@ -603,7 +602,7 @@ src_ip     = take(option:[src-ip,sip,source-ip] );
                     </div>
                     <div className={`mode-content ${transformResultViewMode === 'json' ? 'is-active' : ''}`}>
                       {transformResult ? (
-                        <pre className="code-block">
+                        <pre className="code-block" style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}>
                           {(() => {
                             if (transformResult.formatJson) {
                               try {
@@ -834,7 +833,8 @@ src_ip     = take(option:[src-ip,sip,source-ip] );
                                   padding: '12px 14px',
                                   borderRadius: '8px',
                                   fontSize: '12px',
-                                  overflowX: 'auto',
+                                  whiteSpace: 'pre-wrap',
+                                  wordWrap: 'break-word',
                                   fontFamily:
                                     'Menlo, Monaco, Consolas, "Courier New", monospace',
                                 }}

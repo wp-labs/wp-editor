@@ -146,7 +146,7 @@ fn main() {
 
     // 补充版本号
     let app_name = env!("CARGO_PKG_NAME");
-    let warp_parse_pkg_name = "wp-parser";
+    let warp_engine_pkg_name = "wp-oml";
 
     let packages = metadata
         .get("packages")
@@ -154,8 +154,8 @@ fn main() {
         .expect("No packages found in cargo metadata");
 
     let wp_editer = get_package_version(packages, app_name);
-    let warp_parse = get_package_version(packages, warp_parse_pkg_name);
+    let warp_engine = get_package_version(packages, warp_engine_pkg_name);
 
     println!("cargo:rustc-env=wp_editer_VERSION={}", wp_editer);
-    println!("cargo:rustc-env=WARP_PARSE_VERSION={}", warp_parse);
+    println!("cargo:rustc-env=WARP_ENGINE_VERSION={}", warp_engine);
 }

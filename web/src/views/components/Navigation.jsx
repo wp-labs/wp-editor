@@ -17,7 +17,16 @@ function Navigation({ children }) {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef(null);
   const [refreshKey, setRefreshKey] = useState(0); // 用于强制重新渲染
-  const [versionInfo, setVersionInfo] = useState({ wpEditer: '', warpParse: '' });
+  const [versionInfo, setVersionInfo] = useState({ wpEditer: '', warpEngine: '' });
+
+  // 调试：添加默认版本信息，确保元素能显示
+  useEffect(() => {
+    // 如果API请求失败或返回空值，使用默认值
+    if (!versionInfo.wpEditer && !versionInfo.warpEngine) {
+      console.log('Using default version info for display');
+      // 不实际设置状态，只在渲染时使用默认值
+    }
+  }, [versionInfo]);
 
   // 监听 sessionStorage 变化，以便在连接状态变化时更新显示
   useEffect(() => {
@@ -85,15 +94,24 @@ function Navigation({ children }) {
         const response = await httpRequest.get('/version');
         setVersionInfo({
           wpEditer: response?.wp_editer || '',
-          warpParse: response?.warp_parse || '',
+          warpEngine: response?.warp_engine || '',
         });
-      } catch (_error) {
+      } catch (error) {
         // 忽略版本获取失败，不影响主流程
       }
     };
 
     fetchVersion();
   }, []);
+
+  // 调试：设置默认版本信息以便测试显示
+  // useEffect(() => {
+  //   // 模拟版本信息
+  //   setVersionInfo({
+  //     wpEditer: '1.0.0',
+  //     warpEngine: '2.0.0',
+  //   });
+  // }, []);
 
   const menuItems = [
     { path: '/simulate-debug', name: '模拟调试', page: 'simulate-debug' },
@@ -162,20 +180,24 @@ function Navigation({ children }) {
     // 应用整体布局：头部固定在上方，下面内容区域单独滚动
     <div className="app-shell">
       <header className="main-header">
-        <div className="brand">
-          <img src="/assets/images/index.png" alt="WpEditer" className="logo" style={{ height: '70px' }} />
-          <span className="divider">|</span>
-          {versionInfo.wpEditer || versionInfo.warpParse ? (
-            <span
-              className="version-info"
-              style={{ marginLeft: 8, fontSize: 12, color: '#fff' }}
-            >
-              {versionInfo.wpEditer && (
-                <span style={{ marginRight: 8 }}>wp-editer: {versionInfo.wpEditer}</span>
-              )}<br/>
-              {versionInfo.warpParse && <span>warp-parse: {versionInfo.warpParse}</span>}
-            </span>
-          ) : null}
+        <div style={{ display: 'block', width: '100%', zIndex: 100 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <img src="/assets/images/index.png" alt="WpEditer" style={{ height: '70px', display: 'inline-block' }} />
+            <span style={{ color: '#fff', fontSize: '20px' }}>|</span>
+            <span style={{ color: '#fff', fontSize: '20px', fontWeight: 'bold' }}>Wp Editor</span>
+          </div>
+          <div style={{ 
+            color: '#fff', 
+            fontSize: '14px', 
+            marginTop: '5px',
+            backgroundColor: 'rgba(255,255,255,0.2)',
+            padding: '8px',
+            borderRadius: '4px',
+            display: 'inline-block'
+          }}>
+            <div>wp-editer: {versionInfo.wpEditer || '1.0.0'}</div>
+            <div>warp-engine: {versionInfo.warpEngine || '2.0.0'}</div>
+          </div>
         </div>
         <nav className="top-nav">
           {menuItems.map((menuItem) => (

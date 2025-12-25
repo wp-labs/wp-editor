@@ -7,7 +7,7 @@ use wp_editer::api;
 #[derive(Deserialize)]
 struct VersionResponse {
     wp_editer: String,
-    warp_parse: String,
+    warp_engine: String,
 }
 
 #[actix_web::test]
@@ -25,5 +25,5 @@ async fn api_get_version_returns_versions() {
         serde_json::from_slice(&body_bytes).expect("parse version response failed");
 
     assert!(!version.wp_editer.is_empty());
-    assert!(!version.warp_parse.is_empty());
+    assert!(!version.warp_engine.is_empty());
 }
