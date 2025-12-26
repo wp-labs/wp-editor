@@ -48,7 +48,6 @@ wparse daemon --log-profile custom.toml --wpl /custom/rules
 
 单源（picker）结束条件（任一满足）：
 - 上游 EOF（文件读取完毕）
-- 达到条数上限 `-n`
 - 收到 Stop 指令
 - 致命错误（触发全局停机）
 

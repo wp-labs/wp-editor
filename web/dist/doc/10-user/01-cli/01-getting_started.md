@@ -1,5 +1,4 @@
 # GettingStarted
-<!-- 角色：使用配置者 | 最近验证：2025-12-11 -->
 
 本文基于 `wp-example/core/getting_started` 用例，梳理一次从初始化到运行、统计与校验的完整配置流程，适合首次接入与本地自测。
 
@@ -27,8 +26,8 @@
 ## 二、生成数据与清理
 ```bash
 # 清理输出（文件型 sink、本地数据）
-wproj data clean || true
-wpgen  data clean || true
+wproj data clean 
+wpgen  data clean 
 
 # 生成样本（示例 3000 行，3 秒统计间隔）
 wpgen sample -n 3000 --stat 3
@@ -43,7 +42,6 @@ wparse batch --stat 3 -p
 ## 四、统计与校验
 ```bash
 # 同时统计源与文件型 sink
-wproj stat file
-
+wproj  data stat
 ```
 脚本会完成预构建 → conf/data 初始化 → 样本生成 → 解析运行 → 统计与校验的整套流程。

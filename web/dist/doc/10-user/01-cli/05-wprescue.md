@@ -23,7 +23,6 @@ wprescue batch [OPTIONS]
 | 参数 | 短选项 | 长选项 | 默认值 | 说明 |
 |------|--------|--------|--------|------|
 | work_root | - | `--work-root` | `.` | 工作根目录 |
-| mode | `-m` | `--mode` | `p` | 恢复模式 |
 | stat_sec | - | `--stat` | - | 统计输出间隔（秒） |
 | stat_print | `-p` | `--print_stat` | false | 周期打印统计信息 |
 
@@ -44,10 +43,6 @@ wprescue batch --work-root /project \
     --stat 5 \
     -p
 
-# 尝试守护模式（会失败）
-wprescue daemon --work-root /project
-# 输出: wprescue 仅支持 batch 模式
-# 退出码: 2
 ```
 
 ## 工作原理

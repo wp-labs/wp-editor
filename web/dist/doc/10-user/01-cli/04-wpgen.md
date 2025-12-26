@@ -1,7 +1,6 @@
 # wpgen CLI
-<!-- 角色：使用配置者 | 最近验证：2025-12-21 -->
 
-wpgen 是 WarpParse 数据生成器（兼容壳），用于基于 WPL 规则或样本文件生成测试数据。
+wpgen 是 WarpParse 数据生成器，用于基于 WPL 规则或样本文件生成测试数据。
 
 ## 命令概览
 
@@ -32,7 +31,7 @@ wpgen rule [OPTIONS]
 | conf_name | `-c` | `--conf` | `wpgen.toml` | 配置文件名 |
 | stat_print | `-p` | `--print_stat` | false | 周期打印统计信息 |
 | line_cnt | `-n` | - | - | 总行数覆盖 |
-| gen_speed | `-s` | - | - | 生成速度（行/秒）覆盖 |
+| speed | `-s` | - | - | 生成速度（行/秒）覆盖 |
 | stat_sec | - | `--stat` | 1 | 统计输出间隔（秒） |
 
 ### sample - 基于样本生成
@@ -99,10 +98,10 @@ wpgen conf init -w .
 wpgen conf check -w .
 
 # 基于规则生成 10000 条数据
-wpgen rule -w . -n 10000 -p
+wpgen sample -w . -n 10000 -p
 
 # 自定义规则目录和生成速度
-wpgen rule --work-root /project \
+wpgen sample --work-root /project \
     --wpl /custom/rules \
     -c custom.toml \
     -s 1000 \

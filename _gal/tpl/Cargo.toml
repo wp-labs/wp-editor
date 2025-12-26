@@ -4,6 +4,13 @@ version = "0.1.17"
 edition = "2024"
 build = "build.rs"
 
+
+[build-dependencies]
+serde = { version = "~1.0", features = ["derive"] }
+serde_json = "~1.0"
+wp_docs = { git = "https://github.com/wp-labs/wp-docs.git", branch = "main" }
+
+
 [dependencies]
 clap = { version = "4.5", features = ["derive"] }
 serde = { version = "1.0", features = ["derive"] }
@@ -23,22 +30,13 @@ actix-multipart = "~0.6"
 futures-util = "~0.3"
 mime_guess = "~2"
 config = "~0.14"
-toml = "~0.8"
+toml = "~0.9"
 chrono = { version = "~0.4", features = ["serde"] }
-thiserror = "~1.0"
+thiserror = "~2.0"
 strum = { version = "~0.26", features = ["derive"] }
 regex = "~1.12"
 anyhow = "~1"
 
-wp_wpl = { package = "wp-lang",git = "{{GIT_REPO_SVR}}/wp-engine", tag = "{{WP_ENG_VER}}" }
-wp_oml = { package = "wp-oml", git = "{{GIT_REPO_SVR}}/wp-engine", tag = "{{WP_ENG_VER}}" }
-wp_parser = { package = "wp-parser", git = "{{GIT_REPO_SVR}}/wp-engine", tag = "{{WP_ENG_VER}}" }
-wp_proj = { package = "wp-proj", git = "{{GIT_REPO_SVR}}/wp-engine", tag = "{{WP_ENG_VER}}" }
-wp_knowledge = { package = "wp-knowledge", git = "{{GIT_REPO_SVR}}/wp-engine", tag = "{{WP_ENG_VER}}" }
-wp_data_utils = { package = "wp-data-utils", git = "{{GIT_REPO_SVR}}/wp-engine", tag = "{{WP_ENG_VER}}" }
-wp_model_core = { package = "wp-model-core", git = "{{GIT_REPO_SVR}}/wp-open-api", tag = "{{OPEN_API_VER}}"  }
-wp_parse_api = { package = "wp-parse-api", git = "{{GIT_REPO_SVR}}/wp-open-api", tag = "{{OPEN_API_VER}}"  }
-wp_data_fmt = { package = "wp-data-fmt", git = "{{GIT_REPO_SVR}}/wp-infras", tag = "{{WP_IFS_VER}}" }
 
 # PostgreSQL 数据库支持 - SeaORM
 sea-orm = { version = "1.1", features = [
@@ -49,7 +47,12 @@ sea-orm = { version = "1.1", features = [
 ] }
 wp-editor-migrations = { path = "crates/migrations" }
 
-[build-dependencies]
-serde = { version = "~1.0", features = ["derive"] }
-serde_json = "~1.0"
-wp_docs = { git = "https://github.com/wp-labs/wp-docs.git", branch = "main" }
+wp_wpl = { package = "wp-lang",git = "{{GIT_REPO_SVR}}/wp-engine", tag = "{{WP_ENG_VER}}" }
+wp_oml = { package = "wp-oml", git = "{{GIT_REPO_SVR}}/wp-engine", tag = "{{WP_ENG_VER}}" }
+wp_parser = { package = "wp-parser", git = "{{GIT_REPO_SVR}}/wp-engine", tag = "{{WP_ENG_VER}}" }
+wp_proj = { package = "wp-proj", git = "{{GIT_REPO_SVR}}/wp-engine", tag = "{{WP_ENG_VER}}" }
+wp_knowledge = { package = "wp-knowledge", git = "{{GIT_REPO_SVR}}/wp-engine", tag = "{{WP_ENG_VER}}" }
+wp_data_utils = { package = "wp-data-utils", git = "{{GIT_REPO_SVR}}/wp-engine", tag = "{{WP_ENG_VER}}" }
+wp_model_core = { package = "wp-model-core", git = "{{GIT_REPO_SVR}}/wp-open-api", tag = "{{OPEN_API_VER}}"  }
+wp_parse_api = { package = "wp-parse-api", git = "{{GIT_REPO_SVR}}/wp-open-api", tag = "{{OPEN_API_VER}}"  }
+wp_data_fmt = { package = "wp-data-fmt", git = "{{GIT_REPO_SVR}}/wp-infras", tag = "{{WP_IFS_VER}}" }
