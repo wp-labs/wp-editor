@@ -3285,7 +3285,6 @@ mark.diff-highlight {
   display: flex;
   flex-direction: column;
   min-height: 200px;
-  max-height: 500px;
 }
 
 /* 表格容器内部滚动 */
@@ -3294,6 +3293,7 @@ mark.diff-highlight {
   overflow-y: auto;
   overflow-x: auto;
   min-height: 0;
+  max-height: none;
 }
 
 /* 确保 ant-spin-container 也可以滚动 */

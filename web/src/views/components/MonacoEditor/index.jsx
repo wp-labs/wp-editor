@@ -28,22 +28,22 @@ const MonacoEditor = forwardRef((props, ref) => {
   };
 
   return (
-    <Editor
-      className={styles.Editor}
-      {...props}
-      onMount={handleEditorDidMount}
-      options={{
-        ...props.options,
-        // 启用代码折叠功能
-        folding: true,
-        // 始终显示折叠按钮
-        showFoldingControls: 'always',
-        // 启用代码折叠高亮
-        foldingHighlight: true,
-        // 使用缩进进行代码折叠
-        foldingStrategy: 'indentation',
-      }}
-    />
+    <div className={`${styles.Editor} ${props.className || ''}`}>
+      <Editor
+        {...props}
+        className={undefined}
+        theme="vs-dark"
+        onMount={handleEditorDidMount}
+        options={{
+          ...props.options,
+          folding: true,
+          showFoldingControls: 'always',
+          foldingHighlight: true,
+          foldingStrategy: 'indentation',
+          fontFamily: "'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace",
+        }}
+      />
+    </div>
   );
 });
 

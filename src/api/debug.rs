@@ -8,6 +8,7 @@ use std::sync::Arc;
 use tokio::sync::Mutex;
 use wp_data_fmt::{DataFormat, FormatType, Json};
 use wp_model_core::model::DataRecord;
+use wp_model_core::model::fmt_def::TextFmt;
 
 // SharedRecord 类型定义：用于在 API 之间共享解析结果
 pub type SharedRecord = Arc<Mutex<Option<DataRecord>>>;
@@ -34,7 +35,12 @@ pub async fn debug_parse(
 
     // 直接返回 ParsedField 列表，由 Actix 负责序列化为 JSON
     let parsed_fields = record_to_fields(&record);
-    Ok(HttpResponse::Ok().json(parsed_fields))
+    let formatter = FormatType::from(&TextFmt::Json);
+    let json_string = formatter.format_record(&record);
+    Ok(HttpResponse::Ok().json(RecordResponse {
+        fields: parsed_fields,
+        format_json: json_string,
+    }))
 }
 
 #[derive(Deserialize)]
@@ -45,7 +51,7 @@ pub struct DebugTransformRequest {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct DebugTransformResponse {
+pub struct RecordResponse {
     pub fields: Vec<ParsedField>,
     pub format_json: String,
 }
@@ -68,7 +74,7 @@ pub async fn debug_transform(
     //转化为标准的 fields
     let parsed_fields = record_to_fields(&transformed);
 
-    Ok(HttpResponse::Ok().json(DebugTransformResponse {
+    Ok(HttpResponse::Ok().json(RecordResponse {
         fields: parsed_fields,
         format_json: json_string,
     }))

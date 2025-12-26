@@ -63,10 +63,12 @@ export async function parseLogs(options) {
       });
     }
 
-    // 后端直接返回字段数组，包装为统一格式
+    // 后端返回 RecordResponse 结构，包含 fields 和 format_json
+    const payload = data;
+
     return {
-      success: true,
-      fields: Array.isArray(data) ? data : [],
+      fields: Array.isArray(payload?.fields) ? payload.fields : [],
+      formatJson: typeof payload?.format_json === 'string' ? payload.format_json : '',
     };
   } catch (error) {
     // 将请求异常与业务异常统一为可展示的错误对象，优先挂载后端响应

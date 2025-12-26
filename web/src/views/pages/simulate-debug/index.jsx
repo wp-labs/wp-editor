@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { parseLogs, convertRecord } from '@/services/debug';
-import Textarea from '@/views/components/Textarea';
+import MonacoEditor from '@/views/components/MonacoEditor';
 
 
 /**
@@ -44,9 +44,10 @@ function SimulateDebugPage() {
   const [transformResult, setTransformResult] = useState(null);
   const [transformParseViewMode, setTransformParseViewMode] = useState('table');
   const [transformResultViewMode, setTransformResultViewMode] = useState('table');
-  // 转换页各自的“显示空值”开关（解析结果 / 转换结果互相独立）
-  const [transformParseShowEmpty, setTransformParseShowEmpty] = useState(true);
+  // 转换页"显示空值"开关（转换结果）
   const [transformResultShowEmpty, setTransformResultShowEmpty] = useState(true);
+  // 转换页"显示空值"开关（解析结果）
+  const [transformParseShowEmpty, setTransformParseShowEmpty] = useState(true);
   // 转换错误状态
   const [transformError, setTransformError] = useState(null);
   
@@ -72,7 +73,7 @@ function SimulateDebugPage() {
       });
       setResult(response);
       // 同步更新转换页的解析结果
-      if (response && Array.isArray(response.fields)) {
+      if (response?.fields && Array.isArray(response.fields)) {
         setTransformParseResult({ fields: response.fields });
       }
     } catch (error) {
@@ -114,7 +115,7 @@ src_ip     = take(option:[src-ip,sip,source-ip] );
       setTransformOml(exampleOml);
 
       // 使用真实解析结果同步到转换页面
-      if (response && Array.isArray(response.fields)) {
+      if (response?.fields && Array.isArray(response.fields)) {
         setTransformParseResult({ fields: response.fields });
       }
     } catch (error) {
@@ -188,7 +189,10 @@ src_ip     = take(option:[src-ip,sip,source-ip] );
       return list;
     }
     return list.filter((fieldItem) => {
-      const fieldValue = fieldItem && fieldItem.value;
+      if (!fieldItem || typeof fieldItem !== 'object') {
+        return false;
+      }
+      const fieldValue = fieldItem.value;
       return fieldValue !== '' && fieldValue !== null && fieldValue !== undefined;
     });
   };
@@ -402,12 +406,18 @@ src_ip     = take(option:[src-ip,sip,source-ip] );
                       </button>
                     </div>
                   </div>
-                  <Textarea
+                  <MonacoEditor
                     className="code-area"
-                    rows={7}
                     value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    placeholder="粘贴实时采集的原始日志..."
+                    onChange={(value) => setInputValue(value)}
+                    language="text"
+                    options={{
+                      minimap: { enabled: false },
+                      scrollBeyondLastLine: false,
+                      lineNumbers: 'off',
+                      wordWrap: 'on',
+                      fontSize: 14,
+                    }}
                   />
                 </div>
 
@@ -427,12 +437,18 @@ src_ip     = take(option:[src-ip,sip,source-ip] );
                         </button>
                       </div>
                     </div>
-                    <Textarea
+                    <MonacoEditor
                       className="code-area code-area--large"
-                      rows={12}
                       value={ruleValue}
-                      onChange={(e) => setRuleValue(e.target.value)}
-                      placeholder="输入解析规则..."
+                      onChange={(value) => setRuleValue(value)}
+                      language="text"
+                      options={{
+                        minimap: { enabled: false },
+                        scrollBeyondLastLine: false,
+                        lineNumbers: 'off',
+                        wordWrap: 'on',
+                        fontSize: 14,
+                      }}
                     />
                   </div>
                 </div>
@@ -493,14 +509,28 @@ src_ip     = take(option:[src-ip,sip,source-ip] );
                           renderParseError()
                         ) : result ? (
                           <pre className="code-block" style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}>
-                            {JSON.stringify(
+                            {(() => {
+                            if (result.formatJson) {
+                              try {
+                                const parsed = JSON.parse(result.formatJson);
+                                return JSON.stringify(parsed, null, 2);
+                              } catch (_e) {
+                                // 如果不是严格 JSON 字符串，则按原样输出
+                                return result.formatJson;
+                              }
+                            }
+                            return JSON.stringify(
                               {
                                 ...result,
-                                fields: filterFieldsByShowEmpty(result.fields, showEmpty),
+                                fields: filterFieldsByShowEmpty(
+                                  result.fields,
+                                  showEmpty,
+                                ),
                               },
                               null,
                               2,
-                            )}
+                            );
+                          })()}
                           </pre>
                         ) : (
                           <div style={{ padding: '40px', textAlign: 'center', color: '#999' }}>
@@ -542,13 +572,18 @@ src_ip     = take(option:[src-ip,sip,source-ip] );
                         </button>
                       </div>
                     </div>
-                    <Textarea
+                    <MonacoEditor
                       className="code-area code-area--large"
-                      rows={14}
                       value={transformOml}
-                      onChange={(e) => setTransformOml(e.target.value)}
-                      placeholder="输入 OML 转换规则..."
-                      spellCheck={false}
+                      onChange={(value) => setTransformOml(value)}
+                      language="text"
+                      options={{
+                        minimap: { enabled: false },
+                        scrollBeyondLastLine: false,
+                        lineNumbers: 'off',
+                        wordWrap: 'on',
+                        fontSize: 14,
+                      }}
                     />
                   </div>
                 </div>
@@ -689,9 +724,15 @@ src_ip     = take(option:[src-ip,sip,source-ip] );
                             if (transformResult.formatJson) {
                               try {
                                 const parsed = JSON.parse(transformResult.formatJson);
-                                return JSON.stringify(parsed, null, 2);
+                                if (transformResultShowEmpty) {
+                                  return JSON.stringify(parsed, null, 2);
+                                }
+                                return JSON.stringify(
+                                  filterEmptyFields(parsed),
+                                  null,
+                                  2
+                                );
                               } catch (_e) {
-                                // 如果不是严格 JSON 字符串，则按原样输出
                                 return transformResult.formatJson;
                               }
                             }
