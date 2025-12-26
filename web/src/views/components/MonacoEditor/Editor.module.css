@@ -4,11 +4,20 @@
   min-height: 200px;
 }
 
-.Editor > :global(.monaco-editor) {
-  width: 100% !important;
-  height: 100% !important;
+.codemirror {
+  width: 100%;
+  height: 100%;
 }
 
-.Editor > :global(.monaco-editor .margin) {
+.codemirror :global(.cm-editor) {
+  width: 100%;
+  height: 100%;
+}
+
+.codemirror :global(.cm-editor.cm-focused) {
+  outline: none;
+}
+
+.codemirror :global(.cm-gutters) {
   background-color: transparent !important;
 }

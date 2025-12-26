@@ -1,9 +1,10 @@
 import { Table, message, Modal, Select, Tree } from 'antd';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { parseLogs, convertRecord } from '@/services/debug';
-import MonacoEditor from '@/views/components/MonacoEditor';
+
+const MonacoEditor = lazy(() => import('@/views/components/MonacoEditor'));
 
 
 /**
