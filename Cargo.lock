@@ -4099,27 +4099,14 @@ name = "strum"
 version = "0.26.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8fec0f0aef304996cf250b31b5a10dee7980c85da9d759361292b8bca5a18f06"
-dependencies = [
- "strum_macros 0.26.4",
-]
 
 [[package]]
 name = "strum"
 version = "0.27.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "af23d6f6c1a224baef9d3f61e287d2761385a5b88fdab4eb4c6f11aeb54c4bcf"
-
-[[package]]
-name = "strum_macros"
-version = "0.26.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4c6bee85a5a24955dc440386795aa378cd9cf82acd5f764469152d2270e581be"
 dependencies = [
- "heck 0.5.0",
- "proc-macro2",
- "quote",
- "rustversion",
- "syn 2.0.111",
+ "strum_macros",
 ]
 
 [[package]]
@@ -5395,7 +5382,7 @@ dependencies = [
  "serde_json",
  "simple-log",
  "small_ctor",
- "strum 0.26.3",
+ "strum 0.27.2",
  "thiserror 2.0.17",
  "tokio",
  "tokio-util",
@@ -5551,7 +5538,7 @@ dependencies = [
  "serde_derive",
  "serde_json",
  "strfmt",
- "strum_macros 0.27.2",
+ "strum_macros",
  "thiserror 2.0.17",
  "toml 0.9.10+spec-1.1.0",
  "wildmatch",
@@ -5598,7 +5585,7 @@ dependencies = [
  "serde_json",
  "strfmt",
  "strum 0.27.2",
- "strum_macros 0.27.2",
+ "strum_macros",
  "thiserror 2.0.17",
  "toml 0.9.10+spec-1.1.0",
  "unicode-segmentation",
@@ -5626,7 +5613,7 @@ dependencies = [
  "log4rs",
  "orion_conf",
  "serde",
- "strum_macros 0.27.2",
+ "strum_macros",
 ]
 
 [[package]]
@@ -5676,7 +5663,7 @@ dependencies = [
  "serde_json",
  "strfmt",
  "strum 0.27.2",
- "strum_macros 0.27.2",
+ "strum_macros",
  "thiserror 2.0.17",
  "toml 0.9.10+spec-1.1.0",
  "url",
@@ -5771,7 +5758,7 @@ dependencies = [
  "serde",
  "serde_derive",
  "serde_json",
- "strum_macros 0.27.2",
+ "strum_macros",
  "thiserror 2.0.17",
  "toml 0.9.10+spec-1.1.0",
  "wildmatch",
