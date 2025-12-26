@@ -7,25 +7,28 @@ Wp Editor 是一个独立运行的 WEB 系统，专门用于日志解析和数�
 - **日志解析**: 支持 WPL (Warp Parse Language) 规则，可解析多种格式的日志
 - **数据转换**: 支持 OML (Object Mapping Language) 规则，将解析后的数据转换为指定格式
 - **实时预览**: 支持实时解析和转换结果预览
-- **规则编辑**: 内置 CodeMirror 6 编辑器，支持语法高亮和智能提示
+- **规则编辑**: 内置 CodeJar 编辑器，支持语法高亮和 Tab 键缩进
 
 ## 技术栈
 
 ### 后端
+
 - **语言**: Rust (Edition 2024)
 - **Web 框架**: Actix Web 4.4
 - **核心引擎**: warp-flow
 - **异步运行时**: Tokio
 
 ### 前端
+
 - **框架**: React 19.0.0
 - **构建工具**: Vite 6.3.5
 - **UI 组件**: Ant Design 5.24.9
-- **编辑器**: CodeMirror 6
+- **编辑器**: CodeJar
 
 ## 快速开始
 
 ### 环境要求
+
 - Rust 1.70+
 - Node.js 20+
 - Cargo 包管理器
@@ -33,17 +36,20 @@ Wp Editor 是一个独立运行的 WEB 系统，专门用于日志解析和数�
 ### 安装步骤
 
 1. **克隆项目**
+
 ```bash
 git clone <repository-url>
 cd wp-editor
 ```
 
-2. **构建后端**
+1. **构建后端**
+
 ```bash
 cargo build
 ```
 
-3. **运行服务**
+1. **运行服务**
+
 ```bash
 # 运行后端服务
 cargo run
@@ -68,6 +74,7 @@ port = 8080
 ## 使用指南
 
 ### 1. 编写 WPL 规则
+
 WPL (Warp Parse Language) 用于定义日志解析规则:
 
 ```wpl
@@ -79,6 +86,7 @@ package /example/simple {
 ```
 
 ### 2. 编写 OML 规则
+
 OML (Object Mapping Language) 用于定义数据转换规则:
 
 ```oml
@@ -92,6 +100,7 @@ src_ip     = take(option:[src-ip,sip,source-ip] );
 ```
 
 ### 3. 测试解析
+
 - 在解析器页面输入示例日志
 - 系统将实时显示解析结果
 - 支持单条日志和批量日志解析
@@ -99,10 +108,12 @@ src_ip     = take(option:[src-ip,sip,source-ip] );
 ## API 文档
 
 ### 基础接口
+
 - `GET /api/hello` - 健康检查
 - `GET /api/version` - 获取版本信息
 
 ### 核心功能接口
+
 - `POST /api/parse-logs` - 解析日志
 - `POST /api/convert-record` - 转换数据
 
@@ -167,11 +178,13 @@ wp-editor/
 ## 开发指南
 
 ### 后端开发
+
 - 使用 `cargo test` 运行测试
 - 使用 `cargo clippy` 检查代码质量
 - 遵循 Rust 代码规范
 
 ### 前端开发
+
 - 使用 `npm run lint` 检查代码质量
 - 使用 `npm run build` 构建生产版本
 - 遵循 React 18+ 最佳实践
@@ -179,12 +192,14 @@ wp-editor/
 ## 部署
 
 ### Docker 部署
+
 ```bash
 docker build -t wp-editor .
 docker run -p 8080:8080 wp-editor
 ```
 
 ### 直接部署
+
 1. 构建后端: `cargo build --release`
 2. 运行: `./target/release/wp-editor`
 

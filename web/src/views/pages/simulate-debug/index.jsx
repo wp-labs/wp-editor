@@ -1,10 +1,9 @@
 import { Table, message, Modal, Select, Tree } from 'antd';
-import React, { useState, useEffect, lazy, Suspense } from 'react';
+import React, { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { parseLogs, convertRecord } from '@/services/debug';
-
-const MonacoEditor = lazy(() => import('@/views/components/MonacoEditor'));
+import CodeJarEditor from '@/views/components/CodeJarEditor';
 
 
 /**
@@ -407,18 +406,10 @@ src_ip     = take(option:[src-ip,sip,source-ip] );
                       </button>
                     </div>
                   </div>
-                  <MonacoEditor
+                  <CodeJarEditor
                     className="code-area"
                     value={inputValue}
                     onChange={(value) => setInputValue(value)}
-                    language="text"
-                    options={{
-                      minimap: { enabled: false },
-                      scrollBeyondLastLine: false,
-                      lineNumbers: 'off',
-                      wordWrap: 'on',
-                      fontSize: 14,
-                    }}
                   />
                 </div>
 
@@ -438,18 +429,10 @@ src_ip     = take(option:[src-ip,sip,source-ip] );
                         </button>
                       </div>
                     </div>
-                    <MonacoEditor
+                    <CodeJarEditor
                       className="code-area code-area--large"
                       value={ruleValue}
                       onChange={(value) => setRuleValue(value)}
-                      language="text"
-                      options={{
-                        minimap: { enabled: false },
-                        scrollBeyondLastLine: false,
-                        lineNumbers: 'off',
-                        wordWrap: 'on',
-                        fontSize: 14,
-                      }}
                     />
                   </div>
                 </div>
@@ -573,18 +556,10 @@ src_ip     = take(option:[src-ip,sip,source-ip] );
                         </button>
                       </div>
                     </div>
-                    <MonacoEditor
+                    <CodeJarEditor
                       className="code-area code-area--large"
                       value={transformOml}
                       onChange={(value) => setTransformOml(value)}
-                      language="text"
-                      options={{
-                        minimap: { enabled: false },
-                        scrollBeyondLastLine: false,
-                        lineNumbers: 'off',
-                        wordWrap: 'on',
-                        fontSize: 14,
-                      }}
                     />
                   </div>
                 </div>

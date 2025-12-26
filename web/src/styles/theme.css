@@ -2258,6 +2258,7 @@ mark.diff-highlight {
 
 .code-area {
   width: 100%;
+  height: 160px;
   min-height: 160px;
   border: 1px solid rgba(15, 23, 42, 0.5);
   border-radius: 16px;
@@ -2267,7 +2268,6 @@ mark.diff-highlight {
   line-height: 1.6;
   color: #e2e8f0;
   background: #0f172a;
-  resize: vertical;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -2278,14 +2278,14 @@ mark.diff-highlight {
 }
 
 .code-area--large {
-  height: 100%;
+  height: 220px;
+  min-height: 220px;
 }
 
 .code-area--full {
   width: 100%;
-  /* 在父容器内自适应填充高度，由父容器控制整体高度 */
-  min-height: 0;
   height: 100%;
+  min-height: 0;
   resize: none;
   overflow-y: auto;
   scrollbar-width: none;

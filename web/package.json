@@ -24,6 +24,7 @@
     "@seed-fe/request": "^1.2.0",
     "ahooks": "^3.7.0",
     "antd": "^5.29.0",
+    "codejar": "^4.3.0",
     "dayjs": "^1.11.0",
     "diff": "^5.0.0",
     "github-markdown-css": "^5.8.1",
