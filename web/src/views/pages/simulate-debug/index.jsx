@@ -107,7 +107,7 @@ rule :
     /example/simple*
 ---
 recv_time  = take() ;
-occur_time = Time::now() ;
+occur_time = Now::time() ;
 from_ip    = take(option:[from-ip]) ;
 src_ip     = take(option:[src-ip,sip,source-ip] );
 *  = take() ;`;
