@@ -56,7 +56,7 @@ fn try_parse_with_rules(rule_items: Vec<RunParseProc>, data: &str) -> Result<Dat
     for (index, (vm_unit, _funcs)) in rule_items.iter().enumerate() {
         let evaluator = WplEvaluator::from(vm_unit, None).map_err(AppError::wpl_parse)?;
         let raw = RawData::from_string(data.to_string());
-        match evaluator.proc(raw, 0) {
+        match evaluator.proc(0, raw, 0) {
             Ok((mut tdc, _pipeline)) => {
                 if let Some(tags) = vm_unit.tags.clone() {
                     for tag in tags.export_tags() {

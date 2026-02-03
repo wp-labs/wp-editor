@@ -1,6 +1,6 @@
 [package]
 name = "wp-editor"
-version = "1.8.0"
+version = "1.8.1"
 edition = "2024"
 build = "build.rs"
 
@@ -59,12 +59,22 @@ wp-conf-base =  "0.1"
 wp-data-fmt  =  "0.1"
 wp-editor-migrations = { path = "crates/migrations" }
 
-wp-engine     = {                            git = "https://github.com/wp-labs/wp-motor", tag = "v1.13.0-alpha" }
-wp-config     = { package = "wp-config",     git = "https://github.com/wp-labs/wp-motor", tag = "v1.13.0-alpha" }
-wp_oml         = { package = "wp-oml",       git = "https://github.com/wp-labs/wp-motor", tag = "v1.13.0-alpha" }
-wp-lang       = { package = "wp-lang",       git = "https://github.com/wp-labs/wp-motor", tag = "v1.13.0-alpha" }
-wp_knowledge  = { package = "wp-knowledge",  git = "https://github.com/wp-labs/wp-motor", tag = "v1.13.0-alpha" }
-wp_data_utils = { package = "wp-data-utils", git = "https://github.com/wp-labs/wp-motor", tag = "v1.13.0-alpha" }
-wp-proj       = { package = "wp-proj",       git = "https://github.com/wp-labs/wp-motor", tag = "v1.13.0-alpha" }
+wp-engine     = {                            git = "https://github.com/wp-labs/wp-motor", tag = "v1.13.2" }
+wp-config     = { package = "wp-config",     git = "https://github.com/wp-labs/wp-motor", tag = "v1.13.2" }
+wp_oml         = { package = "wp-oml",       git = "https://github.com/wp-labs/wp-motor", tag = "v1.13.2" }
+wp-lang       = { package = "wp-lang",       git = "https://github.com/wp-labs/wp-motor", tag = "v1.13.2" }
+wp_knowledge  = { package = "wp-knowledge",  git = "https://github.com/wp-labs/wp-motor", tag = "v1.13.2" }
+wp_data_utils = { package = "wp-data-utils", git = "https://github.com/wp-labs/wp-motor", tag = "v1.13.2" }
+wp-proj       = { package = "wp-proj",       git = "https://github.com/wp-labs/wp-motor", tag = "v1.13.2" }
+
+#wp-engine = { path = "../wp-motor" }
+#wp-config = { path = "../wp-motor/crates/wp-config" }
+#wp-oml    = { package = "wp-oml",    path = "../wp-motor/crates/wp-oml" }
+#wp-lang   = { package = "wp-lang", path = "../wp-motor/crates/wp-lang" }
+#wp-knowledge  = { path = "../wp-motor/crates/wp-knowledge" }
+##wp-cli-core   = { path = "../wp-motor/crates/wp-cli-core" }
+#wp-data-utils = { path = "../wp-motor/crates/wp-data-utils"  }
+#wp-proj       = { path = "../wp-motor/crates/wp-proj" }
+
 
 semver = "1.0.27"
