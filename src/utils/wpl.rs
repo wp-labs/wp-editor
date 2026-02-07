@@ -65,7 +65,7 @@ fn try_parse_with_rules(rule_items: Vec<RunParseProc>, data: &str) -> Result<Dat
                 }
                 tdc.append(DataField::from_digit("wp_event_id", next_event_id() as i64));
                 tdc.items.retain(|item| item.meta != DataType::Ignore);
-                return Ok(DataRecord { items: tdc.items });
+                return Ok(DataRecord::from(tdc.items));
             }
             Err(e) => {
                 // 记录解析深度最高的错误
