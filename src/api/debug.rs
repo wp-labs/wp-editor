@@ -11,7 +11,7 @@ use actix_web::{HttpResponse, get, post, web};
 use base64::Engine;
 use base64::engine::general_purpose;
 use serde::{Deserialize, Serialize};
-use wp_data_fmt::{DataFormat, FormatType, Json};
+use wp_data_fmt::{FormatType, Json, RecordFormatter};
 use wp_model_core::model::data::Record;
 use wp_model_core::model::fmt_def::TextFmt;
 use wp_model_core::model::{DataField, DataRecord};
@@ -32,7 +32,7 @@ pub async fn debug_parse(req: web::Json<DebugParseRequest>) -> Result<HttpRespon
 
     // 直接返回 DataField 列表，由 Actix 负责序列化为 JSON
     let formatter = FormatType::from(&TextFmt::Json);
-    let json_string = formatter.format_record(&record);
+    let json_string = formatter.fmt_record(&record);
     Ok(HttpResponse::Ok().json(RecordResponseRaw {
         fields: record,
         format_json: json_string,
@@ -84,7 +84,7 @@ pub async fn debug_transform(
     let transformed = convert_record(&oml, res)?;
 
     let formatter = FormatType::Json(Json);
-    let json_string = formatter.format_record(&transformed);
+    let json_string = formatter.fmt_record(&transformed);
 
     let parsed_fields: Vec<ParsedField> = record_to_fields(&transformed);
 

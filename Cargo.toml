@@ -49,23 +49,23 @@ sea-orm = { version = "1.1", features = [
 
 wp-connector-api =  "0.7"
 wp-parse-api     =  "0.7"
-wp-model-core    =  "0.7"
+wp-model-core    =  "0.8"
 
 # --- External: Infrastructure Libraries ---
 wp-log       =  "0.1"
 wp-error     =  "0.7"
 wp-specs     =  "0.7"
 wp-conf-base =  "0.1"
-wp-data-fmt  =  "0.1"
+wp-data-fmt  =  "0.2"
 wp-editor-migrations = { path = "crates/migrations" }
 
-wp-engine     = {                            git = "https://github.com/wp-labs/wp-motor", tag = "v1.15.1" }
-wp-config     = { package = "wp-config",     git = "https://github.com/wp-labs/wp-motor", tag = "v1.15.1" }
-wp_oml         = { package = "wp-oml",       git = "https://github.com/wp-labs/wp-motor", tag = "v1.15.1" }
-wp-lang       = { package = "wp-lang",       git = "https://github.com/wp-labs/wp-motor", tag = "v1.15.1" }
-wp_knowledge  = { package = "wp-knowledge",  git = "https://github.com/wp-labs/wp-motor", tag = "v1.15.1" }
-wp_data_utils = { package = "wp-data-utils", git = "https://github.com/wp-labs/wp-motor", tag = "v1.15.1" }
-wp-proj       = { package = "wp-proj",       git = "https://github.com/wp-labs/wp-motor", tag = "v1.15.1" }
+wp-engine     = {                            git = "https://github.com/wp-labs/wp-motor", tag = "v1.15.5" }
+wp-config     = { package = "wp-config",     git = "https://github.com/wp-labs/wp-motor", tag = "v1.15.5" }
+wp_oml         = { package = "wp-oml",       git = "https://github.com/wp-labs/wp-motor", tag = "v1.15.5" }
+wp-lang       = { package = "wp-lang",       git = "https://github.com/wp-labs/wp-motor", tag = "v1.15.5" }
+wp_knowledge  = { package = "wp-knowledge",  git = "https://github.com/wp-labs/wp-motor", tag = "v1.15.5" }
+wp_data_utils = { package = "wp-data-utils", git = "https://github.com/wp-labs/wp-motor", tag = "v1.15.5" }
+wp-proj       = { package = "wp-proj",       git = "https://github.com/wp-labs/wp-motor", tag = "v1.15.5" }
 
 #wp-engine = { path = "../wp-motor" }
 #wp-config = { path = "../wp-motor/crates/wp-config" }

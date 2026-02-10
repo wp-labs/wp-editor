@@ -28,9 +28,9 @@ pub fn record_to_fields(record: &DataRecord) -> Vec<ParsedField> {
         .enumerate()
         .map(|(index, field)| ParsedField {
             no: index as i32 + 1,
-            meta: field.meta.to_string(),
-            name: field.name.to_string(),
-            value: field.value.to_string(),
+            meta: field.get_meta().to_string(),
+            name: field.get_name().to_string(),
+            value: field.get_value().to_string(),
         })
         .collect()
 }
@@ -64,7 +64,7 @@ fn try_parse_with_rules(rule_items: Vec<RunParseProc>, data: &str) -> Result<Dat
                     }
                 }
                 tdc.append(DataField::from_digit("wp_event_id", next_event_id() as i64));
-                tdc.items.retain(|item| item.meta != DataType::Ignore);
+                tdc.items.retain(|item| *item.get_meta() != DataType::Ignore);
                 return Ok(DataRecord::from(tdc.items));
             }
             Err(e) => {

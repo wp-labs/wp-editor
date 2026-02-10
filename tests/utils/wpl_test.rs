@@ -1,4 +1,4 @@
-use wp_data_fmt::{DataFormat, FormatType, Json};
+use wp_data_fmt::{FormatType, Json, RecordFormatter};
 use wp_editor::{record_to_fields, warp_check_record};
 
 #[test]
@@ -62,7 +62,7 @@ rule nginx {
 
     // 测试 wp_data_fmt 的 JSON 格式化
     let formatter = FormatType::Json(Json);
-    let json_string = formatter.format_record(&record);
+    let json_string = formatter.fmt_record(&record);
 
     assert!(!json_string.is_empty(), "格式化的 JSON 不应为空");
     assert!(json_string.contains("sip"), "格式化的 JSON 应包含 sip 字段");
@@ -202,7 +202,7 @@ rule single_field {
 
     // 测试JSON格式化
     let formatter = FormatType::Json(Json);
-    let json_string = formatter.format_record(&record);
+    let json_string = formatter.fmt_record(&record);
 
     assert!(!json_string.is_empty(), "JSON格式化结果不应为空");
     assert!(
