@@ -1,6 +1,6 @@
 [package]
 name = "wp-editor"
-version = "1.10.3"
+version = "1.10.2"
 edition = "2024"
 build = "build.rs"
 

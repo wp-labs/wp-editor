@@ -61,7 +61,7 @@ function SimulateDebugPage() {
   const [parseError, setParseError] = useState(null);
 
   // 转换相关状态
-  const [transformOml, setTransformOml] = useState('name : /examplerule : /path/name/*\n---\n* = take();');
+  const [transformOml, setTransformOml] = useState('name : /example \nrule : /path/name/*\n---\n* = take();');
   const [transformParseResult, setTransformParseResult] = useState(null);
   const [transformResult, setTransformResult] = useState(null);
   const [transformParseViewMode, setTransformParseViewMode] = useState('table');
