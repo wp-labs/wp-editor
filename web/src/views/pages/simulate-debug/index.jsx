@@ -50,7 +50,7 @@ function SimulateDebugPage() {
   
   const [activeKey, setActiveKey] = useState('parse');
   const [inputValue, setInputValue] = useState('');
-  const [ruleValue, setRuleValue] = useState('');
+  const [ruleValue, setRuleValue] = useState('package /path/ {\n    rule name {\n        ()\n    }\n}');
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [viewMode, setViewMode] = useState('table');
@@ -61,7 +61,7 @@ function SimulateDebugPage() {
   const [parseError, setParseError] = useState(null);
 
   // 转换相关状态
-  const [transformOml, setTransformOml] = useState('');
+  const [transformOml, setTransformOml] = useState('name : /examplerule : /path/name/*\n---\n* = take();');
   const [transformParseResult, setTransformParseResult] = useState(null);
   const [transformResult, setTransformResult] = useState(null);
   const [transformParseViewMode, setTransformParseViewMode] = useState('table');

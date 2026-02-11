@@ -93,14 +93,12 @@ export const useWorkspace = () => {
     return null;
   }, [workspaceMode, saveWorkspace, loadWorkspace]);
 
-  // 初始化：加载保存的模式和数据
+  // 初始化：默认使用工作区模式，加载保存的数据
   useEffect(() => {
-    const savedMode = localStorage.getItem(WORKSPACE_MODE_KEY) || 'workspace';
-    setWorkspaceMode(savedMode);
-    
-    if (savedMode === 'workspace') {
-      loadWorkspace();
-    }
+    // 始终默认为工作区模式
+    setWorkspaceMode('workspace');
+    localStorage.setItem(WORKSPACE_MODE_KEY, 'workspace');
+    loadWorkspace();
   }, [loadWorkspace]);
 
   return {
