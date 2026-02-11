@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [1.10.2] - 2026-02-11
+
+### Added
+
+- Add default templates for workspace mode: WPL parsing rules and OML transformation rules
+- WPL default template: `package /path/ { rule name { () } }`
+- OML default template: `name : /examplerule : /path/name/*\n---\n* = take();`
+
+### Changed
+
+- Optimize workspace initialization logic to default to workspace mode on page load
+- Improve user experience with ready-to-use rule templates
+
 ## [1.8.0-alpha] - 2026-01-29
 
 ### Changed

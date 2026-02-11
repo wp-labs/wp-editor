@@ -3,6 +3,19 @@
 本文件记录所有重要变更，格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，
 版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [1.10.2] - 2026-02-11
+
+### Added
+
+- 为工作区模式添加默认模板：WPL 解析规则和 OML 转换规则
+- WPL 默认模板：`package /path/ { rule name { () } }`
+- OML 默认模板：`name : /examplerule : /path/name/*\n---\n* = take();`
+
+### Changed
+
+- 优化工作区初始化逻辑，进入界面时默认选中工作区模式
+- 改进用户体验，提供开箱即用的规则模板
+
 ## [1.8.0-alpha] - 2026-01-29
 
 ### Changed
