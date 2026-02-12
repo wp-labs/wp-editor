@@ -6,6 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [1.11.0] - 2026-02-12
+
+### Added
+
+- Separate instance pools for Log/WPL/OML to avoid cross-impact
+- Typed default instance names with language-aware labels (Log/WPL/OML)
+- Workspace supports free combinations of multiple Logs, WPLs, and OMLs
+
+### Changed
+
+- Fully isolate Examples from Workspace to prevent data overwrite
+- Restore examples behavior: click to auto-fill and parse
+- Refine Log/WPL/OML header layouts for instance list + action buttons
+- Compact instance list visuals and delete icon for dense layouts
+- Align “Add Instance” button sizing with Log action buttons
+
 ## [1.10.2] - 2026-02-11
 
 ### Added
