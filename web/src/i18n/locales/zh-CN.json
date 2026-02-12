@@ -37,6 +37,22 @@
     "loading": "加载中...",
     "noData": "暂无数据"
   },
+  "multipleInstances": {
+    "addInstance": "添加实例",
+    "deleteInstance": "删除实例",
+    "renameInstance": "重命名实例",
+    "confirmDelete": "确定要删除这个实例吗？",
+    "deleteWarning": "删除后将无法恢复该实例的所有数据",
+    "maxInstancesReached": "已达到最大实例数量（10个）",
+    "defaultName": "实例 {{number}}",
+    "type": {
+      "log": "日志",
+      "wpl": "WPL",
+      "oml": "OML"
+    },
+    "storageError": "保存数据失败，请检查浏览器存储空间",
+    "dataCorrupted": "数据已损坏，已创建新的默认实例"
+  },
   "simulateDebug": {
     "tabs": {
       "parse": "解析",

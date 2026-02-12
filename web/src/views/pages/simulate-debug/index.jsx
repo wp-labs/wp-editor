@@ -13,6 +13,8 @@ import {
 } from '@/services/debug';
 import CodeEditor from '@/views/components/CodeEditor';
 import { useWorkspace } from '@/hooks/useWorkspace';
+import { useMultipleInstances, createDefaultInstance } from '@/hooks/useMultipleInstances';
+import InstanceSelector from '@/views/components/InstanceSelector';
 
 /**
  * Wp Editor
@@ -35,6 +37,52 @@ const DEFAULT_EXAMPLES = [
   },
 ];
 
+const buildTypedName = (i18nT, type, number) => {
+  const prefix = i18nT(`multipleInstances.type.${type}`);
+  const useNoSpace = type === 'log' && /[\u4e00-\u9fff]/.test(prefix);
+  const spacer = useNoSpace ? '' : ' ';
+  return `${prefix}${spacer}${number}`;
+};
+
+const shouldNormalizeTypedName = (name) => {
+  if (!name) return true;
+  if (name.includes('{number}') || name.includes('{{number}}')) return true;
+  if (/^(实例|Instance)\s*\d+$/.test(name)) return true;
+  if (/^(日志)\d+$/.test(name)) return true;
+  if (/^(log|wpl|oml)\s*\d+$/i.test(name)) return true;
+  return false;
+};
+
+const createLogInstance = (instanceNumber, i18nT) => {
+  const instance = createDefaultInstance(instanceNumber, i18nT);
+  return {
+    ...instance,
+    name: buildTypedName(i18nT, 'log', instanceNumber),
+    wpl: '',
+    oml: '',
+  };
+};
+
+const createWplInstance = (instanceNumber, i18nT) => {
+  const instance = createDefaultInstance(instanceNumber, i18nT);
+  return {
+    ...instance,
+    name: buildTypedName(i18nT, 'wpl', instanceNumber),
+    log: '',
+    oml: '',
+  };
+};
+
+const createOmlInstance = (instanceNumber, i18nT) => {
+  const instance = createDefaultInstance(instanceNumber, i18nT);
+  return {
+    ...instance,
+    name: buildTypedName(i18nT, 'oml', instanceNumber),
+    log: '',
+    wpl: '',
+  };
+};
+
 function SimulateDebugPage() {
   const { t } = useTranslation();
   
@@ -48,33 +96,137 @@ function SimulateDebugPage() {
     switchMode,
   } = useWorkspace();
   
+  // 多实例管理（日志/WPL/OML 分离）
+  const {
+    instances: logInstances,
+    activeInstanceIndex: activeLogIndex,
+    activeInstance: activeLogInstance,
+    addInstance: addLogInstance,
+    removeInstance: removeLogInstance,
+    switchInstance: switchLogInstance,
+    renameInstance: renameLogInstance,
+    updateActiveInstance: updateActiveLogInstance,
+    clearAllInstances: clearAllLogInstances,
+    saveToStorage: saveLogInstances,
+    restoreFromStorage: restoreLogInstances,
+  } = useMultipleInstances({
+    storageKey: 'warpparse_multiple_instances_log',
+    createDefaultInstance: createLogInstance,
+    normalizeName: (instance, index, i18nT) => (
+      shouldNormalizeTypedName(instance?.name) ? buildTypedName(i18nT, 'log', index + 1) : null
+    ),
+  });
+
+  const {
+    instances: wplInstances,
+    activeInstanceIndex: activeWplIndex,
+    activeInstance: activeWplInstance,
+    addInstance: addWplInstance,
+    removeInstance: removeWplInstance,
+    switchInstance: switchWplInstance,
+    renameInstance: renameWplInstance,
+    updateActiveInstance: updateActiveWplInstance,
+    clearAllInstances: clearAllWplInstances,
+    saveToStorage: saveWplInstances,
+    restoreFromStorage: restoreWplInstances,
+  } = useMultipleInstances({
+    storageKey: 'warpparse_multiple_instances_wpl',
+    createDefaultInstance: createWplInstance,
+    normalizeName: (instance, index, i18nT) => (
+      shouldNormalizeTypedName(instance?.name) ? buildTypedName(i18nT, 'wpl', index + 1) : null
+    ),
+  });
+
+  const {
+    instances: omlInstances,
+    activeInstanceIndex: activeOmlIndex,
+    activeInstance: activeOmlInstance,
+    addInstance: addOmlInstance,
+    removeInstance: removeOmlInstance,
+    switchInstance: switchOmlInstance,
+    renameInstance: renameOmlInstance,
+    updateActiveInstance: updateActiveOmlInstance,
+    clearAllInstances: clearAllOmlInstances,
+    saveToStorage: saveOmlInstances,
+    restoreFromStorage: restoreOmlInstances,
+  } = useMultipleInstances({
+    storageKey: 'warpparse_multiple_instances_oml',
+    createDefaultInstance: createOmlInstance,
+    normalizeName: (instance, index, i18nT) => (
+      shouldNormalizeTypedName(instance?.name) ? buildTypedName(i18nT, 'oml', index + 1) : null
+    ),
+  });
+  
   const [activeKey, setActiveKey] = useState('parse');
-  const [inputValue, setInputValue] = useState('');
-  const [ruleValue, setRuleValue] = useState('package /path/ {\n    rule name {\n        ()\n    }\n}');
-  const [result, setResult] = useState(null);
+  const isExamplesMode = workspaceMode === 'examples';
+  
+  // 示例区独立状态（避免污染工作区）
+  const [exampleLog, setExampleLog] = useState('');
+  const [exampleWpl, setExampleWpl] = useState('');
+  const [exampleOml, setExampleOml] = useState('');
+  const [exampleParseResult, setExampleParseResult] = useState(null);
+  const [exampleParseError, setExampleParseError] = useState(null);
+  const [exampleTransformParseResult, setExampleTransformParseResult] = useState(null);
+  const [exampleTransformResult, setExampleTransformResult] = useState(null);
+  const [exampleTransformError, setExampleTransformError] = useState(null);
+  const [exampleSelected, setExampleSelected] = useState(null);
+
+  // 从激活实例中提取数据（日志/WPL/OML 分离）
+  const inputValue = isExamplesMode ? exampleLog : activeLogInstance.log;
+  const setInputValue = (value) => (
+    isExamplesMode ? setExampleLog(value) : updateActiveLogInstance({ log: value })
+  );
+  const ruleValue = isExamplesMode ? exampleWpl : activeWplInstance.wpl;
+  const setRuleValue = (value) => (
+    isExamplesMode ? setExampleWpl(value) : updateActiveWplInstance({ wpl: value })
+  );
+  const result = isExamplesMode ? exampleParseResult : activeLogInstance.parseResult;
+  const setResult = (value) => (
+    isExamplesMode ? setExampleParseResult(value) : updateActiveLogInstance({ parseResult: value })
+  );
+  const parseError = isExamplesMode ? exampleParseError : activeLogInstance.parseError;
+  const setParseError = (value) => (
+    isExamplesMode ? setExampleParseError(value) : updateActiveLogInstance({ parseError: value })
+  );
+  const transformOml = isExamplesMode ? exampleOml : activeOmlInstance.oml;
+  const setTransformOml = (value) => (
+    isExamplesMode ? setExampleOml(value) : updateActiveOmlInstance({ oml: value })
+  );
+  const transformParseResult = isExamplesMode ? exampleTransformParseResult : activeLogInstance.transformParseResult;
+  const setTransformParseResult = (value) => (
+    isExamplesMode
+      ? setExampleTransformParseResult(value)
+      : updateActiveLogInstance({ transformParseResult: value })
+  );
+  const transformResult = isExamplesMode ? exampleTransformResult : activeOmlInstance.transformResult;
+  const setTransformResult = (value) => (
+    isExamplesMode ? setExampleTransformResult(value) : updateActiveOmlInstance({ transformResult: value })
+  );
+  const transformError = isExamplesMode ? exampleTransformError : activeOmlInstance.transformError;
+  const setTransformError = (value) => (
+    isExamplesMode ? setExampleTransformError(value) : updateActiveOmlInstance({ transformError: value })
+  );
+  const selectedExample = isExamplesMode ? exampleSelected : activeLogInstance.selectedExample;
+  const setSelectedExample = (value) => (
+    isExamplesMode ? setExampleSelected(value) : updateActiveLogInstance({ selectedExample: value })
+  );
+  
   const [loading, setLoading] = useState(false);
   const [viewMode, setViewMode] = useState('table');
   // 解析页“显示空值”开关
   const [showEmpty, setShowEmpty] = useState(true);
 
-  // 解析错误状态
-  const [parseError, setParseError] = useState(null);
 
   // 转换相关状态
-  const [transformOml, setTransformOml] = useState('name : /example \nrule : /path/name/*\n---\n* = take();');
-  const [transformParseResult, setTransformParseResult] = useState(null);
-  const [transformResult, setTransformResult] = useState(null);
   const [transformParseViewMode, setTransformParseViewMode] = useState('table');
   const [transformResultViewMode, setTransformResultViewMode] = useState('table');
   // 转换页"显示空值"开关（转换结果）
   const [transformResultShowEmpty, setTransformResultShowEmpty] = useState(true);
   // 转换页"显示空值"开关（解析结果）
   const [transformParseShowEmpty, setTransformParseShowEmpty] = useState(true);
-  // 转换错误状态
-  const [transformError, setTransformError] = useState(null);
+  
   // 示例列表状态
   const [examples, setExamples] = useState(DEFAULT_EXAMPLES);
-  const [selectedExample, setSelectedExample] = useState(null); // 当前选中的示例
   const examplesOpen = true;
   const [examplesLoading, setExamplesLoading] = useState(false);
   const [examplesLoaded, setExamplesLoaded] = useState(false);
@@ -158,20 +310,18 @@ function SimulateDebugPage() {
   // 监听输入变化，在工作区模式下更新工作区数据
   useEffect(() => {
     if (workspaceMode === 'workspace') {
+      // 保存所有实例到工作区
       updateWorkspace({
-        log: inputValue,
-        wpl: ruleValue,
-        oml: transformOml,
-        parseResult: result,
-        parseError: parseError,
-        transformParseResult: transformParseResult,
-        transformResult: transformResult,
-        transformError: transformError,
-        selectedExample: selectedExample,
+        logInstances: logInstances,
+        logActiveIndex: activeLogIndex,
+        wplInstances: wplInstances,
+        wplActiveIndex: activeWplIndex,
+        omlInstances: omlInstances,
+        omlActiveIndex: activeOmlIndex,
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [inputValue, ruleValue, transformOml, result, parseError, transformParseResult, transformResult, transformError, selectedExample, workspaceMode]);
+  }, [logInstances, activeLogIndex, wplInstances, activeWplIndex, omlInstances, activeOmlIndex, workspaceMode]);
 
   // 页面加载后默认展开示例并尝试拉取
   useEffect(() => {
@@ -186,28 +336,28 @@ function SimulateDebugPage() {
     if (!exampleItem) return;
     const { sample_data: sampleData, wpl_code: wplCode, oml_code: omlCode } = exampleItem;
     
-    setInputValue(sampleData || '');
-    setRuleValue(wplCode || '');
-    setTransformOml(omlCode || '');
-    setSelectedExample(exampleItem.name); // 更新选中的示例
+    setExampleLog(sampleData || '');
+    setExampleWpl(wplCode || '');
+    setExampleOml(omlCode || '');
+    setExampleSelected(exampleItem.name); // 更新选中的示例
 
     if (!sampleData || !wplCode) {
       return;
     }
 
     setLoading(true);
-    setParseError(null);
+    setExampleParseError(null);
     try {
       const response = await parseLogs({
         logs: sampleData,
         rules: wplCode,
       });
-      setResult(response);
+      setExampleParseResult(response);
       if (response?.fields && response?.rawFields) {
-        setTransformParseResult({ fields: response.rawFields, formatJson: response.formatJson });
+        setExampleTransformParseResult({ fields: response.rawFields, formatJson: response.formatJson });
       }
     } catch (error) {
-      setParseError(error);
+      setExampleParseError(error);
     } finally {
       setLoading(false);
     }
@@ -218,18 +368,23 @@ function SimulateDebugPage() {
    * 清空解析和转换的所有输入和结果
    */
   const handleClear = () => {
-    // 清空解析页面
-    setInputValue('');
-    setRuleValue('');
-    setResult(null);
-    setParseError(null);
-    // 清空转换页面
-    setTransformOml('');
-    setTransformParseResult(null);
-    setTransformResult(null);
-    setTransformError(null);
-    // 清空选中示例状态
-    setSelectedExample(null);
+    if (workspaceMode === 'examples') {
+      setExampleLog('');
+      setExampleWpl('');
+      setExampleOml('');
+      setExampleParseResult(null);
+      setExampleParseError(null);
+      setExampleTransformParseResult(null);
+      setExampleTransformResult(null);
+      setExampleTransformError(null);
+      setExampleSelected(null);
+      return;
+    }
+
+    // 使用 clearAllInstances 清空所有实例
+    clearAllLogInstances();
+    clearAllWplInstances();
+    clearAllOmlInstances();
     
     // 如果在工作区模式，也清空工作区数据（包括解析结果）
     if (workspaceMode === 'workspace') {
@@ -241,54 +396,38 @@ function SimulateDebugPage() {
    * 切换工作区/示例区
    */
   const handleSwitchMode = (mode) => {
+    if (workspaceMode === 'workspace' && mode === 'examples') {
+      saveLogInstances();
+      saveWplInstances();
+      saveOmlInstances();
+    }
+
+    // 保存所有实例数据
     const currentData = {
-      log: inputValue,
-      wpl: ruleValue,
-      oml: transformOml,
-      // 保存解析结果
-      parseResult: result,
-      parseError: parseError,
-      // 保存转换结果
-      transformParseResult: transformParseResult,
-      transformResult: transformResult,
-      transformError: transformError,
-      // 保存其他状态
-      selectedExample: selectedExample,
+      logInstances: logInstances,
+      logActiveIndex: activeLogIndex,
+      wplInstances: wplInstances,
+      wplActiveIndex: activeWplIndex,
+      omlInstances: omlInstances,
+      omlActiveIndex: activeOmlIndex,
     };
     
     const loadedData = switchMode(mode, currentData);
     
+    if (mode === 'workspace') {
+      restoreLogInstances();
+      restoreWplInstances();
+      restoreOmlInstances();
+    }
+
     if (mode === 'workspace' && loadedData) {
-      // 切换回工作区，加载保存的数据
-      setInputValue(loadedData.log || '');
-      setRuleValue(loadedData.wpl || '');
-      setTransformOml(loadedData.oml || '');
-      
-      // 恢复解析结果
-      setResult(loadedData.parseResult || null);
-      setParseError(loadedData.parseError || null);
-      
-      // 恢复转换结果
-      setTransformParseResult(loadedData.transformParseResult || null);
-      setTransformResult(loadedData.transformResult || null);
-      setTransformError(loadedData.transformError || null);
-      
-      // 恢复其他状态
-      setSelectedExample(loadedData.selectedExample || null);
-      
-      // 根据是否有解析结果显示不同提示
-      const hasResults = loadedData.parseResult || loadedData.transformResult;
-      message.success(hasResults 
-        ? t('simulateDebug.workspace.loadSuccessWithResults')
-        : t('simulateDebug.workspace.loadSuccess')
-      );
+      // 切换回工作区，恢复所有实例
+      // 注意：实例数据已经通过 useMultipleInstances 持久化到 localStorage
+      // 这里只需要显示提示消息
+      message.success(t('simulateDebug.workspace.loadSuccess'));
     } else if (mode === 'examples') {
       // 切换到示例区
-      const hasResults = result || transformResult;
-      message.success(hasResults 
-        ? t('simulateDebug.workspace.autoSavedWithResults')
-        : t('simulateDebug.workspace.autoSaved')
-      );
+      message.success(t('simulateDebug.workspace.autoSaved'));
     }
   };
 
@@ -677,40 +816,64 @@ function SimulateDebugPage() {
             {activeKey === 'parse' && (
               <>
                 <div className="panel-block">
-                  <div className="block-header">
-                    <div>
+                  <div className="block-header" style={{ flexWrap: 'nowrap', alignItems: 'center' }}>
+                    <div style={{ minWidth: 0, flex: 1 }}>
                       <h3>{t('simulateDebug.logData.title')}</h3>
                       <p className="block-desc">{t('simulateDebug.logData.desc')}</p>
                     </div>
                     <div
                       className="block-actions"
-                      style={{ flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}
+                      style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'nowrap', minWidth: 0 }}
                     >
-                      <div style={{ display: 'flex', gap: 8 }}>
-                        <button type="button" className="btn ghost" onClick={handleBase64Decode}>
-                          {t('simulateDebug.logData.base64Decode')}
-                        </button>
-                        <button type="button" className="btn ghost" onClick={handleClear}>
-                          {t('simulateDebug.logData.clearAll')}
-                        </button>
-                      </div>
+                      {workspaceMode === 'workspace' && (
+                        <InstanceSelector
+                          instances={logInstances}
+                          activeIndex={activeLogIndex}
+                          maxInstances={10}
+                          onSwitch={switchLogInstance}
+                          onAdd={addLogInstance}
+                          onRemove={removeLogInstance}
+                          onRename={renameLogInstance}
+                          inline
+                        />
+                      )}
+                      <button type="button" className="btn ghost" onClick={handleBase64Decode}>
+                        {t('simulateDebug.logData.base64Decode')}
+                      </button>
+                      <button type="button" className="btn ghost" onClick={handleClear}>
+                        {t('simulateDebug.logData.clearAll')}
+                      </button>
                     </div>
                   </div>
-                  <CodeEditor
-                    className="code-area"
-                    language="json"
-                    theme="vscodeDark"
-                    value={inputValue}
-                    onChange={value => setInputValue(value)}
-                  />
+                <CodeEditor
+                  key={`log-${workspaceMode}-${activeLogInstance?.id || activeLogIndex}`}
+                  className="code-area"
+                  language="json"
+                  theme="vscodeDark"
+                  value={inputValue}
+                  onChange={value => setInputValue(value)}
+                />
                 </div>
 
                 <div className="split-layout">
                   <div className="split-col">
                     <div className="panel-block panel-block--fill">
-                      <div className="block-header">
-                        <h3>{t('simulateDebug.parseRule.title')}</h3>
-                        <div className="block-actions">
+                      <div className="block-header" style={{ flexWrap: 'nowrap', alignItems: 'center' }}>
+                        <h3 style={{ minWidth: 0, flex: 1 }}>{t('simulateDebug.parseRule.title')}</h3>
+                        <div className="block-actions" style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'nowrap', minWidth: 0 }}>
+                          {workspaceMode === 'workspace' && (
+                            <InstanceSelector
+                              instances={wplInstances}
+                              activeIndex={activeWplIndex}
+                              maxInstances={10}
+                              onSwitch={switchWplInstance}
+                              onAdd={addWplInstance}
+                              onRemove={removeWplInstance}
+                              onRename={renameWplInstance}
+                              inline
+                              inlineMaxWidth="400px"
+                            />
+                          )}
                           <button type="button" className="btn ghost" onClick={wplFormat}>
                             {t('simulateDebug.parseRule.format')}
                           </button>
@@ -726,12 +889,13 @@ function SimulateDebugPage() {
                           </button>
                         </div>
                       </div>
-                      <CodeEditor
-                        className="code-area code-area--large"
-                        language="wpl"
-                        value={ruleValue}
-                        onChange={value => setRuleValue(value)}
-                      />
+                    <CodeEditor
+                      key={`wpl-${workspaceMode}-${activeWplInstance?.id || activeWplIndex}`}
+                      className="code-area code-area--large"
+                      language="wpl"
+                      value={ruleValue}
+                      onChange={value => setRuleValue(value)}
+                    />
                     </div>
                   </div>
 
@@ -832,12 +996,25 @@ function SimulateDebugPage() {
               <div className="split-layout transform-layout">
                 <div className="split-col transform-col">
                   <div className="panel-block panel-block--stretch panel-block--fill">
-                    <div className="block-header">
-                      <div>
+                    <div className="block-header" style={{ flexWrap: 'nowrap', alignItems: 'center' }}>
+                      <div style={{ minWidth: 0, flex: 1 }}>
                         <h3>{t('simulateDebug.omlInput.title')}</h3>
                         <p className="block-desc">{t('simulateDebug.omlInput.desc')}</p>
                       </div>
-                      <div className="block-actions">
+                      <div className="block-actions" style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'nowrap', minWidth: 0 }}>
+                        {workspaceMode === 'workspace' && (
+                          <InstanceSelector
+                            instances={omlInstances}
+                            activeIndex={activeOmlIndex}
+                            maxInstances={10}
+                            onSwitch={switchOmlInstance}
+                            onAdd={addOmlInstance}
+                            onRemove={removeOmlInstance}
+                            onRename={renameOmlInstance}
+                            inline
+                            inlineMaxWidth="400px"
+                          />
+                        )}
                         <button type="button" className="btn primary" onClick={omlFormat}>
                           {t('simulateDebug.omlInput.format')}
                         </button>
@@ -861,6 +1038,7 @@ function SimulateDebugPage() {
                       </div>
                     </div>
                     <CodeEditor
+                      key={`oml-${workspaceMode}-${activeOmlInstance?.id || activeOmlIndex}`}
                       className="code-area code-area--large"
                       language="oml"
                       value={transformOml}

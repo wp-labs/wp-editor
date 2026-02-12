@@ -37,6 +37,22 @@
     "loading": "Loading...",
     "noData": "No Data"
   },
+  "multipleInstances": {
+    "addInstance": "Add Instance",
+    "deleteInstance": "Delete Instance",
+    "renameInstance": "Rename Instance",
+    "confirmDelete": "Are you sure you want to delete this instance?",
+    "deleteWarning": "All data in this instance will be permanently lost",
+    "maxInstancesReached": "Maximum number of instances reached (10)",
+    "defaultName": "Instance {{number}}",
+    "type": {
+      "log": "Log",
+      "wpl": "WPL",
+      "oml": "OML"
+    },
+    "storageError": "Failed to save data, please check browser storage space",
+    "dataCorrupted": "Data corrupted, created new default instance"
+  },
   "simulateDebug": {
     "tabs": {
       "parse": "Parse",

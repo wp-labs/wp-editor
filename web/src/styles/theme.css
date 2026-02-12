@@ -2215,7 +2215,7 @@ mark.diff-highlight {
 
 .example-list__item {
   width: 100%;
-  padding: 10px 12px;
+  padding: 6px 8px;
   border: none;
   border-radius: 12px;
   background: transparent;
@@ -2223,7 +2223,8 @@ mark.diff-highlight {
   color: var(--muted);
   cursor: pointer;
   transition: all 0.2s ease;
-  font-size: 14px;
+  font-size: 12px;
+  line-height: 1.2;
   font-family: 'PingFang SC', 'Microsoft YaHei', 'Segoe UI', sans-serif;
 }
 
@@ -2239,6 +2240,7 @@ mark.diff-highlight {
   color: var(--primary);
   font-weight: 500;
 }
+
 
 .example-list__message {
   color: #666;
