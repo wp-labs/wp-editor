@@ -19,15 +19,19 @@ vi.mock('react-i18next', () => ({
   }),
 }));
 
-// Mock antd Modal
+// Mock antd App.useApp -> modal.confirm
 vi.mock('antd', async () => {
   const actual = await vi.importActual('antd');
   return {
     ...actual,
-    Modal: {
-      confirm: vi.fn(({ onOk }) => {
-        // Simulate immediate confirmation for testing
-        if (onOk) onOk();
+    App: {
+      useApp: () => ({
+        modal: {
+          confirm: vi.fn(({ onOk }) => {
+            // Simulate immediate confirmation for testing
+            if (onOk) onOk();
+          }),
+        },
       }),
     },
   };

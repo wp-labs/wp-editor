@@ -817,14 +817,8 @@ function SimulateDebugPage() {
               <>
                 <div className="panel-block">
                   <div className="block-header" style={{ flexWrap: 'nowrap', alignItems: 'center' }}>
-                    <div style={{ minWidth: 0, flex: 1 }}>
+                    <div style={{ minWidth: 0, flex: 1, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                       <h3>{t('simulateDebug.logData.title')}</h3>
-                      <p className="block-desc">{t('simulateDebug.logData.desc')}</p>
-                    </div>
-                    <div
-                      className="block-actions"
-                      style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'nowrap', minWidth: 0 }}
-                    >
                       {workspaceMode === 'workspace' && (
                         <InstanceSelector
                           instances={logInstances}
@@ -835,7 +829,27 @@ function SimulateDebugPage() {
                           onRemove={removeLogInstance}
                           onRename={renameLogInstance}
                           inline
+                          showAddButton={false}
+                          collapseThreshold={6}
                         />
+                      )}
+                    </div>
+                    <div
+                      className="block-actions"
+                      style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'nowrap', minWidth: 0 }}
+                    >
+                      {workspaceMode === 'workspace' && (
+                        <button
+                          type="button"
+                          className="btn primary"
+                          onClick={addLogInstance}
+                          disabled={logInstances.length >= 10}
+                          title={logInstances.length >= 10
+                            ? t('multipleInstances.maxInstancesReached')
+                            : t('multipleInstances.addInstance')}
+                        >
+                          {t('multipleInstances.addInstance')}
+                        </button>
                       )}
                       <button type="button" className="btn ghost" onClick={handleBase64Decode}>
                         {t('simulateDebug.logData.base64Decode')}
@@ -859,8 +873,8 @@ function SimulateDebugPage() {
                   <div className="split-col">
                     <div className="panel-block panel-block--fill">
                       <div className="block-header" style={{ flexWrap: 'nowrap', alignItems: 'center' }}>
-                        <h3 style={{ minWidth: 0, flex: 1 }}>{t('simulateDebug.parseRule.title')}</h3>
-                        <div className="block-actions" style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'nowrap', minWidth: 0 }}>
+                        <div style={{ minWidth: 0, flex: 1, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                          <h3>{t('simulateDebug.parseRule.title')}</h3>
                           {workspaceMode === 'workspace' && (
                             <InstanceSelector
                               instances={wplInstances}
@@ -872,7 +886,24 @@ function SimulateDebugPage() {
                               onRename={renameWplInstance}
                               inline
                               inlineMaxWidth="400px"
+                              showAddButton={false}
+                              collapseThreshold={6}
                             />
+                          )}
+                        </div>
+                        <div className="block-actions" style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'nowrap', minWidth: 0 }}>
+                          {workspaceMode === 'workspace' && (
+                            <button
+                              type="button"
+                              className="btn primary"
+                              onClick={addWplInstance}
+                              disabled={wplInstances.length >= 10}
+                              title={wplInstances.length >= 10
+                                ? t('multipleInstances.maxInstancesReached')
+                                : t('multipleInstances.addInstance')}
+                            >
+                              {t('multipleInstances.addInstance')}
+                            </button>
                           )}
                           <button type="button" className="btn ghost" onClick={wplFormat}>
                             {t('simulateDebug.parseRule.format')}
@@ -997,11 +1028,8 @@ function SimulateDebugPage() {
                 <div className="split-col transform-col">
                   <div className="panel-block panel-block--stretch panel-block--fill">
                     <div className="block-header" style={{ flexWrap: 'nowrap', alignItems: 'center' }}>
-                      <div style={{ minWidth: 0, flex: 1 }}>
+                      <div style={{ minWidth: 0, flex: 1, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                         <h3>{t('simulateDebug.omlInput.title')}</h3>
-                        <p className="block-desc">{t('simulateDebug.omlInput.desc')}</p>
-                      </div>
-                      <div className="block-actions" style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'nowrap', minWidth: 0 }}>
                         {workspaceMode === 'workspace' && (
                           <InstanceSelector
                             instances={omlInstances}
@@ -1013,7 +1041,24 @@ function SimulateDebugPage() {
                             onRename={renameOmlInstance}
                             inline
                             inlineMaxWidth="400px"
+                            showAddButton={false}
+                            collapseThreshold={6}
                           />
+                        )}
+                      </div>
+                      <div className="block-actions" style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'nowrap', minWidth: 0 }}>
+                        {workspaceMode === 'workspace' && (
+                          <button
+                            type="button"
+                            className="btn primary"
+                            onClick={addOmlInstance}
+                            disabled={omlInstances.length >= 10}
+                            title={omlInstances.length >= 10
+                              ? t('multipleInstances.maxInstancesReached')
+                              : t('multipleInstances.addInstance')}
+                          >
+                            {t('multipleInstances.addInstance')}
+                          </button>
                         )}
                         <button type="button" className="btn primary" onClick={omlFormat}>
                           {t('simulateDebug.omlInput.format')}

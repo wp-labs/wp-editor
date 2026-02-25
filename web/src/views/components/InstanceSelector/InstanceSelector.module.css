@@ -181,6 +181,67 @@
   flex-shrink: 0;
 }
 
+.inlineSelect {
+  min-width: 140px;
+}
+
+.inlineWrap {
+  position: relative;
+  min-width: 0;
+  flex: 1 1 0;
+}
+
+.measureList {
+  position: absolute;
+  visibility: hidden;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.dropdownList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px 8px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.dropdownItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.dropdownItem:hover {
+  background-color: #f5f5f5;
+}
+
+.dropdownItem .deleteButton {
+  opacity: 0.9;
+}
+
+.editButton {
+  font-size: 12px;
+  color: #8c8c8c;
+  padding: 2px;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.editButton:hover {
+  color: #1890ff;
+  background-color: rgba(24, 144, 255, 0.1);
+}
+
 .inlineAddButton:disabled {
   opacity: 0.6;
   cursor: not-allowed;

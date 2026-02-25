@@ -8,7 +8,7 @@
     "helpCenter": "Help Center",
     "version": {
       "wpEditor": "wp-editor",
-      "warpEngine": "warp-engine",
+      "warpEngine": "wp-motor",
       "warpParse": "warp-parse"
     }
   },
@@ -76,7 +76,6 @@
     },
     "logData": {
       "title": "Log Data",
-      "desc": "Paste raw logs collected in real-time, supports text and file import.",
       "base64Decode": "Base64 Decode",
       "clearAll": "Clear All",
       "base64Error": "Base64 decode failed"
@@ -101,7 +100,6 @@
     },
     "omlInput": {
       "title": "OML Input",
-      "desc": "Complete conversion logic based on parse results.",
       "format": "Format",
       "convert": "Convert",
       "converting": "Converting...",

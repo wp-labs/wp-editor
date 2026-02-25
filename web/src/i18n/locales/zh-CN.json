@@ -8,7 +8,7 @@
     "helpCenter": "帮助中心",
     "version": {
       "wpEditor": "wp-editor",
-      "warpEngine": "warp-engine",
+      "warpEngine": "wp-motor",
       "warpParse": "warp-parse"
     }
   },
@@ -76,7 +76,6 @@
     },
     "logData": {
       "title": "日志数据",
-      "desc": "粘贴实时采集的原始日志，支持文本与文件导入。",
       "base64Decode": "base64解码",
       "clearAll": "一键清空",
       "base64Error": "Base64解码失败"
@@ -101,7 +100,6 @@
     },
     "omlInput": {
       "title": "OML 输入",
-      "desc": "根据解析结果补齐转换逻辑。",
       "format": "格式化",
       "convert": "转换",
       "converting": "转换中...",

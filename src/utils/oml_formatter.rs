@@ -1,5 +1,6 @@
 /// OML 代码格式化器：保持语义不变，统一缩进/空行/行内空格与属性折叠。
 pub struct OmlFormatter {
+    /// 每级缩进的空格数。
     indent: usize,
 }
 
@@ -15,15 +16,19 @@ impl OmlFormatter {
         Self { indent: 4 }
     }
 
+    /// 对外入口：格式化失败时回退为原内容，保证调用方不崩溃。
     pub fn format_content(&self, content: &str) -> String {
         self.format(content).unwrap_or_else(|_| content.to_string())
     }
 
+    /// 主格式化流程：分离头部/主体、规整头部属性，再格式化主体。
     fn format(&self, content: &str) -> Result<String, ()> {
+        // 统一换行符，避免不同平台的 CRLF/CR 影响解析逻辑。
         let normalized = content.replace("\r\n", "\n").replace('\r', "\n");
+        // 将制表符转换为空格，确保缩进宽度一致。
         let normalized = normalized.replace('\t', &" ".repeat(self.indent));
 
-        // 分离头部与主体
+        // 分离头部与主体（用 `---` 作为分隔符）
         let mut header = Vec::new();
         let mut body_lines: Vec<String> = Vec::new();
         let mut had_sep = false;
@@ -34,19 +39,23 @@ impl OmlFormatter {
                 had_sep = true;
                 break;
             }
+            // 头部允许多行属性块，需整体收集后再处理。
             if trimmed.starts_with("#[") {
                 header.push(collect_attr_block_lines(trimmed, &mut lines));
                 continue;
             }
+            // 忽略头部空行，避免无效噪音影响后续输出。
             if !trimmed.is_empty() {
                 header.push(trimmed.to_string());
             }
         }
         if had_sep {
+            // 存在分隔符：分隔符之后全部作为主体保留。
             for line in lines {
                 body_lines.push(line.to_string());
             }
         } else {
+            // 不存在分隔符：视为只有主体，头部清空。
             body_lines = normalized.lines().map(|l| l.to_string()).collect();
             header.clear();
         }
@@ -57,6 +66,7 @@ impl OmlFormatter {
         while idx < header.len() {
             let line = &header[idx];
             if line.trim_start().starts_with("#[") {
+                // 头部属性块统一折叠为单行。
                 out.push_str(&format_attribute(line));
                 out.push('\n');
                 idx += 1;
@@ -65,6 +75,7 @@ impl OmlFormatter {
             if let Some((k, v)) = line.split_once(':') {
                 let key = k.trim_end();
                 let val = v.trim_start();
+                // 处理 "key:" + 多行值的场景：将后续连续值行缩进输出。
                 if val.is_empty() && idx + 1 < header.len() {
                     let next = &header[idx + 1];
                     if !next.contains(':') {
@@ -83,8 +94,10 @@ impl OmlFormatter {
                         continue;
                     }
                 }
+                // 常规 "key: value" 形式：规范化冒号两侧空格。
                 out.push_str(&format!("{} : {}\n", key, val));
             } else {
+                // 非键值行直接输出（去除首尾空白）。
                 out.push_str(line.trim());
                 out.push('\n');
             }
@@ -93,10 +106,13 @@ impl OmlFormatter {
         let mut body_formatted = self.format_body(&body_lines.join("\n"));
 
         if had_sep || !header.is_empty() {
+            // 头部与主体之间强制插入分隔符。
             out.push_str("---\n");
             if !body_formatted.trim().is_empty() {
+                // 主体存在内容时，再插入一个空行提升可读性。
                 out.push('\n');
             }
+            // 清理主体开头多余空行，保证分隔符后最多一个空行。
             while body_formatted.starts_with('\n') {
                 body_formatted.remove(0);
             }
@@ -112,21 +128,27 @@ impl OmlFormatter {
         Ok(out)
     }
 
+    /// 主体格式化：空白收敛、语句/块缩进、属性/注释/字符串特殊处理。
     fn format_body(&self, body: &str) -> String {
         let mut out = String::new();
         let mut chars = body.chars().peekable();
         let mut indent = 0usize;
         let indent_unit = " ".repeat(self.indent);
         let mut start_of_line = true;
+        // 延迟处理换行：允许根据后续 token 决定是否换行/空行。
         let mut pending_newlines = 0usize;
+        // 记录是否刚处理过 '='，用于控制等号后保持同一行。
         let mut after_eq = false;
+        // 需要“原样保留”的函数列表（内部内容不做分号/管道拆分）。
         const RAW_FUNCS: &[&str] = &["chars"];
 
         while let Some(ch) = chars.next() {
             if ch.is_whitespace() {
                 if ch == '\n' {
+                    // 收集换行数量，稍后统一处理。
                     pending_newlines += 1;
                 } else if !start_of_line && !out.ends_with(' ') && !out.ends_with('\n') {
+                    // 行内多空白折叠为一个空格。
                     out.push(' ');
                 }
                 continue;
@@ -153,6 +175,7 @@ impl OmlFormatter {
                     }
                     start_of_line = false;
                 } else {
+                    // 其他情况：1 个换行为软换行；多个换行为一个空行。
                     let count = if pending_newlines > 1 { 2 } else { 1 };
                     if count == 1 {
                         if !out.ends_with('\n') {
@@ -198,6 +221,7 @@ impl OmlFormatter {
                 if indent > 0 {
                     out.push_str(&indent_unit.repeat(indent));
                 }
+                // 将属性块压缩为单行输出。
                 out.push_str(&format_attribute(&collect_attr_block("#[", &mut chars)));
                 out.push('\n');
                 start_of_line = true;
@@ -217,6 +241,7 @@ impl OmlFormatter {
                     } else if c == '\\' {
                         escaped = true;
                     } else if c == '"' {
+                        // 直到遇到未转义的引号才结束字符串。
                         break;
                     }
                 }
@@ -231,6 +256,7 @@ impl OmlFormatter {
                 if !start_of_line && !out.ends_with(' ') && !out.ends_with('\n') {
                     out.push(' ');
                 }
+                // 保证 `=>` 两侧空格一致。
                 out.push_str("=>");
                 chars.next();
                 out.push(' ');
@@ -247,6 +273,7 @@ impl OmlFormatter {
                 out.push('=');
                 out.push(' ');
                 start_of_line = false;
+                // 标记等号后第一个 token，避免被换行切断。
                 after_eq = true;
                 continue;
             }
@@ -280,6 +307,7 @@ impl OmlFormatter {
                     clone_iter.next();
                 }
                 if matches!(clone_iter.next(), Some('}')) {
+                    // 空块 `{}` 直接合并为单行输出。
                     self.write_indent_if_needed(start_of_line, indent, &indent_unit, &mut out);
                     out.push_str("{}");
                     while let Some(c) = chars.peek() {
@@ -292,6 +320,7 @@ impl OmlFormatter {
                     chars.next(); // consume '}'
                     start_of_line = false;
                 } else {
+                    // 非空块：换行并提升缩进层级。
                     self.write_indent_if_needed(start_of_line, indent, &indent_unit, &mut out);
                     out.push('{');
                     out.push('\n');
@@ -304,6 +333,7 @@ impl OmlFormatter {
             // 右花括号
             if ch == '}' {
                 after_eq = false;
+                // 闭合块时先降低缩进层级。
                 indent = indent.saturating_sub(1);
                 if !start_of_line {
                     out.push('\n');
@@ -335,6 +365,7 @@ impl OmlFormatter {
             // 语句结束
             if ch == ';' {
                 after_eq = false;
+                // 移除语句前多余空格/换行，使分号紧贴最后一个 token。
                 while matches!(out.chars().last(), Some(' ' | '\n')) {
                     out.pop();
                 }
@@ -358,6 +389,7 @@ impl OmlFormatter {
         res
     }
 
+    /// 在行首按需写入缩进。
     fn write_indent_if_needed(
         &self,
         start_of_line: bool,
@@ -379,6 +411,7 @@ where
     let mut buf = String::new();
     buf.push_str(start_line);
     buf.push('\n');
+    // 通过括号深度判断属性块是否结束，避免在字符串内误判。
     let mut depth = start_line.matches('[').count() as i32 - start_line.matches(']').count() as i32;
     let mut in_str = false;
     let mut escaped = false;
@@ -420,6 +453,7 @@ where
     T: Iterator<Item = char>,
 {
     let mut buf = String::from(start);
+    // 用深度计数定位成对的 `[` `]`，允许嵌套属性。
     let mut depth = start.chars().filter(|c| *c == '[').count() as i32;
     let mut in_str = false;
     let mut escaped = false;
@@ -453,6 +487,7 @@ where
 /// 将属性块压缩为单行，保持键值顺序
 fn format_attribute(raw: &str) -> String {
     let inner = raw.trim().trim_start_matches("#[").trim_end_matches(']');
+    // 先按顶层逗号拆分属性项，忽略字符串/嵌套括号中的逗号。
     let items = split_top_level(inner, ',');
     let mut parts = Vec::new();
 
@@ -467,6 +502,7 @@ fn format_attribute(raw: &str) -> String {
                 if let Some((k, v)) = arg_clean.split_once(':') {
                     let k = k.trim();
                     let v = v.trim();
+                    // tag(...) 的键值对在冒号后保留空格，其它属性紧凑输出。
                     if name.trim() == "tag" {
                         arg_parts.push(format!("{}: {}", k, v));
                     } else {
@@ -476,12 +512,14 @@ fn format_attribute(raw: &str) -> String {
                     arg_parts.push(arg_clean);
                 }
             }
+            // 函数式属性：收敛为 `name(arg1,arg2)` 的紧凑形式。
             parts.push(format!("{}({})", name.trim(), arg_parts.join(",")));
         } else if !trimmed.is_empty() {
             parts.push(trimmed.to_string());
         }
     }
 
+    // 最终输出为单行属性块。
     format!("#[{}]", parts.join(",")).replace('\n', "")
 }
 
@@ -517,6 +555,7 @@ fn split_top_level(input: &str, delim: char) -> Vec<String> {
                 buf.push(ch);
             }
             _ if ch == delim && depth == 0 && !in_str => {
+                // 仅在顶层分隔符处切分，避免破坏嵌套结构。
                 res.push(buf.trim().to_string());
                 buf.clear();
             }
@@ -529,6 +568,7 @@ fn split_top_level(input: &str, delim: char) -> Vec<String> {
     res
 }
 
+/// 将多余空白收敛为单空格，并去除首尾空白。
 fn collapse_ws(s: &str) -> String {
     let mut out = String::new();
     let mut prev_space = false;
@@ -557,6 +597,7 @@ fn collapse_blank_lines(text: &str) -> String {
             continue;
         }
         last_blank = blank;
+        // 保持行尾无多余空白，统一补回 '\n' 便于后续拼接。
         result.push_str(line.trim_end());
         result.push('\n');
     }
@@ -570,6 +611,7 @@ fn starts_with_raw_func(
     iter: &std::iter::Peekable<std::str::Chars<'_>>,
     names: &[&str],
 ) -> Option<usize> {
+    // 预读一定长度的字符，快速匹配候选函数名。
     let max_len = names.iter().map(|n| n.len() + 1).max().unwrap_or(0);
     let mut buf = String::new();
     buf.push(first);
@@ -629,6 +671,7 @@ fn read_raw_func_block(
         } else if c == ')' {
             depth -= 1;
             if depth == 0 && seen_func {
+                // 读取到首层闭合，返回完整函数块。
                 return Some(out);
             }
         }

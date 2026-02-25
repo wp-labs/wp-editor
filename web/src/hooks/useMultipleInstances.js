@@ -225,7 +225,18 @@ export function useMultipleInstances(options = {}) {
   });
 
   useEffect(() => {
-    setInstances(prev => normalizeInstances(prev));
+    setInstances((prev) => {
+      const next = normalizeInstances(prev);
+      if (next.length !== prev.length) {
+        return next;
+      }
+      for (let i = 0; i < next.length; i += 1) {
+        if (next[i] !== prev[i]) {
+          return next;
+        }
+      }
+      return prev;
+    });
   }, [normalizeInstances]);
 
   const [activeInstanceIndex, setActiveInstanceIndex] = useState(() => {
