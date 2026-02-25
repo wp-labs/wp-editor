@@ -12,7 +12,7 @@ const LANGUAGE_DEFINITIONS = {
       'and', 'or', 'not',
       'name', 'rule'
     ],
-    types: ['auto', 'chars', 'digit', 'obj', 'array'],
+    types: ['auto', 'chars', 'digit', 'float', 'time', 'bool', 'ip', 'obj', 'array'],
     functions: [
       'read',
       'take',
@@ -37,6 +37,11 @@ const LANGUAGE_DEFINITIONS = {
       'get',
       'path',
       'url',
+      'starts_with',
+      'map_to',
+      'str_unescape',
+      'extract_main_word',
+      'extract_subject_object',
       'skip_empty',
     ],
     privacyTypes: [],
