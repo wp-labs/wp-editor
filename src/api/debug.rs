@@ -173,15 +173,33 @@ pub async fn debug_examples() -> HttpResponse {
 #[post("/api/debug/wpl/format")]
 pub async fn wpl_format(req: String) -> HttpResponse {
     let formatter = WplFormatter::new();
-    let formatted = formatter.format_content(&req);
-    HttpResponse::Ok().json(formatted)
+    match formatter.format_with_error(&req) {
+        Ok(formatted) => HttpResponse::Ok().json(formatted),
+        Err(err) => HttpResponse::BadRequest().json(serde_json::json!({
+            "success": false,
+            "error": {
+                "code": "WPL_FORMAT_ERROR",
+                "message": "格式化 WPL 代码失败",
+                "detail": err.to_string()
+            }
+        })),
+    }
 }
 
 #[post("/api/debug/oml/format")]
 pub async fn oml_format(req: String) -> HttpResponse {
     let formatter = OmlFormatter::new();
-    let formatted = formatter.format_content(&req);
-    HttpResponse::Ok().json(formatted)
+    match formatter.format_with_error(&req) {
+        Ok(formatted) => HttpResponse::Ok().json(formatted),
+        Err(err) => HttpResponse::BadRequest().json(serde_json::json!({
+            "success": false,
+            "error": {
+                "code": "OML_FORMAT_ERROR",
+                "message": "格式化 OML 代码失败",
+                "detail": err.to_string()
+            }
+        })),
+    }
 }
 
 #[post("/api/debug/decode/base64")]

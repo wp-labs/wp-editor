@@ -18,11 +18,17 @@ impl OmlFormatter {
 
     /// 对外入口：格式化失败时回退为原内容，保证调用方不崩溃。
     pub fn format_content(&self, content: &str) -> String {
-        self.format(content).unwrap_or_else(|_| content.to_string())
+        self.format_with_error(content)
+            .unwrap_or_else(|_| content.to_string())
+    }
+
+    /// 对外提供可返回错误信息的格式化接口。
+    pub fn format_with_error(&self, content: &str) -> Result<String, OmlFormatError> {
+        self.format(content)
     }
 
     /// 主格式化流程：分离头部/主体、规整头部属性，再格式化主体。
-    fn format(&self, content: &str) -> Result<String, ()> {
+    fn format(&self, content: &str) -> Result<String, OmlFormatError> {
         // 统一换行符，避免不同平台的 CRLF/CR 影响解析逻辑。
         let normalized = content.replace("\r\n", "\n").replace('\r', "\n");
         // 将制表符转换为空格，确保缩进宽度一致。
@@ -32,32 +38,45 @@ impl OmlFormatter {
         let mut header = Vec::new();
         let mut body_lines: Vec<String> = Vec::new();
         let mut had_sep = false;
+        let mut body_start_line = 1usize;
+        let mut line_no = 1usize;
         let mut lines = normalized.lines().peekable();
         while let Some(line) = lines.next() {
             let trimmed = line.trim();
             if trimmed == "---" {
                 had_sep = true;
+                body_start_line = line_no.saturating_add(1);
                 break;
             }
             // 头部允许多行属性块，需整体收集后再处理。
             if trimmed.starts_with("#[") {
-                header.push(collect_attr_block_lines(trimmed, &mut lines));
+                let start_line = line_no;
+                header.push(collect_attr_block_lines(
+                    trimmed,
+                    &mut lines,
+                    &mut line_no,
+                    start_line,
+                )?);
+                line_no = line_no.saturating_add(1);
                 continue;
             }
             // 忽略头部空行，避免无效噪音影响后续输出。
             if !trimmed.is_empty() {
                 header.push(trimmed.to_string());
             }
+            line_no = line_no.saturating_add(1);
         }
         if had_sep {
             // 存在分隔符：分隔符之后全部作为主体保留。
             for line in lines {
                 body_lines.push(line.to_string());
+                line_no = line_no.saturating_add(1);
             }
         } else {
             // 不存在分隔符：视为只有主体，头部清空。
             body_lines = normalized.lines().map(|l| l.to_string()).collect();
             header.clear();
+            body_start_line = 1;
         }
 
         let mut out = String::new();
@@ -103,7 +122,7 @@ impl OmlFormatter {
             }
             idx += 1;
         }
-        let mut body_formatted = self.format_body(&body_lines.join("\n"));
+        let mut body_formatted = self.format_body(&body_lines.join("\n"), body_start_line)?;
 
         if had_sep || !header.is_empty() {
             // 头部与主体之间强制插入分隔符。
@@ -129,12 +148,13 @@ impl OmlFormatter {
     }
 
     /// 主体格式化：空白收敛、语句/块缩进、属性/注释/字符串特殊处理。
-    fn format_body(&self, body: &str) -> String {
+    fn format_body(&self, body: &str, start_line: usize) -> Result<String, OmlFormatError> {
         let mut out = String::new();
         let mut chars = body.chars().peekable();
         let mut indent = 0usize;
         let indent_unit = " ".repeat(self.indent);
         let mut start_of_line = true;
+        let mut line_no = start_line;
         // 延迟处理换行：允许根据后续 token 决定是否换行/空行。
         let mut pending_newlines = 0usize;
         // 记录是否刚处理过 '='，用于控制等号后保持同一行。
@@ -147,6 +167,7 @@ impl OmlFormatter {
                 if ch == '\n' {
                     // 收集换行数量，稍后统一处理。
                     pending_newlines += 1;
+                    line_no = line_no.saturating_add(1);
                 } else if !start_of_line && !out.ends_with(' ') && !out.ends_with('\n') {
                     // 行内多空白折叠为一个空格。
                     out.push(' ');
@@ -155,13 +176,18 @@ impl OmlFormatter {
             }
 
             // 自定义原样函数：内部内容保持原样，不拆分分号/管道
-            if let Some(name_len) = starts_with_raw_func(ch, &chars, RAW_FUNCS) {
+            if let Some((name, name_len)) = starts_with_raw_func(ch, &chars, RAW_FUNCS) {
                 self.write_indent_if_needed(start_of_line, indent, &indent_unit, &mut out);
-                if let Some(block) = read_raw_func_block(ch, &mut chars, name_len) {
-                    out.push_str(&block);
-                    start_of_line = false;
-                    continue;
-                }
+                let block = read_raw_func_block(ch, &mut chars, name_len).ok_or(
+                    OmlFormatError::UnclosedRawFunc {
+                        name: name.to_string(),
+                        line: line_no,
+                    },
+                )?;
+                line_no = line_no.saturating_add(block.matches('\n').count());
+                out.push_str(&block);
+                start_of_line = false;
+                continue;
             }
 
             if pending_newlines > 0 {
@@ -222,7 +248,9 @@ impl OmlFormatter {
                     out.push_str(&indent_unit.repeat(indent));
                 }
                 // 将属性块压缩为单行输出。
-                out.push_str(&format_attribute(&collect_attr_block("#[", &mut chars)));
+                let block = collect_attr_block("#[", &mut chars, line_no)?;
+                line_no = line_no.saturating_add(block.matches('\n').count());
+                out.push_str(&format_attribute(&block));
                 out.push('\n');
                 start_of_line = true;
                 continue;
@@ -234,16 +262,24 @@ impl OmlFormatter {
                 self.write_indent_if_needed(start_of_line, indent, &indent_unit, &mut out);
                 out.push('"');
                 let mut escaped = false;
+                let mut closed = false;
                 for c in chars.by_ref() {
                     out.push(c);
+                    if c == '\n' {
+                        line_no = line_no.saturating_add(1);
+                    }
                     if escaped {
                         escaped = false;
                     } else if c == '\\' {
                         escaped = true;
                     } else if c == '"' {
                         // 直到遇到未转义的引号才结束字符串。
+                        closed = true;
                         break;
                     }
+                }
+                if !closed {
+                    return Err(OmlFormatError::UnclosedString { line: line_no });
                 }
                 start_of_line = false;
                 continue;
@@ -386,7 +422,7 @@ impl OmlFormatter {
         while res.ends_with("\n\n\n") {
             res.pop();
         }
-        res
+        Ok(res)
     }
 
     /// 在行首按需写入缩进。
@@ -404,7 +440,12 @@ impl OmlFormatter {
 }
 
 /// 收集属性块文本（跨行），直到匹配到对应的 ']'
-fn collect_attr_block_lines<'a, I>(start_line: &str, lines: &mut std::iter::Peekable<I>) -> String
+fn collect_attr_block_lines<'a, I>(
+    start_line: &str,
+    lines: &mut std::iter::Peekable<I>,
+    line_no: &mut usize,
+    start_line_no: usize,
+) -> Result<String, OmlFormatError>
 where
     I: Iterator<Item = &'a str>,
 {
@@ -439,16 +480,25 @@ where
             }
         }
         buf.push('\n');
+        *line_no = line_no.saturating_add(1);
         if depth <= 0 {
-            break;
+            return Ok(buf.trim_end().to_string());
         }
     }
 
-    buf.trim_end().to_string()
+    Err(OmlFormatError::UnclosedBracket {
+        open: '[',
+        close: ']',
+        line: start_line_no,
+    })
 }
 
 /// 收集属性块文本（字符级）
-fn collect_attr_block<T>(start: &str, iter: &mut T) -> String
+fn collect_attr_block<T>(
+    start: &str,
+    iter: &mut T,
+    line_no: usize,
+) -> Result<String, OmlFormatError>
 where
     T: Iterator<Item = char>,
 {
@@ -476,12 +526,16 @@ where
             } else if c == ']' {
                 depth -= 1;
                 if depth == 0 {
-                    break;
+                    return Ok(buf);
                 }
             }
         }
     }
-    buf
+    Err(OmlFormatError::UnclosedBracket {
+        open: '[',
+        close: ']',
+        line: line_no,
+    })
 }
 
 /// 将属性块压缩为单行，保持键值顺序
@@ -610,7 +664,7 @@ fn starts_with_raw_func(
     first: char,
     iter: &std::iter::Peekable<std::str::Chars<'_>>,
     names: &[&str],
-) -> Option<usize> {
+) -> Option<(String, usize)> {
     // 预读一定长度的字符，快速匹配候选函数名。
     let max_len = names.iter().map(|n| n.len() + 1).max().unwrap_or(0);
     let mut buf = String::new();
@@ -627,7 +681,7 @@ fn starts_with_raw_func(
     for name in names {
         let pat = format!("{name}(");
         if buf.starts_with(&pat) {
-            return Some(name.len());
+            return Some((name.to_string(), name.len()));
         }
     }
     None
@@ -678,3 +732,35 @@ fn read_raw_func_block(
     }
     None
 }
+
+#[derive(Debug)]
+pub enum OmlFormatError {
+    /// 字符串字面量未闭合。
+    UnclosedString { line: usize },
+    /// 任意成对括号缺少闭合。
+    UnclosedBracket {
+        open: char,
+        close: char,
+        line: usize,
+    },
+    /// 原样函数调用未闭合。
+    UnclosedRawFunc { name: String, line: usize },
+}
+
+impl std::fmt::Display for OmlFormatError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            OmlFormatError::UnclosedString { line } => {
+                write!(f, "第 {} 行：字符串字面量未闭合", line)
+            }
+            OmlFormatError::UnclosedBracket { open, close, line } => {
+                write!(f, "第 {} 行：括号未闭合：{} ... {}", line, open, close)
+            }
+            OmlFormatError::UnclosedRawFunc { name, line } => {
+                write!(f, "第 {} 行：函数调用未闭合：{}", line, name)
+            }
+        }
+    }
+}
+
+impl std::error::Error for OmlFormatError {}

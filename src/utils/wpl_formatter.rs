@@ -15,6 +15,15 @@ impl Default for WplFormatter {
 }
 
 impl WplFormatter {
+    // 需要保持原样的函数列表（内部不解析管道/逗号/括号）
+    const RAW_FUNCS: &[&str] = &[
+        "symbol",
+        "f_chars_not_has",
+        "f_chars_has",
+        "kv",
+        "f_chars_in",
+    ];
+
     /// 默认 4 空格缩进。
     pub fn new() -> Self {
         Self { indent: 4 }
@@ -29,10 +38,15 @@ impl WplFormatter {
 
     /// 出错时返回原文，避免影响调用方。
     pub fn format_content(&self, content: &str) -> String {
-        match self.format(content) {
+        match self.format_with_error(content) {
             Ok(v) => v,
             Err(_) => content.to_string(),
         }
+    }
+
+    /// 对外提供可返回错误信息的格式化接口。
+    pub fn format_with_error(&self, content: &str) -> Result<String, WplFormatError> {
+        self.format(content)
     }
 
     /// 核心格式化流程：
@@ -46,20 +60,14 @@ impl WplFormatter {
         let mut out = String::with_capacity(normalized.len() + 64);
         let chars: Vec<char> = normalized.chars().collect();
 
-        // 原始函数，其中的内容不进行格式化处理。
-        // 这些函数常包含复杂结构（管道/逗号/嵌套），按原样保留更安全。
-        const RAW_FUNCS: &[&str] = &[
-            "symbol",
-            "f_chars_not_has",
-            "f_chars_has",
-            "kv",
-            "f_chars_in",
-        ];
+        // 轻量语法校验在格式化过程中进行（括号匹配/字符串闭合）。
+        let mut bracket_stack: Vec<(char, char)> = Vec::new();
 
         // i：扫描指针；indent：当前缩进层级；start_of_line：是否位于行首。
         let mut i = 0usize;
         let mut indent = 0usize;
         let mut start_of_line = true;
+        let mut line_no = 1usize;
 
         while i < chars.len() {
             let c = chars[i];
@@ -75,23 +83,28 @@ impl WplFormatter {
                 if comma_follows || !has_closing_quote {
                     self.write_indent_if_needed(start_of_line, indent, &mut out)?;
                     out.push('"');
-                    i = next_non_ws.unwrap_or(i + 1);
+                    let new_i = next_non_ws.unwrap_or(i + 1);
+                    line_no = line_no
+                        .saturating_add(chars[i..new_i].iter().filter(|ch| **ch == '\n').count());
+                    i = new_i;
                     start_of_line = false;
                     continue;
                 }
                 // 读取完整字符串字面量（含转义）。
-                let (literal, consumed) = self.read_string(&chars[i..])?;
+                let (literal, consumed) = self.read_string(&chars[i..], line_no)?;
                 self.write_indent_if_needed(start_of_line, indent, &mut out)?;
                 out.push_str(&literal);
+                line_no = line_no.saturating_add(literal.matches('\n').count());
                 i += consumed;
                 start_of_line = false;
                 continue;
             }
             if c == 'r' && i + 1 < chars.len() && chars[i + 1] == '#' {
                 // 原始字符串：r#"..."#，内部不处理转义。
-                let (literal, consumed) = self.read_raw_string(&chars[i..])?;
+                let (literal, consumed) = self.read_raw_string(&chars[i..], line_no)?;
                 self.write_indent_if_needed(start_of_line, indent, &mut out)?;
                 out.push_str(&literal);
+                line_no = line_no.saturating_add(literal.matches('\n').count());
                 i += consumed;
                 start_of_line = false;
                 continue;
@@ -99,7 +112,7 @@ impl WplFormatter {
 
             // 注解块 #[...] 直接压缩为单行，避免影响后续缩进。
             if c == '#' && i + 1 < chars.len() && chars[i + 1] == '[' {
-                let (ann, consumed) = self.read_bracket_block(&chars[i..], '[', ']')?;
+                let (ann, consumed) = self.read_bracket_block(&chars[i..], '[', ']', line_no)?;
                 self.write_indent_if_needed(start_of_line, indent, &mut out)?;
                 out.push_str(
                     &ann.replace('\n', " ")
@@ -108,6 +121,7 @@ impl WplFormatter {
                         .join(" "),
                 );
                 out.push('\n');
+                line_no = line_no.saturating_add(ann.matches('\n').count());
                 i += consumed;
                 start_of_line = true;
                 continue;
@@ -115,9 +129,11 @@ impl WplFormatter {
 
             // 格式占位（如 <[,]>) 保持内部逗号不拆分。
             if c == '<' {
-                let (fmt_block, consumed) = self.read_bracket_block(&chars[i..], '<', '>')?;
+                let (fmt_block, consumed) =
+                    self.read_bracket_block(&chars[i..], '<', '>', line_no)?;
                 self.write_indent_if_needed(start_of_line, indent, &mut out)?;
                 out.push_str(&fmt_block);
+                line_no = line_no.saturating_add(fmt_block.matches('\n').count());
                 i += consumed;
                 start_of_line = false;
                 continue;
@@ -131,6 +147,7 @@ impl WplFormatter {
                         out.push('\n');
                     }
                     start_of_line = true;
+                    line_no = line_no.saturating_add(1);
                 } else if !start_of_line {
                     out.push(' ');
                 }
@@ -139,11 +156,12 @@ impl WplFormatter {
             }
 
             // 自定义 raw 函数：内部内容按原样保留，不解析管道/逗号。
-            if let Some(name_len) = self.starts_with_raw_func(&chars, i, RAW_FUNCS)
+            if let Some(name_len) = self.starts_with_raw_func(&chars, i, Self::RAW_FUNCS)
                 && let Some((block, consumed)) = self.read_raw_func_block(&chars[i..], name_len)
             {
                 self.write_indent_if_needed(start_of_line, indent, &mut out)?;
                 out.push_str(&block);
+                line_no = line_no.saturating_add(block.matches('\n').count());
                 start_of_line = false;
                 i += consumed;
                 continue;
@@ -160,6 +178,7 @@ impl WplFormatter {
 
             match c {
                 '{' => {
+                    bracket_stack.push(('{', '}'));
                     // 块起始：换行并增加缩进层级。
                     self.write_indent_if_needed(start_of_line, indent, &mut out)?;
                     out.push('{');
@@ -169,6 +188,20 @@ impl WplFormatter {
                     i += 1;
                 }
                 '}' => {
+                    if let Some((_, expected)) = bracket_stack.pop() {
+                        if expected != '}' {
+                            return Err(WplFormatError::MismatchedBracket {
+                                expected,
+                                found: '}',
+                                line: line_no,
+                            });
+                        }
+                    } else {
+                        return Err(WplFormatError::UnexpectedClosing {
+                            close: '}',
+                            line: line_no,
+                        });
+                    }
                     // 块结束：先降级缩进，再输出。
                     indent = indent.saturating_sub(1);
                     if !start_of_line {
@@ -190,10 +223,17 @@ impl WplFormatter {
                         out.push('(');
                         out.push_str(inner.trim());
                         out.push(')');
+                        line_no = line_no.saturating_add(
+                            chars[i..i + consumed]
+                                .iter()
+                                .filter(|ch| **ch == '\n')
+                                .count(),
+                        );
                         start_of_line = false;
                         i += consumed;
                         continue;
                     }
+                    bracket_stack.push(('(', ')'));
                     self.write_indent_if_needed(start_of_line, indent, &mut out)?;
                     out.push('(');
                     out.push('\n');
@@ -202,6 +242,20 @@ impl WplFormatter {
                     i += 1;
                 }
                 ')' => {
+                    if let Some((_, expected)) = bracket_stack.pop() {
+                        if expected != ')' {
+                            return Err(WplFormatError::MismatchedBracket {
+                                expected,
+                                found: ')',
+                                line: line_no,
+                            });
+                        }
+                    } else {
+                        return Err(WplFormatError::UnexpectedClosing {
+                            close: ')',
+                            line: line_no,
+                        });
+                    }
                     // 括号结束：降级缩进并输出。
                     indent = indent.saturating_sub(1);
                     if !start_of_line {
@@ -228,6 +282,9 @@ impl WplFormatter {
                     out.push('|');
                     out.push(' ');
                     while i + 1 < chars.len() && chars[i + 1].is_whitespace() {
+                        if chars[i + 1] == '\n' {
+                            line_no = line_no.saturating_add(1);
+                        }
                         i += 1;
                     }
                     start_of_line = false;
@@ -241,6 +298,14 @@ impl WplFormatter {
                     i += 1;
                 }
             }
+        }
+
+        if let Some((open, close)) = bracket_stack.pop() {
+            return Err(WplFormatError::UnclosedBracket {
+                open,
+                close,
+                line: line_no,
+            });
         }
 
         // 折叠多余空行，最多保留一个空行。
@@ -279,7 +344,11 @@ impl WplFormatter {
         Ok(())
     }
 
-    fn read_string(&self, input: &[char]) -> Result<(String, usize), WplFormatError> {
+    fn read_string(
+        &self,
+        input: &[char],
+        line_no: usize,
+    ) -> Result<(String, usize), WplFormatError> {
         // 读取普通字符串字面量，识别转义与闭合引号。
         let mut out = String::new();
         let mut escaped = false;
@@ -295,17 +364,21 @@ impl WplFormatter {
                 return Ok((out, idx + 1));
             }
         }
-        Err(WplFormatError::UnclosedLiteral)
+        Err(WplFormatError::UnclosedString { line: line_no })
     }
 
-    fn read_raw_string(&self, input: &[char]) -> Result<(String, usize), WplFormatError> {
+    fn read_raw_string(
+        &self,
+        input: &[char],
+        line_no: usize,
+    ) -> Result<(String, usize), WplFormatError> {
         // 读取 Rust 风格 raw 字符串：r###"..."###。
         let mut out = String::new();
         let mut hash_count = 0usize;
         let mut idx = 0usize;
 
         if input.get(idx) != Some(&'r') {
-            return Err(WplFormatError::UnclosedLiteral);
+            return Err(WplFormatError::InvalidRawStringStart { line: line_no });
         }
         out.push('r');
         idx += 1;
@@ -316,7 +389,7 @@ impl WplFormatter {
             idx += 1;
         }
         if idx >= input.len() || input[idx] != '"' {
-            return Err(WplFormatError::UnclosedLiteral);
+            return Err(WplFormatError::InvalidRawStringStart { line: line_no });
         }
         out.push('"');
         idx += 1;
@@ -341,7 +414,7 @@ impl WplFormatter {
             }
             idx += 1;
         }
-        Err(WplFormatError::UnclosedLiteral)
+        Err(WplFormatError::UnclosedRawString { line: line_no })
     }
 
     fn read_bracket_block(
@@ -349,6 +422,7 @@ impl WplFormatter {
         input: &[char],
         open: char,
         close: char,
+        line_no: usize,
     ) -> Result<(String, usize), WplFormatError> {
         // 读取任意成对括号块，支持嵌套。
         let mut out = String::new();
@@ -364,7 +438,11 @@ impl WplFormatter {
                 }
             }
         }
-        Err(WplFormatError::UnclosedLiteral)
+        Err(WplFormatError::UnclosedBracket {
+            open,
+            close,
+            line: line_no,
+        })
     }
 
     fn peek_block(&self, input: &[char], open: char, close: char) -> Option<(String, usize)> {
@@ -500,5 +578,59 @@ impl WplFormatter {
 
 #[derive(Debug)]
 pub enum WplFormatError {
-    UnclosedLiteral,
+    /// 普通字符串缺少闭合引号。
+    UnclosedString { line: usize },
+    /// raw 字符串未正确起始（缺少 r 或 "）。
+    InvalidRawStringStart { line: usize },
+    /// raw 字符串缺少闭合引号/井号。
+    UnclosedRawString { line: usize },
+    /// 任意成对括号缺少闭合。
+    UnclosedBracket {
+        open: char,
+        close: char,
+        line: usize,
+    },
+    /// 括号类型不匹配。
+    MismatchedBracket {
+        expected: char,
+        found: char,
+        line: usize,
+    },
+    /// 遇到多余的闭合括号。
+    UnexpectedClosing { close: char, line: usize },
 }
+
+impl std::fmt::Display for WplFormatError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            WplFormatError::UnclosedString { line } => {
+                write!(f, "第 {} 行：字符串字面量未闭合", line)
+            }
+            WplFormatError::InvalidRawStringStart { line } => {
+                write!(f, "第 {} 行：raw 字符串起始格式不正确", line)
+            }
+            WplFormatError::UnclosedRawString { line } => {
+                write!(f, "第 {} 行：raw 字符串未闭合", line)
+            }
+            WplFormatError::UnclosedBracket { open, close, line } => {
+                write!(f, "第 {} 行：括号未闭合：{} ... {}", line, open, close)
+            }
+            WplFormatError::MismatchedBracket {
+                expected,
+                found,
+                line,
+            } => {
+                write!(
+                    f,
+                    "第 {} 行：括号不匹配，期望 {}，但遇到 {}",
+                    line, expected, found
+                )
+            }
+            WplFormatError::UnexpectedClosing { close, line } => {
+                write!(f, "第 {} 行：多余的闭合括号 {}", line, close)
+            }
+        }
+    }
+}
+
+impl std::error::Error for WplFormatError {}

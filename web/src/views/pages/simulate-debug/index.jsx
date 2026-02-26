@@ -302,8 +302,16 @@ function SimulateDebugPage() {
       const response = await wplCodeFormat(ruleValue);
       const formattedWpl = response?.wpl_code || '';
       setRuleValue(formattedWpl);
+      setParseError(null);
     } catch (error) {
-      message.error(`${t('simulateDebug.parseRule.formatError')}：${error?.message || error}`);
+      const detail = error?.responseData?.error?.detail;
+      const baseMessage = error?.responseData?.error?.message || error?.message || error;
+      const fullMessage = detail || baseMessage;
+      const err = new Error(fullMessage);
+      err.code = error?.code || error?.responseData?.error?.code;
+      err.responseData = error?.responseData;
+      setParseError(err);
+      setResult(null);
     }
   };
 
@@ -481,8 +489,16 @@ function SimulateDebugPage() {
       const response = await omlCodeFormat(transformOml);
       const formattedOml = response?.oml_code || '';
       setTransformOml(formattedOml);
+      setTransformError(null);
     } catch (error) {
-      message.error(`${t('simulateDebug.omlInput.formatError')}：${error?.message || error}`);
+      const detail = error?.responseData?.error?.detail;
+      const baseMessage = error?.responseData?.error?.message || error?.message || error;
+      const fullMessage = detail || baseMessage;
+      const err = new Error(fullMessage);
+      err.code = error?.code || error?.responseData?.error?.code;
+      err.responseData = error?.responseData;
+      setTransformError(err);
+      setTransformResult(null);
     }
   };
 
@@ -703,6 +719,7 @@ function SimulateDebugPage() {
   const renderTransformError = () => {
     if (!transformError) return null;
     const errorMessage =
+      transformError.responseData?.error?.detail ||
       transformError.message ||
       transformError.responseData?.error?.message ||
       transformError.data?.error?.message ||

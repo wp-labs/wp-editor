@@ -56,7 +56,18 @@ export async function wplCodeFormat(wplCode) {
     }
     return data || {};
   } catch (error) {
+    const responseData = error?.response?.data || error?.data;
+    if (responseData && responseData.success === false) {
+      const errorMessage = responseData.error?.message || error?.message || '格式化 WPL 代码失败，请稍后重试';
+      const wrapped = new Error(errorMessage);
+      wrapped.code = responseData.error?.code;
+      wrapped.responseData = responseData;
+      throw wrapped;
+    }
     if (error instanceof Error) {
+      if (responseData && !error.responseData) {
+        error.responseData = responseData;
+      }
       throw error;
     }
     throw new Error(typeof error === 'string' ? error : '格式化WPL代码失败，请稍后重试');
@@ -87,7 +98,18 @@ export async function omlCodeFormat(omlCode) {
     }
     return data || {};
   } catch (error) {
+    const responseData = error?.response?.data || error?.data;
+    if (responseData && responseData.success === false) {
+      const errorMessage = responseData.error?.message || error?.message || '格式化 OML 代码失败，请稍后重试';
+      const wrapped = new Error(errorMessage);
+      wrapped.code = responseData.error?.code;
+      wrapped.responseData = responseData;
+      throw wrapped;
+    }
     if (error instanceof Error) {
+      if (responseData && !error.responseData) {
+        error.responseData = responseData;
+      }
       throw error;
     }
     throw new Error(typeof error === 'string' ? error : '格式化WPL代码失败，请稍后重试');

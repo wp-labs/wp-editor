@@ -288,3 +288,43 @@ package /raw/web {
         "双引号后紧跟逗号的场景应按普通字符处理，保持换行与缩进"
     );
 }
+
+#[test]
+fn format_should_not_error_for_balanced_parens() {
+    let formatter = WplFormatter::new();
+    let raw = r#"
+package /path/ {
+    rule name {
+        (
+            mobile_phone
+        )
+    }
+}
+"#;
+
+    let result = formatter.format_with_error(raw);
+    assert!(result.is_ok(), "括号成对闭合的 WPL 不应触发格式化错误");
+}
+
+#[test]
+fn format_should_report_line_for_unclosed_paren() {
+    let formatter = WplFormatter::new();
+    let raw = r#"
+package /path/ {
+    rule name {
+        (
+            mobile_phone
+    }
+}
+"#;
+
+    let err = formatter
+        .format_with_error(raw)
+        .expect_err("缺少闭合括号应返回错误");
+    let err_text = err.to_string();
+    assert!(
+        err_text.contains("第 6 行") || err_text.contains("第 5 行"),
+        "错误信息应包含行号，当前为：{}",
+        err_text
+    );
+}
