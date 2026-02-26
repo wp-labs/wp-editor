@@ -3,6 +3,16 @@
 本文件记录所有重要变更，格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，
 版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [1.12.0-alpha] - 2026-02-26
+
+### Changed
+
+- 版本更新至 1.12.0-alpha
+- 优化错误消息的格式化展示
+- 示例修改状态展示优化
+- 引擎语法补全规则与示例同步更新
+- 升级 wp-motor 依赖至 v1.17.2-alpha
+
 ## [1.11.0] - 2026-02-12
 
 ### Added
