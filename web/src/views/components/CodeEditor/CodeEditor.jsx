@@ -23,8 +23,8 @@ import {
 import {
   buildOmlCompletionOptions,
   OML_COMPLETION_VALID_FOR,
-  omlLanguage,
 } from './oml/omlLanguage';
+import { omlHighlightExtension } from './oml/omlTreeSitterHighlight';
 
 const createCompletionSource = (options, validFor) => (context) => {
   const word = context.matchBefore(validFor);
@@ -128,7 +128,7 @@ function CodeEditor(props, ref) {
       extensions.splice(
         6,
         0,
-        omlLanguage,
+        omlHighlightExtension(),
         autocompletion({ override: [omlCompletionSource] }),
       );
     }
