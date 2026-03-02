@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "vite",
-    "predev": "bash scripts/prepare-oml-assets.sh",
-    "prebuild": "bash scripts/prepare-oml-assets.sh",
+    "predev": "bash scripts/prepare-oml-assets.sh && bash scripts/prepare-wpl-assets.sh",
+    "prebuild": "bash scripts/prepare-oml-assets.sh && bash scripts/prepare-wpl-assets.sh",
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint .",

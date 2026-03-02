@@ -6,6 +6,9 @@ export default defineConfig({
   plugins: [
     react(),
   ],
+  esbuild: {
+    target: 'es2020',
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
@@ -66,8 +69,8 @@ export default defineConfig({
     },
     // 关闭源码映射以减小体积
     sourcemap: false,
-    // 设置目标浏览器，启用更多优化
-    target: 'es2015',
+    // 设置目标浏览器，启用 BigInt 等现代特性
+    target: 'es2020',
     // 启用 CSS 压缩
     cssMinify: true,
   },

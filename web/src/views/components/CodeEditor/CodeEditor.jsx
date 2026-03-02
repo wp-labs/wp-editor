@@ -18,8 +18,8 @@ import { editorTheme } from './editorTheme';
 import {
   buildWplCompletionOptions,
   WPL_COMPLETION_VALID_FOR,
-  wplLanguage,
 } from './wpl/wplLanguage';
+import { wplHighlightExtension } from './wpl/wplTreeSitterHighlight';
 import {
   buildOmlCompletionOptions,
   OML_COMPLETION_VALID_FOR,
@@ -122,7 +122,12 @@ function CodeEditor(props, ref) {
     }
 
     if (language === 'wpl') {
-      extensions.splice(6, 0, wplLanguage, autocompletion({ override: [wplCompletionSource] }));
+      extensions.splice(
+        6,
+        0,
+        wplHighlightExtension(),
+        autocompletion({ override: [wplCompletionSource] }),
+      );
     }
     if (language === 'oml') {
       extensions.splice(

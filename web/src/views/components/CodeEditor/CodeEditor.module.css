@@ -64,3 +64,49 @@
 .editor :global(.cm-oml-special) {
   color: #fda4af;
 }
+
+.editor :global(.cm-wpl-keyword) {
+  color: #38bdf8;
+  font-weight: 600;
+}
+
+.editor :global(.cm-wpl-string) {
+  color: #eeebe9;
+}
+
+.editor :global(.cm-wpl-number) {
+  color: #fbbf24;
+}
+
+.editor :global(.cm-wpl-comment) {
+  color: #94a3b8;
+  font-style: italic;
+}
+
+.editor :global(.cm-wpl-type) {
+  color: #a78bfa;
+}
+
+.editor :global(.cm-wpl-function) {
+  color: #22d3ee;
+}
+
+.editor :global(.cm-wpl-operator) {
+  color: #e2e8f0;
+}
+
+.editor :global(.cm-wpl-punctuation) {
+  color: #cbd5f5;
+}
+
+.editor :global(.cm-wpl-variable) {
+  color: #f8fafc;
+}
+
+.editor :global(.cm-wpl-property) {
+  color: #fda4af;
+}
+
+.editor :global(.cm-wpl-special) {
+  color: #fda4af;
+}
