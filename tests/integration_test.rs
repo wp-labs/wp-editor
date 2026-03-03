@@ -18,7 +18,9 @@ fn test_library_exports() {
     assert!(!wpl_result.is_empty());
 
     let test_oml = "name: test\nrule: test\n---\nfield = take();";
-    let oml_result = oml_formatter.format_content(test_oml);
+    let oml_result = oml_formatter
+        .format_content(test_oml)
+        .expect("格式化 OML 失败");
     assert!(!oml_result.is_empty());
 }
 
@@ -198,7 +200,9 @@ fn test_formatter_edge_cases() {
     let empty_result = wpl_formatter.format_content("");
     assert!(!empty_result.is_empty() || empty_result.is_empty()); // 可能返回空或格式化结果
 
-    let empty_oml_result = oml_formatter.format_content("");
+    let empty_oml_result = oml_formatter
+        .format_content("")
+        .expect("格式化空 OML 失败");
     assert!(!empty_oml_result.is_empty() || empty_oml_result.is_empty());
 
     // 非常长的内容

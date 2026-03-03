@@ -90,7 +90,7 @@ pub fn oml_examples(
         // 获取原始的oml代码
         let mut contents = String::new();
         file.read_to_string(&mut contents)?;
-        let oml_fmt = oml_formatter.format_content(&contents);
+        let oml_fmt = oml_formatter.format_content_or_original(&contents);
 
         // 去除注释
         contents = remove_annotations(&contents);
