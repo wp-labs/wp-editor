@@ -144,10 +144,10 @@ fn tokenize(input: &str) -> Result<Vec<Token>, OmlFormatError> {
                     line = line.saturating_add(1);
                 }
                 if next_ch == '\\' {
-                    if let Some((_, escaped)) = iter.next() {
-                        if escaped == '\n' {
-                            line = line.saturating_add(1);
-                        }
+                    if let Some((_, escaped)) = iter.next()
+                        && escaped == '\n'
+                    {
+                        line = line.saturating_add(1);
                     }
                     continue;
                 }
@@ -256,7 +256,10 @@ fn symbol_token(kind: Symbol, text: &str) -> Token {
 }
 
 fn is_punctuation(ch: char) -> bool {
-    matches!(ch, '(' | ')' | '{' | '}' | '[' | ']' | ',' | ';' | ':' | '|' | '=')
+    matches!(
+        ch,
+        '(' | ')' | '{' | '}' | '[' | ']' | ',' | ';' | ':' | '|' | '='
+    )
 }
 
 fn format_tokens(tokens: &[Token], indent_spaces: usize) -> String {
@@ -277,7 +280,13 @@ fn format_tokens(tokens: &[Token], indent_spaces: usize) -> String {
                 if !line_empty {
                     newline(&mut out, &mut line_empty);
                 }
-                write_token(&mut out, &mut line_empty, indent, indent_spaces, &token.text);
+                write_token(
+                    &mut out,
+                    &mut line_empty,
+                    indent,
+                    indent_spaces,
+                    &token.text,
+                );
                 newline(&mut out, &mut line_empty);
                 // 头部与主体之间保留一个空行。
                 newline(&mut out, &mut line_empty);
@@ -288,7 +297,13 @@ fn format_tokens(tokens: &[Token], indent_spaces: usize) -> String {
                 if !line_empty {
                     newline(&mut out, &mut line_empty);
                 }
-                write_token(&mut out, &mut line_empty, indent, indent_spaces, &token.text);
+                write_token(
+                    &mut out,
+                    &mut line_empty,
+                    indent,
+                    indent_spaces,
+                    &token.text,
+                );
                 newline(&mut out, &mut line_empty);
                 i += 1;
                 continue;
@@ -311,17 +326,16 @@ fn format_tokens(tokens: &[Token], indent_spaces: usize) -> String {
                 brace_level += 1;
             }
             TokenKind::Symbol(Symbol::RBrace) => {
-                if brace_level > 0 {
-                    brace_level -= 1;
-                }
-                if indent > 0 {
-                    indent -= 1;
-                }
+                brace_level = brace_level.saturating_sub(1);
+                indent = indent.saturating_sub(1);
                 if !line_empty {
                     newline(&mut out, &mut line_empty);
                 }
                 write_token(&mut out, &mut line_empty, indent, indent_spaces, "}");
-                if matches!(next.map(|t| &t.kind), Some(TokenKind::Symbol(Symbol::Semicolon))) {
+                if matches!(
+                    next.map(|t| &t.kind),
+                    Some(TokenKind::Symbol(Symbol::Semicolon))
+                ) {
                     write_raw(&mut out, &mut line_empty, " ");
                     write_raw(&mut out, &mut line_empty, ";");
                     newline(&mut out, &mut line_empty);
@@ -368,8 +382,10 @@ fn format_tokens(tokens: &[Token], indent_spaces: usize) -> String {
                 write_raw(&mut out, &mut line_empty, " ");
             }
             TokenKind::Symbol(Symbol::Colon) => {
-                let next_is_bracket =
-                    matches!(next.map(|t| &t.kind), Some(TokenKind::Symbol(Symbol::LBracket)));
+                let next_is_bracket = matches!(
+                    next.map(|t| &t.kind),
+                    Some(TokenKind::Symbol(Symbol::LBracket))
+                );
                 if next_is_bracket {
                     write_raw(&mut out, &mut line_empty, ":");
                 } else {
@@ -389,9 +405,7 @@ fn format_tokens(tokens: &[Token], indent_spaces: usize) -> String {
             }
             TokenKind::Symbol(Symbol::RParen) => {
                 write_raw(&mut out, &mut line_empty, ")");
-                if paren_level > 0 {
-                    paren_level -= 1;
-                }
+                paren_level = paren_level.saturating_sub(1);
             }
             TokenKind::Symbol(Symbol::LBracket) => {
                 write_raw(&mut out, &mut line_empty, "[");
@@ -399,9 +413,7 @@ fn format_tokens(tokens: &[Token], indent_spaces: usize) -> String {
             }
             TokenKind::Symbol(Symbol::RBracket) => {
                 write_raw(&mut out, &mut line_empty, "]");
-                if bracket_level > 0 {
-                    bracket_level -= 1;
-                }
+                bracket_level = bracket_level.saturating_sub(1);
             }
             TokenKind::Word | TokenKind::StringLiteral => {
                 if !line_empty && needs_space_before(token, tokens.get(i.wrapping_sub(1))) {

@@ -1,3 +1,5 @@
+use tree_sitter::Parser;
+
 /// WPL 代码格式化器：通过轻量词法扫描与缩进规则生成稳定输出。
 /// 设计目标：
 /// - 不做完整语法解析，仅依赖字符级扫描以保证鲁棒性；
@@ -36,8 +38,13 @@ impl WplFormatter {
         }
     }
 
-    /// 出错时返回原文，避免影响调用方。
-    pub fn format_content(&self, content: &str) -> String {
+    /// 对外入口：返回格式化结果或具体错误信息。
+    pub fn format_content(&self, content: &str) -> Result<String, WplFormatError> {
+        self.format_with_error(content)
+    }
+
+    /// 兼容旧行为：出错时返回原文，避免影响调用方。
+    pub fn format_content_or_original(&self, content: &str) -> String {
         match self.format_with_error(content) {
             Ok(v) => v,
             Err(_) => content.to_string(),
@@ -56,9 +63,18 @@ impl WplFormatter {
     fn format(&self, content: &str) -> Result<String, WplFormatError> {
         // 统一换行符，避免不同平台的换行差异干扰缩进逻辑。
         let normalized = content.replace("\r\n", "\n").replace('\r', "\n");
+        let (separator_ranges, ts_ok) = collect_separator_ranges(&normalized);
         // 预估容量，减少扩容次数。
         let mut out = String::with_capacity(normalized.len() + 64);
-        let chars: Vec<char> = normalized.chars().collect();
+        let mut byte_offsets = Vec::new();
+        let chars: Vec<char> = normalized
+            .char_indices()
+            .map(|(idx, ch)| {
+                byte_offsets.push(idx);
+                ch
+            })
+            .collect();
+        let input_len = normalized.len();
 
         // 轻量语法校验在格式化过程中进行（括号匹配/字符串闭合）。
         let mut bracket_stack: Vec<(char, char)> = Vec::new();
@@ -69,7 +85,23 @@ impl WplFormatter {
         let mut start_of_line = true;
         let mut line_no = 1usize;
 
+        let bytes = normalized.as_bytes();
         while i < chars.len() {
+            let byte_idx = byte_offsets[i];
+            if let Some((range_start, range_end)) = find_range_at(&separator_ranges, byte_idx) {
+                let slice_start = if byte_idx < range_start {
+                    range_start
+                } else {
+                    byte_idx
+                };
+                let slice = &normalized[slice_start..range_end];
+                self.write_indent_if_needed(start_of_line, indent, &mut out)?;
+                out.push_str(slice);
+                line_no = line_no.saturating_add(slice.matches('\n').count());
+                start_of_line = slice.ends_with('\n');
+                i = byte_to_char_index(&byte_offsets, range_end, input_len);
+                continue;
+            }
             let c = chars[i];
             // 判断当前位置字符是否被转义，用于规避结构字符误判。
             let escaped = i > 0 && chars[i - 1] == '\\';
@@ -178,6 +210,15 @@ impl WplFormatter {
 
             match c {
                 '{' => {
+                    if let Some(end) = find_separator_block(bytes, byte_idx, &separator_ranges) {
+                        let slice = &normalized[byte_idx..end];
+                        self.write_indent_if_needed(start_of_line, indent, &mut out)?;
+                        out.push_str(slice);
+                        line_no = line_no.saturating_add(slice.matches('\n').count());
+                        start_of_line = slice.ends_with('\n');
+                        i = byte_to_char_index(&byte_offsets, end, input_len);
+                        continue;
+                    }
                     bracket_stack.push(('{', '}'));
                     // 块起始：换行并增加缩进层级。
                     self.write_indent_if_needed(start_of_line, indent, &mut out)?;
@@ -196,6 +237,18 @@ impl WplFormatter {
                                 line: line_no,
                             });
                         }
+                    } else if ts_ok {
+                        let inferred = infer_closing_indent(&out, self.indent);
+                        indent = inferred;
+                        if !start_of_line {
+                            out.push('\n');
+                        }
+                        self.write_indent_if_needed(true, indent, &mut out)?;
+                        out.push('}');
+                        out.push('\n');
+                        start_of_line = true;
+                        i += 1;
+                        continue;
                     } else {
                         return Err(WplFormatError::UnexpectedClosing {
                             close: '}',
@@ -250,6 +303,17 @@ impl WplFormatter {
                                 line: line_no,
                             });
                         }
+                    } else if ts_ok {
+                        let inferred = infer_closing_indent(&out, self.indent);
+                        indent = inferred;
+                        if !start_of_line {
+                            out.push('\n');
+                        }
+                        self.write_indent_if_needed(true, indent, &mut out)?;
+                        out.push(')');
+                        start_of_line = false;
+                        i += 1;
+                        continue;
                     } else {
                         return Err(WplFormatError::UnexpectedClosing {
                             close: ')',
@@ -573,6 +637,156 @@ impl WplFormatter {
             }
         }
         None
+    }
+}
+
+fn collect_separator_ranges(input: &str) -> (Vec<(usize, usize)>, bool) {
+    let mut parser = Parser::new();
+    if let Err(err) = parser.set_language(&tree_sitter_wpl::language()) {
+        let _ = err;
+        return (Vec::new(), false);
+    }
+    let tree = match parser.parse(input, None) {
+        Some(value) => value,
+        None => {
+            return (Vec::new(), false);
+        }
+    };
+    let root = tree.root_node();
+    let mut ranges = Vec::new();
+    fn visit(node: tree_sitter::Node, ranges: &mut Vec<(usize, usize)>, input: &str) {
+        let kind = node.kind();
+        if matches!(kind, "pattern_sep" | "shortcut_sep") {
+            let range = expand_separator_range(node.byte_range(), input);
+            ranges.push(range);
+        }
+        let mut cursor = node.walk();
+        for child in node.children(&mut cursor) {
+            visit(child, ranges, input);
+        }
+    }
+    visit(root, &mut ranges, input);
+    collect_pattern_sep_blocks(input, root, &mut ranges);
+    ranges.sort_unstable();
+    ranges.dedup();
+    (ranges, true)
+}
+
+fn expand_separator_range(range: std::ops::Range<usize>, input: &str) -> (usize, usize) {
+    let bytes = input.as_bytes();
+    let mut start = range.start;
+    let mut end = range.end;
+    if start > 0 && bytes.get(start.saturating_sub(1)) == Some(&b'{') {
+        start = start.saturating_sub(1);
+    }
+    if end < bytes.len() && bytes.get(end) == Some(&b'}') {
+        end = end.saturating_add(1);
+    }
+    (start, end)
+}
+
+fn collect_pattern_sep_blocks(
+    input: &str,
+    root: tree_sitter::Node,
+    ranges: &mut Vec<(usize, usize)>,
+) {
+    let bytes = input.as_bytes();
+    let mut i = 0usize;
+    while i < bytes.len() {
+        if bytes[i] != b'{' {
+            i += 1;
+            continue;
+        }
+        let mut end = i + 1;
+        while end < bytes.len() && bytes[end] != b'}' {
+            end += 1;
+        }
+        if end >= bytes.len() || bytes[end] != b'}' {
+            i += 1;
+            continue;
+        }
+        let inner_start = i.saturating_add(1);
+        let inner_end = end;
+        if let Some(node) = root.descendant_for_byte_range(inner_start, inner_end)
+            && has_separator_ancestor(node)
+        {
+            ranges.push((i, end.saturating_add(1)));
+        }
+
+        i = end.saturating_add(1);
+    }
+}
+
+fn has_separator_ancestor(node: tree_sitter::Node) -> bool {
+    let mut current = Some(node);
+    while let Some(n) = current {
+        let kind = n.kind();
+        if matches!(kind, "separator" | "pattern_sep") {
+            return true;
+        }
+        current = n.parent();
+    }
+    false
+}
+
+fn find_range_at(ranges: &[(usize, usize)], offset: usize) -> Option<(usize, usize)> {
+    if ranges.is_empty() {
+        return None;
+    }
+    match ranges.binary_search_by_key(&offset, |(s, _)| *s) {
+        Ok(idx) => Some(ranges[idx]),
+        Err(0) => None,
+        Err(idx) => {
+            let (start, end) = ranges[idx - 1];
+            if offset >= start && offset < end {
+                Some((start, end))
+            } else {
+                None
+            }
+        }
+    }
+}
+
+fn find_separator_block(bytes: &[u8], start: usize, ranges: &[(usize, usize)]) -> Option<usize> {
+    if bytes.get(start) != Some(&b'{') {
+        return None;
+    }
+    ranges.iter().find(|(s, _)| *s == start).map(|(_, e)| *e)
+}
+
+fn byte_to_char_index(offsets: &[usize], end: usize, input_len: usize) -> usize {
+    if end >= input_len {
+        return offsets.len();
+    }
+    match offsets.binary_search(&end) {
+        Ok(idx) => idx,
+        Err(idx) => idx,
+    }
+}
+
+fn infer_closing_indent(out: &str, indent_unit: usize) -> usize {
+    let line = out
+        .rsplit('\n')
+        .find(|value| {
+            let trimmed = value.trim();
+            if trimmed.is_empty() {
+                return false;
+            }
+            // 跳过仅包含闭合符号的行，避免缩进被归零。
+            !trimmed.chars().all(|ch| matches!(ch, ')' | '}' | ']'))
+        })
+        .unwrap_or("");
+    let leading = line.chars().take_while(|ch| *ch == ' ').count();
+    let trimmed = line.trim_end();
+    let ends_with_open = trimmed.ends_with('{') || trimmed.ends_with('(') || trimmed.ends_with('[');
+    let is_annotation = trimmed.starts_with("#[");
+    if ends_with_open || is_annotation {
+        return leading / indent_unit;
+    }
+    if leading >= indent_unit {
+        leading / indent_unit - 1
+    } else {
+        0
     }
 }
 

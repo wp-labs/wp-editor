@@ -31,7 +31,7 @@ pub fn wpl_examples(
         // 获取原始的wpl代码
         let mut contents = String::new();
         file.read_to_string(&mut contents)?;
-        example.wpl_code = wpl_formatter.format_content(&contents);
+        example.wpl_code = wpl_formatter.format_content_or_original(&contents);
         // 获取日志示例数据
         let sample_data_dir = wpl_path.parent().unwrap().join("sample.dat");
         let mut sample_data = String::new();

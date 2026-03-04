@@ -37,6 +37,8 @@ regex = "1.12"
 base64 = "0.22"
 orion-error = "0.5"
 tempfile = "3.24"
+tree-sitter = "0.26.6"
+tree-sitter-wpl = { package = "tree-sitter-wpl", git = "https://github.com/wp-labs/tree-sitter-wpl.git", branch = "main" }
 
 
 # PostgreSQL 数据库支持 - SeaORM

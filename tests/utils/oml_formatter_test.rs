@@ -10,6 +10,7 @@ fn format_content_should_keep_blocks_neat() {
 name : demo
 rule : demo/rule
 ---
+
 block = match read(kind) {
     chars(A) => {
         value = 1 ;
@@ -96,6 +97,7 @@ data_src_system = digit(13);
 name : flow_ssl
 rule : skyeye/flow_ssl_kafka
 ---
+
 vlan_id : digit = match read(vlan_id) {
     in(digit(0), digit(4095)) => read(vlan_id) ;
     _ => digit(0) ;
@@ -138,6 +140,7 @@ value = read(a)
 name : pipe_case
 rule : demo
 ---
+
 collect_time = pipe @collect_time_tmp | Time : : to_ts_ms ;
 value = read(a) | Func : : call ;
 ";
@@ -164,6 +167,7 @@ value = 1;
 name : comment_case
 rule : demo
 ---
+
 // comment with ; and | should stay
 value = 1 ;
 ";
@@ -195,6 +199,7 @@ block = {}
 dev_vendor : \"青藤云\", dev_name : \"万相主机自适应安全平台\", dev_type : \"青藤云HIDS系统\"), copy_raw(name : \"raw_msg\")]
 rule : qingteng/host
 ---
+
 block = {
 }
 ";
@@ -223,6 +228,7 @@ value = 2;
     let expected = "\
 rule : test
 ---
+
 block = {
 }
 value = 1 ;
@@ -252,6 +258,7 @@ pos_sn = read(dev_sn);
 name : atk_module_log
 rule : huawei/atk_module_log/FIREWALLATCK
 ---
+
 pos_sn = read(dev_sn) ;
 ";
 
@@ -288,6 +295,7 @@ pos_sn = read(dev_sn);
 name : nsf_probes_flow_log
 rule : nsf/nsf_probes_flow_http_log nsf/nsf_probes_flow_ftp_log nsf/nsf_probes_flow_dns_log nsf/nsf_probes_flow_mail_log nsf/nsf_probes_flow_ssl_log nsf/nsf_probes_flow_telnet_log nsf/nsf_probes_flow_tcpudp_log nsf/nsf_probes_flow_icmp_log nsf/nsf_probes_flow_dbop_log nsf/nsf_probes_flow_filetransfer_log nsf/nsf_probes_flow_login_log
 ---
+
 pos_sn = read(dev_sn) ;
 ";
 
@@ -319,6 +327,7 @@ event_risk_level = match read(option:[judgeForTI]) {
 name : skyeye_flow_td_ioc_kafka
 rule : skyeye/skyeye_flow_td_ioc_kafka
 ---
+
 event_risk_level = match read(option:[judgeForTI]) {
     digit(0) => chars(不告警 ;
     情报库未命中) ;
