@@ -3,6 +3,17 @@
 本文件记录所有重要变更，格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，
 版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [1.12.1-alpha] - 2026-03-04
+
+### Changed
+
+- 版本更新至 1.12.1-alpha
+- 升级 wp-motor 依赖版本
+- WPL 格式化逻辑依赖 tree-sitter
+- OML 格式化逻辑调整
+- WPL 语法高亮改为依赖 tree-sitter-wpl 仓库
+- OML 语法高亮改为依赖 tree-sitter-oml 仓库
+
 ## [1.12.0-alpha] - 2026-02-26
 
 ### Changed
