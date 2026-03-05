@@ -289,8 +289,10 @@ export function useMultipleInstances(options = {}) {
       return;
     }
 
+    const nextIndex = instances.length;
     const newInstance = createInstance(instances.length + 1);
     setInstances(prev => [...prev, newInstance]);
+    setActiveInstanceIndex(nextIndex);
   }, [canAddInstance, instances.length, createInstance]);
 
   // 删除实例
