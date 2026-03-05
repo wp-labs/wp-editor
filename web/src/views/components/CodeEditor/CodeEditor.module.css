@@ -32,6 +32,33 @@
   color: #f472b6;
 }
 
+.editor :global(.cm-oml-plain) {
+  color: #f8fafc !important;
+  font-weight: inherit !important;
+  font-style: inherit !important;
+}
+
+.editor :global(.cm-oml-plain *) {
+  color: #f8fafc !important;
+  font-weight: inherit !important;
+  font-style: inherit !important;
+}
+
+.editor :global(.cm-oml-plain .cm-oml-function),
+.editor :global(.cm-oml-plain .cm-oml-punctuation),
+.editor :global(.cm-oml-plain .cm-oml-keyword),
+.editor :global(.cm-oml-plain .cm-oml-variable),
+.editor :global(.cm-oml-plain .cm-oml-string),
+.editor :global(.cm-oml-plain .cm-oml-number),
+.editor :global(.cm-oml-plain .cm-oml-operator),
+.editor :global(.cm-oml-plain .cm-oml-type),
+.editor :global(.cm-oml-plain .cm-oml-special) {
+  color: #f8fafc !important;
+  font-weight: inherit !important;
+  font-style: inherit !important;
+  text-decoration: inherit !important;
+}
+
 .editor :global(.cm-oml-number) {
   color: #fbbf24;
 }

@@ -1,4 +1,4 @@
-import { Table, message } from 'antd';
+import { App as AntdApp, Table } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -85,6 +85,7 @@ const createOmlInstance = (instanceNumber, i18nT) => {
 
 function SimulateDebugPage() {
   const { t } = useTranslation();
+  const { message } = AntdApp.useApp();
   
   // 工作区管理
   const {
