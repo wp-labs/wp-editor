@@ -8,7 +8,7 @@ use wp_lang::{
     AnnotationType, WparseReason, WplCode, WplEvaluator, WplExpress, WplPackage, WplStatementType,
 };
 use wp_model_core::model::{DataField, DataRecord, DataType};
-use wp_parse_api::RawData;
+use wp_model_core::raw::RawData;
 
 type RunParseProc = (WplExpress, Vec<AnnotationType>);
 
@@ -71,10 +71,11 @@ fn try_parse_with_rules(rule_items: Vec<RunParseProc>, data: &str) -> Result<Dat
             Err(e) => {
                 // 记录解析深度最高的错误
                 best_wpl = index + 1;
-                if let WparseReason::Uvs(UvsReason::DataError(_, Some(pos))) = e.reason()
-                    && *pos > max_depth
-                {
-                    max_depth = *pos;
+                if matches!(e.reason(), WparseReason::Uvs(UvsReason::DataError)) {
+                    // 新版 UvsReason::DataError 不再携带位置参数，保底记为 1 表示已进入规则解析。
+                    if max_depth == 0 {
+                        max_depth = 1;
+                    }
                 }
             }
         }
