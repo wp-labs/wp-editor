@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.13.0] - 2026-03-08
+
+### Changed
+
+- Version update to 1.13.0
+- Upgrade wp-motor dependency to v1.18.0
+- Upgrade `wp-connector-api`, `wp-parse-api`, `wp-error`, `wp-specs`, `wp-conf-base`, and `wp-log`
+
+### Fixed
+
+- Fix compilation errors after dependency upgrades by unifying `orion-error` to `0.6`
+- Adapt `RawData` import path change (`wp_model_core::raw::RawData`)
+- Adapt to the new `UvsReason::DataError` enum shape and fix error matching logic
+
 
 ## [1.12.2] - 2026-03-05
 
