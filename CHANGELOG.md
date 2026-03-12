@@ -3,6 +3,20 @@
 本文件记录所有重要变更，格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，
 版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [1.13.0] - 2026-03-08
+
+### Changed
+
+- 版本更新至 1.13.0
+- 升级 wp-motor 依赖至 v1.18.0
+- 升级 `wp-connector-api`、`wp-parse-api`、`wp-error`、`wp-specs`、`wp-conf-base`、`wp-log`
+
+### Fixed
+
+- 修复依赖升级后的编译错误：统一 `orion-error` 至 `0.6`
+- 适配 `RawData` 导入路径变更（`wp_model_core::raw::RawData`）
+- 适配 `UvsReason::DataError` 新枚举形态，修复错误匹配逻辑
+
 ## [1.12.2] - 2026-03-05
 
 ### Changed
