@@ -129,20 +129,10 @@ fn _copy_docs_assets(metadata: &Value) {
 }
 
 fn main() {
-    // 判断是否为 release 构建
-    let is_release = std::env::var("PROFILE").unwrap_or_default() == "release";
-
     // 只获取一次 metadata
     let metadata = get_cargo_metadata();
 
-    if !is_release {
-        // 拉取帮助文档资源
-        // copy_docs_assets(&metadata);
-        // 构建静态文件
-        run_npm_build();
-    } else {
-        println!("cargo:warning=Release 构建，跳过 npm 和文档 copy");
-    }
+    run_npm_build();
 
     // 补充版本号
     let app_name = env!("CARGO_PKG_NAME");

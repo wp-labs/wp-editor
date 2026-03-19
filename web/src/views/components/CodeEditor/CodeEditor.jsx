@@ -1,6 +1,6 @@
-import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef } from 'react';
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef } from 'react';
 import { autocompletion, closeBrackets, closeBracketsKeymap, completionKeymap } from '@codemirror/autocomplete';
-import { defaultKeymap, history, historyKeymap, indentWithTab } from '@codemirror/commands';
+import { defaultKeymap, history, historyKeymap, indentLess, insertTab } from '@codemirror/commands';
 import { EditorState } from '@codemirror/state';
 import { json } from '@codemirror/lang-json';
 import {
@@ -46,8 +46,9 @@ function CodeEditor(props, ref) {
   const language = props.language || 'plain';
   const textColor = props.textColor;
   const theme = props.theme; // 可选的主题属性
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
   const uiLanguage = i18n.language;
+  const showQuickPaste = props.showQuickPaste !== false;
   const wplCompletionOptions = useMemo(() => buildWplCompletionOptions(uiLanguage), [uiLanguage]);
   const omlCompletionOptions = useMemo(() => buildOmlCompletionOptions(uiLanguage), [uiLanguage]);
   const wplCompletionSource = useMemo(
@@ -69,21 +70,56 @@ function CodeEditor(props, ref) {
       },
     });
   }, [textColor]);
+  // Tab 行为：无选区时在光标处插入制表符；有选区时保持整体缩进能力，Shift-Tab 反缩进。
+  const tabKeyBinding = useMemo(
+    () => ({ key: 'Tab', run: insertTab, shift: indentLess }),
+    [],
+  );
+  const replaceEditorContent = useCallback((nextValue) => {
+    const view = viewRef.current;
+    if (!view) return;
+    const safeValue = nextValue || '';
+    const currentValue = view.state.doc.toString();
+    if (currentValue !== safeValue) {
+      view.dispatch({
+        changes: { from: 0, to: currentValue.length, insert: safeValue },
+      });
+    }
+  }, []);
+  const handleQuickPaste = useCallback(async () => {
+    if (!navigator?.clipboard?.readText) {
+      props.onQuickPasteError?.(new Error('clipboard_api_not_supported'));
+      return;
+    }
+    try {
+      // 浏览器会返回剪贴板中的首个可读文本内容。
+      const text = await navigator.clipboard.readText();
+      replaceEditorContent(text);
+      props.onQuickPaste?.(text);
+    } catch (error) {
+      props.onQuickPasteError?.(error);
+    }
+  }, [props, replaceEditorContent]);
+  const handleQuickCopy = useCallback(async () => {
+    if (!navigator?.clipboard?.writeText) {
+      props.onQuickCopyError?.(new Error('clipboard_api_not_supported'));
+      return;
+    }
+    try {
+      const text = viewRef.current?.state.doc.toString() || '';
+      await navigator.clipboard.writeText(text);
+      props.onQuickCopy?.(text);
+    } catch (error) {
+      props.onQuickCopyError?.(error);
+    }
+  }, [props]);
 
   useImperativeHandle(ref, () => ({
     getValue: () => viewRef.current?.state.doc.toString() || '',
-    setValue: (value) => {
-      const view = viewRef.current;
-      if (!view) return;
-      const nextValue = value || '';
-      const currentValue = view.state.doc.toString();
-      if (currentValue !== nextValue) {
-        view.dispatch({
-          changes: { from: 0, to: currentValue.length, insert: nextValue },
-        });
-      }
-    },
-  }));
+    setValue: value => replaceEditorContent(value),
+    copyToClipboard: handleQuickCopy,
+    pasteFromClipboard: handleQuickPaste,
+  }), [handleQuickCopy, handleQuickPaste, replaceEditorContent]);
 
   useEffect(() => {
     if (!editorRef.current) return;
@@ -99,13 +135,13 @@ function CodeEditor(props, ref) {
       highlightActiveLineGutter(),
       highlightActiveLine(),
       EditorView.lineWrapping,
-      EditorState.tabSize.of(2),
+      EditorState.tabSize.of(4),
       history(),
       closeBrackets(),
       keymap.of([
         ...completionKeymap,
         ...closeBracketsKeymap,
-        indentWithTab,
+        tabKeyBinding,
         ...historyKeymap,
         ...defaultKeymap,
       ]),
@@ -157,7 +193,7 @@ function CodeEditor(props, ref) {
       view.destroy();
       viewRef.current = null;
     };
-  }, [language, uiLanguage, wplCompletionSource, omlCompletionSource, colorTheme, theme]);
+  }, [language, uiLanguage, wplCompletionSource, omlCompletionSource, colorTheme, theme, tabKeyBinding]);
 
   useEffect(() => {
     const view = viewRef.current;
@@ -173,6 +209,26 @@ function CodeEditor(props, ref) {
 
   return (
     <div className={`${styles.editor} ${props.className || ''}`}>
+      {showQuickPaste && (
+        <div className={styles.editorActions}>
+          <button
+            type="button"
+            className={`${styles.quickActionBtn} ${styles.quickCopyBtn}`}
+            onClick={handleQuickCopy}
+            title={t('codeEditor.quickCopy', { defaultValue: '复制' })}
+          >
+            {t('codeEditor.quickCopy', { defaultValue: '复制' })}
+          </button>
+          <button
+            type="button"
+            className={`${styles.quickActionBtn} ${styles.quickPasteBtn}`}
+            onClick={handleQuickPaste}
+            title={t('codeEditor.quickPaste', { defaultValue: '粘贴' })}
+          >
+            {t('codeEditor.quickPaste', { defaultValue: '粘贴' })}
+          </button>
+        </div>
+      )}
       <div ref={editorRef} className={styles.code} />
     </div>
   );

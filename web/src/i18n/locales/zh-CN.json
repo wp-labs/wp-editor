@@ -37,6 +37,10 @@
     "loading": "加载中...",
     "noData": "暂无数据"
   },
+  "codeEditor": {
+    "quickCopy": "复制",
+    "quickPaste": "粘贴"
+  },
   "multipleInstances": {
     "addInstance": "添加实例",
     "deleteInstance": "删除实例",
