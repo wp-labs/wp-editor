@@ -60,13 +60,13 @@ wp-conf-base =  "0.2"
 wp-data-fmt  =  "0.2"
 wp-editor-migrations = { path = "crates/migrations" }
 
-wp-engine     = {                            git = "https://github.com/wp-labs/wp-motor", tag = "v1.18.1" }
-wp-config     = { package = "wp-config",     git = "https://github.com/wp-labs/wp-motor", tag = "v1.18.1" }
-wp_oml         = { package = "wp-oml",       git = "https://github.com/wp-labs/wp-motor", tag = "v1.18.1" }
-wp-lang       = { package = "wp-lang",       git = "https://github.com/wp-labs/wp-motor", tag = "v1.18.1" }
-wp_knowledge  = { package = "wp-knowledge",  git = "https://github.com/wp-labs/wp-motor", tag = "v1.18.1" }
-wp_data_utils = { package = "wp-data-utils", git = "https://github.com/wp-labs/wp-motor", tag = "v1.18.1" }
-wp-proj       = { package = "wp-proj",       git = "https://github.com/wp-labs/wp-motor", tag = "v1.18.1" }
+wp-engine     = {                            git = "https://github.com/wp-labs/wp-motor", tag = "v1.18.3" }
+wp-config     = { package = "wp-config",     git = "https://github.com/wp-labs/wp-motor", tag = "v1.18.3" }
+wp_oml         = { package = "wp-oml",       git = "https://github.com/wp-labs/wp-motor", tag = "v1.18.3" }
+wp-lang       = { package = "wp-lang",       git = "https://github.com/wp-labs/wp-motor", tag = "v1.18.3" }
+wp_knowledge  = { package = "wp-knowledge",  git = "https://github.com/wp-labs/wp-motor", tag = "v1.18.3" }
+wp_data_utils = { package = "wp-data-utils", git = "https://github.com/wp-labs/wp-motor", tag = "v1.18.3" }
+wp-proj       = { package = "wp-proj",       git = "https://github.com/wp-labs/wp-motor", tag = "v1.18.3" }
 
 #wp-engine = { path = "../wp-motor" }
 #wp-config = { path = "../wp-motor/crates/wp-config" }
