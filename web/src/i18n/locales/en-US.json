@@ -37,6 +37,10 @@
     "loading": "Loading...",
     "noData": "No Data"
   },
+  "codeEditor": {
+    "quickCopy": "Copy",
+    "quickPaste": "Paste"
+  },
   "multipleInstances": {
     "addInstance": "Add Instance",
     "deleteInstance": "Delete Instance",
