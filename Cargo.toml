@@ -28,7 +28,7 @@ zip-extract = "0.1"
 actix-multipart = "0.7"
 futures-util = "0.3"
 mime_guess = "2"
-config = "0.14"
+config = "0.15"
 toml = "0.9"
 chrono = { version = "0.4", features = ["serde"] }
 thiserror = "2.0"
