@@ -1,5 +1,6 @@
-/// OML 代码格式化器：保持语义不变，统一缩进/空行/行内空格与属性折叠。
+/// OML 代码格式化器：保持语义不变，统一缩进/空行/行内空格。
 pub struct OmlFormatter {
+    /// 每级缩进的空格数。
     indent: usize,
 }
 
@@ -15,625 +16,543 @@ impl OmlFormatter {
         Self { indent: 4 }
     }
 
-    pub fn format_content(&self, content: &str) -> String {
-        self.format(content).unwrap_or_else(|_| content.to_string())
+    /// 对外入口：返回格式化结果或具体错误信息。
+    pub fn format_content(&self, content: &str) -> Result<String, OmlFormatError> {
+        self.format_with_error(content)
     }
 
-    fn format(&self, content: &str) -> Result<String, ()> {
-        let normalized = content.replace("\r\n", "\n").replace('\r', "\n");
-        let normalized = normalized.replace('\t', &" ".repeat(self.indent));
+    /// 兼容旧行为：格式化失败时回退为原内容，保证调用方不崩溃。
+    pub fn format_content_or_original(&self, content: &str) -> String {
+        self.format_with_error(content)
+            .unwrap_or_else(|_| content.to_string())
+    }
 
-        // 分离头部与主体
-        let mut header = Vec::new();
-        let mut body_lines: Vec<String> = Vec::new();
-        let mut had_sep = false;
-        let mut lines = normalized.lines().peekable();
-        while let Some(line) = lines.next() {
-            let trimmed = line.trim();
-            if trimmed == "---" {
-                had_sep = true;
-                break;
+    /// 对外提供可返回错误信息的格式化接口。
+    pub fn format_with_error(&self, content: &str) -> Result<String, OmlFormatError> {
+        self.format(content)
+    }
+
+    /// 主格式化流程：使用 tree-sitter 校验语法，再按 token 规则重排输出。
+    fn format(&self, content: &str) -> Result<String, OmlFormatError> {
+        let tokens = tokenize(content)?;
+        Ok(format_tokens(&tokens, self.indent))
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+enum Symbol {
+    LParen,
+    RParen,
+    LBrace,
+    RBrace,
+    LBracket,
+    RBracket,
+    Comma,
+    Semicolon,
+    Colon,
+    Equal,
+    FatArrow,
+    Pipe,
+    Separator,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+enum TokenKind {
+    Word,
+    StringLiteral,
+    Comment,
+    Symbol(Symbol),
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct Token {
+    kind: TokenKind,
+    text: String,
+}
+
+fn tokenize(input: &str) -> Result<Vec<Token>, OmlFormatError> {
+    let mut iter = input.char_indices().peekable();
+    let mut line = 1usize;
+    let mut tokens = Vec::new();
+    let input_len = input.len();
+
+    while let Some((idx, ch)) = iter.next() {
+        if ch.is_whitespace() {
+            if ch == '\n' {
+                line = line.saturating_add(1);
             }
-            if trimmed.starts_with("#[") {
-                header.push(collect_attr_block_lines(trimmed, &mut lines));
+            continue;
+        }
+
+        if ch == '#' {
+            let start = idx;
+            let mut end = input_len;
+            while let Some(&(next_idx, next_ch)) = iter.peek() {
+                if next_ch == '\n' {
+                    end = next_idx;
+                    break;
+                }
+                iter.next();
+            }
+            tokens.push(Token {
+                kind: TokenKind::Comment,
+                text: input[start..end].to_string(),
+            });
+            continue;
+        }
+
+        if ch == '/' && matches!(iter.peek().map(|(_, c)| *c), Some('/')) {
+            let start = idx;
+            iter.next();
+            let mut end = input_len;
+            while let Some(&(next_idx, next_ch)) = iter.peek() {
+                if next_ch == '\n' {
+                    end = next_idx;
+                    break;
+                }
+                iter.next();
+            }
+            tokens.push(Token {
+                kind: TokenKind::Comment,
+                text: input[start..end].to_string(),
+            });
+            continue;
+        }
+
+        if ch == '-' {
+            let mut lookahead = iter.clone();
+            if matches!(lookahead.next().map(|(_, c)| c), Some('-'))
+                && matches!(lookahead.next().map(|(_, c)| c), Some('-'))
+            {
+                tokens.push(Token {
+                    kind: TokenKind::Symbol(Symbol::Separator),
+                    text: "---".to_string(),
+                });
+                iter.next();
+                iter.next();
                 continue;
             }
-            if !trimmed.is_empty() {
-                header.push(trimmed.to_string());
-            }
-        }
-        if had_sep {
-            for line in lines {
-                body_lines.push(line.to_string());
-            }
-        } else {
-            body_lines = normalized.lines().map(|l| l.to_string()).collect();
-            header.clear();
         }
 
-        let mut out = String::new();
-        let indent_unit = " ".repeat(self.indent);
-        let mut idx = 0usize;
-        while idx < header.len() {
-            let line = &header[idx];
-            if line.trim_start().starts_with("#[") {
-                out.push_str(&format_attribute(line));
-                out.push('\n');
-                idx += 1;
-                continue;
-            }
-            if let Some((k, v)) = line.split_once(':') {
-                let key = k.trim_end();
-                let val = v.trim_start();
-                if val.is_empty() && idx + 1 < header.len() {
-                    let next = &header[idx + 1];
-                    if !next.contains(':') {
-                        out.push_str(&format!("{} : \n", key));
-                        // 收集所有连续的值行，逐行缩进
-                        let mut val_idx = idx + 1;
-                        while val_idx < header.len() {
-                            let val_line = header[val_idx].as_str();
-                            if val_line.contains(':') || val_line.trim().is_empty() {
-                                break;
-                            }
-                            out.push_str(&format!("{}{}\n", indent_unit, val_line.trim_start()));
-                            val_idx += 1;
-                        }
-                        idx = val_idx;
-                        continue;
+        if ch == '"' || ch == '\'' {
+            let quote = ch;
+            let start = idx;
+            let start_line = line;
+            let mut closed = false;
+            while let Some((_, next_ch)) = iter.next() {
+                if next_ch == '\n' {
+                    line = line.saturating_add(1);
+                }
+                if next_ch == '\\' {
+                    if let Some((_, escaped)) = iter.next()
+                        && escaped == '\n'
+                    {
+                        line = line.saturating_add(1);
                     }
-                }
-                out.push_str(&format!("{} : {}\n", key, val));
-            } else {
-                out.push_str(line.trim());
-                out.push('\n');
-            }
-            idx += 1;
-        }
-        let mut body_formatted = self.format_body(&body_lines.join("\n"));
-
-        if had_sep || !header.is_empty() {
-            out.push_str("---\n");
-            if !body_formatted.trim().is_empty() {
-                out.push('\n');
-            }
-            while body_formatted.starts_with('\n') {
-                body_formatted.remove(0);
-            }
-        }
-
-        out.push_str(&body_formatted);
-
-        if !out.ends_with('\n') {
-            out.push('\n');
-        }
-        Ok(out)
-    }
-
-    fn format_body(&self, body: &str) -> String {
-        let mut out = String::new();
-        let mut chars = body.chars().peekable();
-        let mut indent = 0usize;
-        let indent_unit = " ".repeat(self.indent);
-        let mut start_of_line = true;
-        let mut pending_newlines = 0usize;
-        let mut after_eq = false;
-        const RAW_FUNCS: &[&str] = &["chars"];
-
-        while let Some(ch) = chars.next() {
-            if ch.is_whitespace() {
-                if ch == '\n' {
-                    pending_newlines += 1;
-                } else if !start_of_line && !out.ends_with(' ') && !out.ends_with('\n') {
-                    out.push(' ');
-                }
-                continue;
-            }
-
-            // 自定义原样函数：内部内容保持原样，不拆分分号/管道
-            if let Some(name_len) = starts_with_raw_func(ch, &chars, RAW_FUNCS) {
-                self.write_indent_if_needed(start_of_line, indent, &indent_unit, &mut out);
-                if let Some(block) = read_raw_func_block(ch, &mut chars, name_len) {
-                    out.push_str(&block);
-                    start_of_line = false;
                     continue;
                 }
-            }
-
-            if pending_newlines > 0 {
-                if ch == ';' {
-                    // 分号前不允许空格/换行，直接贴合上一 token
-                    start_of_line = false;
-                } else if ch == '=' || ch == '|' || after_eq {
-                    // 等号/管道及其后的 token 统一保持同一行
-                    if !start_of_line && !out.ends_with(' ') && !out.ends_with('\n') {
-                        out.push(' ');
-                    }
-                    start_of_line = false;
-                } else {
-                    let count = if pending_newlines > 1 { 2 } else { 1 };
-                    if count == 1 {
-                        if !out.ends_with('\n') {
-                            out.push('\n');
-                        }
-                    } else {
-                        out.push('\n');
-                        out.push('\n');
-                    }
-                    start_of_line = true;
-                }
-                pending_newlines = 0;
-            }
-
-            // 单行注释（以 // 开头）：保持内容不变，仅顶格输出
-            if ch == '/' && matches!(chars.peek(), Some('/')) {
-                after_eq = false;
-                if !start_of_line && !out.ends_with('\n') {
-                    out.push('\n');
-                }
-                // 写入注释起始符
-                out.push_str("//");
-                chars.next();
-                // 复制注释剩余部分直到行尾
-                while let Some(c) = chars.peek() {
-                    if *c == '\n' {
-                        break;
-                    }
-                    out.push(*c);
-                    chars.next();
-                }
-                out.push('\n');
-                start_of_line = true;
-                continue;
-            }
-
-            // 属性块
-            if ch == '#' && matches!(chars.peek(), Some('[')) {
-                after_eq = false;
-                if !start_of_line && !out.ends_with('\n') {
-                    out.push('\n');
-                }
-                if indent > 0 {
-                    out.push_str(&indent_unit.repeat(indent));
-                }
-                out.push_str(&format_attribute(&collect_attr_block("#[", &mut chars)));
-                out.push('\n');
-                start_of_line = true;
-                continue;
-            }
-
-            // 字符串字面量
-            if ch == '"' {
-                after_eq = false;
-                self.write_indent_if_needed(start_of_line, indent, &indent_unit, &mut out);
-                out.push('"');
-                let mut escaped = false;
-                for c in chars.by_ref() {
-                    out.push(c);
-                    if escaped {
-                        escaped = false;
-                    } else if c == '\\' {
-                        escaped = true;
-                    } else if c == '"' {
-                        break;
-                    }
-                }
-                start_of_line = false;
-                continue;
-            }
-
-            // => 运算符
-            if ch == '=' && matches!(chars.peek(), Some('>')) {
-                after_eq = false;
-                self.write_indent_if_needed(start_of_line, indent, &indent_unit, &mut out);
-                if !start_of_line && !out.ends_with(' ') && !out.ends_with('\n') {
-                    out.push(' ');
-                }
-                out.push_str("=>");
-                chars.next();
-                out.push(' ');
-                start_of_line = false;
-                continue;
-            }
-
-            // 普通等号，统一两侧空格，且保持同一行
-            if ch == '=' {
-                self.write_indent_if_needed(start_of_line, indent, &indent_unit, &mut out);
-                if !start_of_line && !out.ends_with(' ') && !out.ends_with('\n') {
-                    out.push(' ');
-                }
-                out.push('=');
-                out.push(' ');
-                start_of_line = false;
-                after_eq = true;
-                continue;
-            }
-
-            // 管道：两侧补足空格，保证在同一行
-            if ch == '|' {
-                after_eq = false;
-                self.write_indent_if_needed(start_of_line, indent, &indent_unit, &mut out);
-                if !start_of_line && !out.ends_with(' ') && !out.ends_with('\n') {
-                    out.push(' ');
-                }
-                out.push('|');
-                // 吃掉管道后的所有空白，统一加 1 个空格
-                while matches!(chars.peek(), Some(c) if c.is_whitespace()) {
-                    chars.next();
-                }
-                out.push(' ');
-                start_of_line = false;
-                continue;
-            }
-
-            // 左花括号
-            if ch == '{' {
-                after_eq = false;
-                if !start_of_line && !out.ends_with(' ') && !out.ends_with('\n') {
-                    out.push(' ');
-                }
-                // 检查空块
-                let mut clone_iter = chars.clone();
-                while matches!(clone_iter.peek(), Some(c) if c.is_whitespace()) {
-                    clone_iter.next();
-                }
-                if matches!(clone_iter.next(), Some('}')) {
-                    self.write_indent_if_needed(start_of_line, indent, &indent_unit, &mut out);
-                    out.push_str("{}");
-                    while let Some(c) = chars.peek() {
-                        if c.is_whitespace() {
-                            chars.next();
-                        } else {
-                            break;
-                        }
-                    }
-                    chars.next(); // consume '}'
-                    start_of_line = false;
-                } else {
-                    self.write_indent_if_needed(start_of_line, indent, &indent_unit, &mut out);
-                    out.push('{');
-                    out.push('\n');
-                    indent += 1;
-                    start_of_line = true;
-                }
-                continue;
-            }
-
-            // 右花括号
-            if ch == '}' {
-                after_eq = false;
-                indent = indent.saturating_sub(1);
-                if !start_of_line {
-                    out.push('\n');
-                }
-                self.write_indent_if_needed(true, indent, &indent_unit, &mut out);
-                out.push('}');
-
-                // 若后续紧跟分号（可跨空白），则同一行输出 `};`
-                let mut lookahead = chars.clone();
-                let mut skipped = 0usize;
-                while matches!(lookahead.peek(), Some(c) if c.is_whitespace()) {
-                    lookahead.next();
-                    skipped += 1;
-                }
-                if matches!(lookahead.peek(), Some(';')) {
-                    for _ in 0..skipped {
-                        chars.next();
-                    }
-                    chars.next(); // consume ';'
-                    out.push(';');
-                    out.push('\n');
-                } else {
-                    out.push('\n');
-                }
-                start_of_line = true;
-                continue;
-            }
-
-            // 语句结束
-            if ch == ';' {
-                after_eq = false;
-                while matches!(out.chars().last(), Some(' ' | '\n')) {
-                    out.pop();
-                }
-                out.push(';');
-                out.push('\n');
-                start_of_line = true;
-                continue;
-            }
-
-            self.write_indent_if_needed(start_of_line, indent, &indent_unit, &mut out);
-            out.push(ch);
-            start_of_line = false;
-            after_eq = false;
-        }
-
-        let mut res = collapse_blank_lines(&out);
-        // 确保尾部有一个空行
-        if !res.is_empty() && !res.ends_with("\n\n") {
-            if res.ends_with('\n') {
-                res.push('\n');
-            } else {
-                res.push_str("\n\n");
-            }
-        }
-        res
-    }
-
-    fn write_indent_if_needed(
-        &self,
-        start_of_line: bool,
-        indent: usize,
-        indent_unit: &str,
-        out: &mut String,
-    ) {
-        if start_of_line {
-            out.push_str(&indent_unit.repeat(indent));
-        }
-    }
-}
-
-/// 收集属性块文本（跨行），直到匹配到对应的 ']'
-fn collect_attr_block_lines<'a, I>(start_line: &str, lines: &mut std::iter::Peekable<I>) -> String
-where
-    I: Iterator<Item = &'a str>,
-{
-    let mut buf = String::new();
-    buf.push_str(start_line);
-    buf.push('\n');
-    let mut depth = start_line.matches('[').count() as i32 - start_line.matches(']').count() as i32;
-    let mut in_str = false;
-    let mut escaped = false;
-
-    for line in lines {
-        for ch in line.chars() {
-            buf.push(ch);
-            if escaped {
-                escaped = false;
-                continue;
-            }
-            if ch == '\\' {
-                escaped = true;
-                continue;
-            }
-            if ch == '"' {
-                in_str = !in_str;
-            }
-            if !in_str {
-                if ch == '[' {
-                    depth += 1;
-                } else if ch == ']' {
-                    depth -= 1;
-                }
-            }
-        }
-        buf.push('\n');
-        if depth <= 0 {
-            break;
-        }
-    }
-
-    buf.trim_end().to_string()
-}
-
-/// 收集属性块文本（字符级）
-fn collect_attr_block<T>(start: &str, iter: &mut T) -> String
-where
-    T: Iterator<Item = char>,
-{
-    let mut buf = String::from(start);
-    let mut depth = start.chars().filter(|c| *c == '[').count() as i32;
-    let mut in_str = false;
-    let mut escaped = false;
-    for c in iter.by_ref() {
-        buf.push(c);
-        if escaped {
-            escaped = false;
-            continue;
-        }
-        if c == '\\' {
-            escaped = true;
-            continue;
-        }
-        if c == '"' {
-            in_str = !in_str;
-        }
-        if !in_str {
-            if c == '[' {
-                depth += 1;
-            } else if c == ']' {
-                depth -= 1;
-                if depth == 0 {
+                if next_ch == quote {
+                    closed = true;
                     break;
                 }
             }
+            if !closed {
+                return Err(OmlFormatError::UnclosedString { line: start_line });
+            }
+            let end = iter.peek().map(|(i, _)| *i).unwrap_or(input_len);
+            tokens.push(Token {
+                kind: TokenKind::StringLiteral,
+                text: input[start..end].to_string(),
+            });
+            continue;
         }
-    }
-    buf
-}
 
-/// 将属性块压缩为单行，保持键值顺序
-fn format_attribute(raw: &str) -> String {
-    let inner = raw.trim().trim_start_matches("#[").trim_end_matches(']');
-    let items = split_top_level(inner, ',');
-    let mut parts = Vec::new();
-
-    for item in items {
-        let trimmed = collapse_ws(item.trim());
-        if let Some((name, args_raw)) = trimmed.split_once('(') {
-            let args_inner = args_raw.trim_end_matches(')');
-            let args = split_top_level(args_inner, ',');
-            let mut arg_parts = Vec::new();
-            for arg in args {
-                let arg_clean = collapse_ws(arg.trim());
-                if let Some((k, v)) = arg_clean.split_once(':') {
-                    let k = k.trim();
-                    let v = v.trim();
-                    if name.trim() == "tag" {
-                        arg_parts.push(format!("{}: {}", k, v));
-                    } else {
-                        arg_parts.push(format!("{}:{}", k, v));
-                    }
+        match ch {
+            '(' => {
+                tokens.push(symbol_token(Symbol::LParen, "("));
+                continue;
+            }
+            ')' => {
+                tokens.push(symbol_token(Symbol::RParen, ")"));
+                continue;
+            }
+            '{' => {
+                tokens.push(symbol_token(Symbol::LBrace, "{"));
+                continue;
+            }
+            '}' => {
+                tokens.push(symbol_token(Symbol::RBrace, "}"));
+                continue;
+            }
+            '[' => {
+                tokens.push(symbol_token(Symbol::LBracket, "["));
+                continue;
+            }
+            ']' => {
+                tokens.push(symbol_token(Symbol::RBracket, "]"));
+                continue;
+            }
+            ',' => {
+                tokens.push(symbol_token(Symbol::Comma, ","));
+                continue;
+            }
+            ';' => {
+                tokens.push(symbol_token(Symbol::Semicolon, ";"));
+                continue;
+            }
+            ':' => {
+                tokens.push(symbol_token(Symbol::Colon, ":"));
+                continue;
+            }
+            '|' => {
+                tokens.push(symbol_token(Symbol::Pipe, "|"));
+                continue;
+            }
+            '=' => {
+                if matches!(iter.peek().map(|(_, c)| *c), Some('>')) {
+                    tokens.push(symbol_token(Symbol::FatArrow, "=>"));
+                    iter.next();
                 } else {
-                    arg_parts.push(arg_clean);
+                    tokens.push(symbol_token(Symbol::Equal, "="));
+                }
+                continue;
+            }
+            _ => {}
+        }
+
+        let start = idx;
+        let mut end = iter.peek().map(|(i, _)| *i).unwrap_or(input_len);
+        while let Some(&(next_idx, next_ch)) = iter.peek() {
+            if next_ch.is_whitespace() || is_punctuation(next_ch) || next_ch == '#' {
+                break;
+            }
+            if next_ch == '/' {
+                let mut lookahead = iter.clone();
+                lookahead.next();
+                if matches!(lookahead.next().map(|(_, c)| c), Some('/')) {
+                    break;
                 }
             }
-            parts.push(format!("{}({})", name.trim(), arg_parts.join(",")));
-        } else if !trimmed.is_empty() {
-            parts.push(trimmed.to_string());
+            iter.next();
+            end = iter.peek().map(|(i, _)| *i).unwrap_or(input_len);
+            if next_idx == end {
+                end = next_idx;
+            }
         }
+        tokens.push(Token {
+            kind: TokenKind::Word,
+            text: input[start..end].to_string(),
+        });
     }
 
-    format!("#[{}]", parts.join(",")).replace('\n', "")
+    Ok(tokens)
 }
 
-/// 按顶层分隔符拆分，忽略字符串与嵌套括号
-fn split_top_level(input: &str, delim: char) -> Vec<String> {
-    let mut res = Vec::new();
-    let mut buf = String::new();
-    let mut depth = 0i32;
-    let mut in_str = false;
-    let mut escaped = false;
-
-    for ch in input.chars() {
-        if escaped {
-            buf.push(ch);
-            escaped = false;
-            continue;
-        }
-        match ch {
-            '\\' => {
-                buf.push(ch);
-                escaped = true;
-            }
-            '"' => {
-                buf.push(ch);
-                in_str = !in_str;
-            }
-            '(' | '[' | '{' if !in_str => {
-                depth += 1;
-                buf.push(ch);
-            }
-            ')' | ']' | '}' if !in_str => {
-                depth -= 1;
-                buf.push(ch);
-            }
-            _ if ch == delim && depth == 0 && !in_str => {
-                res.push(buf.trim().to_string());
-                buf.clear();
-            }
-            _ => buf.push(ch),
-        }
+fn symbol_token(kind: Symbol, text: &str) -> Token {
+    Token {
+        kind: TokenKind::Symbol(kind),
+        text: text.to_string(),
     }
-    if !buf.trim().is_empty() {
-        res.push(buf.trim().to_string());
-    }
-    res
 }
 
-fn collapse_ws(s: &str) -> String {
+fn is_punctuation(ch: char) -> bool {
+    matches!(
+        ch,
+        '(' | ')' | '{' | '}' | '[' | ']' | ',' | ';' | ':' | '|' | '='
+    )
+}
+
+fn format_tokens(tokens: &[Token], indent_spaces: usize) -> String {
     let mut out = String::new();
-    let mut prev_space = false;
-    for ch in s.chars() {
-        if ch.is_whitespace() {
-            if !prev_space {
-                out.push(' ');
-                prev_space = true;
+    let mut indent = 0usize;
+    let mut line_empty = true;
+    let mut paren_level = 0usize;
+    let mut bracket_level = 0usize;
+    let mut brace_level = 0usize;
+
+    let mut i = 0usize;
+    while i < tokens.len() {
+        let token = &tokens[i];
+        let next = tokens.get(i + 1);
+
+        match &token.kind {
+            TokenKind::Symbol(Symbol::Separator) => {
+                if !line_empty {
+                    newline(&mut out, &mut line_empty);
+                }
+                write_token(
+                    &mut out,
+                    &mut line_empty,
+                    indent,
+                    indent_spaces,
+                    &token.text,
+                );
+                newline(&mut out, &mut line_empty);
+                // 头部与主体之间保留一个空行。
+                newline(&mut out, &mut line_empty);
+                i += 1;
+                continue;
             }
-        } else {
-            prev_space = false;
-            out.push(ch);
+            TokenKind::Comment => {
+                if !line_empty {
+                    newline(&mut out, &mut line_empty);
+                }
+                write_token(
+                    &mut out,
+                    &mut line_empty,
+                    indent,
+                    indent_spaces,
+                    &token.text,
+                );
+                newline(&mut out, &mut line_empty);
+                i += 1;
+                continue;
+            }
+            _ => {}
         }
+
+        if is_top_level_header(token, paren_level, bracket_level, brace_level) && !line_empty {
+            newline(&mut out, &mut line_empty);
+        }
+
+        match &token.kind {
+            TokenKind::Symbol(Symbol::LBrace) => {
+                if needs_space_before(token, tokens.get(i.wrapping_sub(1))) {
+                    write_raw(&mut out, &mut line_empty, " ");
+                }
+                write_token(&mut out, &mut line_empty, indent, indent_spaces, "{");
+                newline(&mut out, &mut line_empty);
+                indent += 1;
+                brace_level += 1;
+            }
+            TokenKind::Symbol(Symbol::RBrace) => {
+                brace_level = brace_level.saturating_sub(1);
+                indent = indent.saturating_sub(1);
+                if !line_empty {
+                    newline(&mut out, &mut line_empty);
+                }
+                write_token(&mut out, &mut line_empty, indent, indent_spaces, "}");
+                if matches!(
+                    next.map(|t| &t.kind),
+                    Some(TokenKind::Symbol(Symbol::Semicolon))
+                ) {
+                    write_raw(&mut out, &mut line_empty, " ");
+                    write_raw(&mut out, &mut line_empty, ";");
+                    newline(&mut out, &mut line_empty);
+                    i += 1;
+                } else {
+                    newline(&mut out, &mut line_empty);
+                }
+            }
+            TokenKind::Symbol(Symbol::Semicolon) => {
+                if !out.ends_with(' ') && !out.ends_with('\n') {
+                    write_raw(&mut out, &mut line_empty, " ");
+                }
+                write_raw(&mut out, &mut line_empty, ";");
+                newline(&mut out, &mut line_empty);
+            }
+            TokenKind::Symbol(Symbol::Comma) => {
+                write_raw(&mut out, &mut line_empty, ",");
+                if !matches!(
+                    next.map(|t| &t.kind),
+                    Some(TokenKind::Symbol(Symbol::RParen | Symbol::RBracket))
+                ) {
+                    write_raw(&mut out, &mut line_empty, " ");
+                }
+            }
+            TokenKind::Symbol(Symbol::Pipe) => {
+                if !out.ends_with(' ') && !out.ends_with('\n') {
+                    write_raw(&mut out, &mut line_empty, " ");
+                }
+                write_raw(&mut out, &mut line_empty, "|");
+                write_raw(&mut out, &mut line_empty, " ");
+            }
+            TokenKind::Symbol(Symbol::FatArrow) => {
+                if !out.ends_with(' ') && !out.ends_with('\n') {
+                    write_raw(&mut out, &mut line_empty, " ");
+                }
+                write_raw(&mut out, &mut line_empty, "=>");
+                write_raw(&mut out, &mut line_empty, " ");
+            }
+            TokenKind::Symbol(Symbol::Equal) => {
+                if !out.ends_with(' ') && !out.ends_with('\n') {
+                    write_raw(&mut out, &mut line_empty, " ");
+                }
+                write_raw(&mut out, &mut line_empty, "=");
+                write_raw(&mut out, &mut line_empty, " ");
+            }
+            TokenKind::Symbol(Symbol::Colon) => {
+                let next_is_bracket = matches!(
+                    next.map(|t| &t.kind),
+                    Some(TokenKind::Symbol(Symbol::LBracket))
+                );
+                if next_is_bracket {
+                    write_raw(&mut out, &mut line_empty, ":");
+                } else {
+                    if !out.ends_with(' ') && !out.ends_with('\n') {
+                        write_raw(&mut out, &mut line_empty, " ");
+                    }
+                    write_raw(&mut out, &mut line_empty, ":");
+                    write_raw(&mut out, &mut line_empty, " ");
+                }
+            }
+            TokenKind::Symbol(Symbol::LParen) => {
+                if is_match_prefix(tokens.get(i.wrapping_sub(1))) {
+                    write_raw(&mut out, &mut line_empty, " ");
+                }
+                write_raw(&mut out, &mut line_empty, "(");
+                paren_level += 1;
+            }
+            TokenKind::Symbol(Symbol::RParen) => {
+                write_raw(&mut out, &mut line_empty, ")");
+                paren_level = paren_level.saturating_sub(1);
+            }
+            TokenKind::Symbol(Symbol::LBracket) => {
+                write_raw(&mut out, &mut line_empty, "[");
+                bracket_level += 1;
+            }
+            TokenKind::Symbol(Symbol::RBracket) => {
+                write_raw(&mut out, &mut line_empty, "]");
+                bracket_level = bracket_level.saturating_sub(1);
+            }
+            TokenKind::Word | TokenKind::StringLiteral => {
+                if !line_empty && needs_space_before(token, tokens.get(i.wrapping_sub(1))) {
+                    write_raw(&mut out, &mut line_empty, " ");
+                }
+                write_token(
+                    &mut out,
+                    &mut line_empty,
+                    indent,
+                    indent_spaces,
+                    &token.text,
+                );
+            }
+            TokenKind::Symbol(Symbol::Separator) | TokenKind::Comment => {}
+        }
+
+        i += 1;
     }
-    out.trim().to_string()
+
+    if !out.ends_with('\n') {
+        out.push('\n');
+    }
+    out
 }
 
-/// 折叠连续空行为单个空行
-fn collapse_blank_lines(text: &str) -> String {
-    let mut result = String::new();
-    let mut last_blank = false;
-
-    for line in text.lines() {
-        let blank = line.trim().is_empty();
-        if blank && last_blank {
-            continue;
-        }
-        last_blank = blank;
-        result.push_str(line.trim_end());
-        result.push('\n');
+fn is_top_level_header(
+    token: &Token,
+    paren_level: usize,
+    bracket_level: usize,
+    brace_level: usize,
+) -> bool {
+    if paren_level != 0 || bracket_level != 0 || brace_level != 0 {
+        return false;
     }
-
-    result
+    if let TokenKind::Word = token.kind {
+        matches!(token.text.as_str(), "name" | "rule" | "enable")
+    } else {
+        false
+    }
 }
 
-/// 判断当前位置是否匹配需要原样保留的函数（名称后紧跟 '('）
-fn starts_with_raw_func(
-    first: char,
-    iter: &std::iter::Peekable<std::str::Chars<'_>>,
-    names: &[&str],
-) -> Option<usize> {
-    let max_len = names.iter().map(|n| n.len() + 1).max().unwrap_or(0);
-    let mut buf = String::new();
-    buf.push(first);
-    let mut clone_iter = iter.clone();
-    while buf.len() < max_len {
-        if let Some(c) = clone_iter.peek() {
-            buf.push(*c);
-            clone_iter.next();
-        } else {
-            break;
-        }
-    }
-    for name in names {
-        let pat = format!("{name}(");
-        if buf.starts_with(&pat) {
-            return Some(name.len());
-        }
-    }
-    None
+fn is_match_prefix(prev: Option<&Token>) -> bool {
+    matches!(prev.map(|t| t.text.as_str()), Some("match"))
 }
 
-/// 读取原样保留函数体，直到匹配到首层闭合 ')'
-fn read_raw_func_block(
-    first: char,
-    iter: &mut std::iter::Peekable<std::str::Chars<'_>>,
-    name_len: usize,
-) -> Option<String> {
-    let mut out = String::new();
-    out.push(first);
-    let mut depth = 0i32;
-    let mut in_str = false;
-    let mut escaped = false;
-    let mut seen_func = false;
+fn needs_space_before(current: &Token, prev: Option<&Token>) -> bool {
+    let prev = match prev {
+        Some(value) => value,
+        None => return false,
+    };
+    if matches!(
+        current.kind,
+        TokenKind::Symbol(Symbol::LParen | Symbol::LBracket | Symbol::RParen | Symbol::RBracket)
+    ) {
+        return false;
+    }
+    if matches!(
+        prev.kind,
+        TokenKind::Symbol(
+            Symbol::LParen
+                | Symbol::LBracket
+                | Symbol::Pipe
+                | Symbol::Equal
+                | Symbol::Colon
+                | Symbol::FatArrow
+                | Symbol::Comma
+        )
+    ) {
+        return false;
+    }
+    if matches!(prev.kind, TokenKind::Symbol(Symbol::LBrace)) {
+        return false;
+    }
+    matches!(
+        prev.kind,
+        TokenKind::Word
+            | TokenKind::StringLiteral
+            | TokenKind::Symbol(Symbol::RParen | Symbol::RBracket | Symbol::RBrace)
+    )
+}
 
-    for c in iter.by_ref() {
-        out.push(c);
-        if !seen_func && out.len() > name_len && c == '(' {
-            seen_func = true;
-        }
-        if escaped {
-            escaped = false;
-            continue;
-        }
-        if c == '\\' {
-            escaped = true;
-            continue;
-        }
-        if c == '"' {
-            in_str = !in_str;
-            continue;
-        }
-        if in_str {
-            continue;
-        }
-        if c == '(' {
-            depth += 1;
-        } else if c == ')' {
-            depth -= 1;
-            if depth == 0 && seen_func {
-                return Some(out);
+fn write_token(
+    out: &mut String,
+    line_empty: &mut bool,
+    indent: usize,
+    indent_spaces: usize,
+    text: &str,
+) {
+    if *line_empty {
+        out.push_str(&" ".repeat(indent * indent_spaces));
+        *line_empty = false;
+    }
+    out.push_str(text);
+}
+
+fn write_raw(out: &mut String, line_empty: &mut bool, text: &str) {
+    if *line_empty {
+        out.push_str(&" ".repeat(0));
+        *line_empty = false;
+    }
+    out.push_str(text);
+}
+
+fn newline(out: &mut String, line_empty: &mut bool) {
+    while out.ends_with(' ') {
+        out.pop();
+    }
+    out.push('\n');
+    *line_empty = true;
+}
+
+#[derive(Debug)]
+pub enum OmlFormatError {
+    /// 字符串字面量未闭合。
+    UnclosedString { line: usize },
+    /// 任意成对括号缺少闭合（保留兼容）。
+    UnclosedBracket {
+        open: char,
+        close: char,
+        line: usize,
+    },
+    /// 原样函数调用未闭合（保留兼容）。
+    UnclosedRawFunc { name: String, line: usize },
+}
+
+impl std::fmt::Display for OmlFormatError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            OmlFormatError::UnclosedString { line } => {
+                write!(f, "第 {} 行：字符串字面量未闭合", line)
+            }
+            OmlFormatError::UnclosedBracket { open, close, line } => {
+                write!(f, "第 {} 行：括号未闭合：{} ... {}", line, open, close)
+            }
+            OmlFormatError::UnclosedRawFunc { name, line } => {
+                write!(f, "第 {} 行：函数调用未闭合：{}", line, name)
             }
         }
     }
-    None
 }
+
+impl std::error::Error for OmlFormatError {}

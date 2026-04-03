@@ -4,18 +4,19 @@ use std::path::PathBuf;
 // 模拟调试 API
 use crate::error::AppError;
 use crate::server::examples;
+use crate::utils::format::remove_annotations;
 use crate::utils::{convert_record, record_to_fields, warp_check_record};
 use crate::{OmlFormatter, ParsedField, Setting, WplFormatter};
 use actix_web::{HttpResponse, get, post, web};
 use base64::Engine;
 use base64::engine::general_purpose;
 use serde::{Deserialize, Serialize};
-use wp_data_fmt::{DataFormat, FormatType, Json};
+use wp_data_fmt::{FormatType, Json, RecordFormatter};
 use wp_model_core::model::data::Record;
 use wp_model_core::model::fmt_def::TextFmt;
 use wp_model_core::model::{DataField, DataRecord};
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 pub struct DebugParseRequest {
     pub connection_id: Option<i32>,
     pub rules: String,
@@ -26,25 +27,26 @@ pub struct DebugParseRequest {
 #[post("/api/debug/parse")]
 pub async fn debug_parse(req: web::Json<DebugParseRequest>) -> Result<HttpResponse, AppError> {
     // 调用 warp_check_record 获取 DataRecord
-    let record = warp_check_record(&req.rules, &req.logs)?;
+    let filtered = remove_annotations(&req.rules);
+    let record = warp_check_record(&filtered, &req.logs)?;
 
     // 直接返回 DataField 列表，由 Actix 负责序列化为 JSON
     let formatter = FormatType::from(&TextFmt::Json);
-    let json_string = formatter.format_record(&record);
+    let json_string = formatter.fmt_record(&record);
     Ok(HttpResponse::Ok().json(RecordResponseRaw {
         fields: record,
         format_json: json_string,
     }))
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 pub struct DebugTransformRequest {
     pub connection_id: Option<i32>,
     pub parse_result: ParseResultWrapper,
     pub oml: String,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct ParseResultWrapper {
     pub fields: Vec<DataField>,
 }
@@ -82,7 +84,7 @@ pub async fn debug_transform(
     let transformed = convert_record(&oml, res)?;
 
     let formatter = FormatType::Json(Json);
-    let json_string = formatter.format_record(&transformed);
+    let json_string = formatter.fmt_record(&transformed);
 
     let parsed_fields: Vec<ParsedField> = record_to_fields(&transformed);
 
@@ -171,15 +173,33 @@ pub async fn debug_examples() -> HttpResponse {
 #[post("/api/debug/wpl/format")]
 pub async fn wpl_format(req: String) -> HttpResponse {
     let formatter = WplFormatter::new();
-    let formatted = formatter.format_content(&req);
-    HttpResponse::Ok().json(formatted)
+    match formatter.format_with_error(&req) {
+        Ok(formatted) => HttpResponse::Ok().json(formatted),
+        Err(err) => HttpResponse::BadRequest().json(serde_json::json!({
+            "success": false,
+            "error": {
+                "code": "WPL_FORMAT_ERROR",
+                "message": "格式化 WPL 代码失败",
+                "detail": err.to_string()
+            }
+        })),
+    }
 }
 
 #[post("/api/debug/oml/format")]
 pub async fn oml_format(req: String) -> HttpResponse {
     let formatter = OmlFormatter::new();
-    let formatted = formatter.format_content(&req);
-    HttpResponse::Ok().json(formatted)
+    match formatter.format_with_error(&req) {
+        Ok(formatted) => HttpResponse::Ok().json(formatted),
+        Err(err) => HttpResponse::BadRequest().json(serde_json::json!({
+            "success": false,
+            "error": {
+                "code": "OML_FORMAT_ERROR",
+                "message": "格式化 OML 代码失败",
+                "detail": err.to_string()
+            }
+        })),
+    }
 }
 
 #[post("/api/debug/decode/base64")]

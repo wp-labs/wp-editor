@@ -1,5 +1,6 @@
 // 工具模块
 
+pub mod format;
 pub mod oml;
 pub mod oml_formatter;
 pub mod wpl;

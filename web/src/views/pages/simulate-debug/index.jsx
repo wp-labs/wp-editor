@@ -1,8 +1,20 @@
-import { Table, message } from 'antd';
+import { App as AntdApp, Table } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { convertRecord, fetchDebugExamples, parseLogs, wplCodeFormat, omlCodeFormat, base64Decode } from '@/services/debug';
-import CodeJarEditor from '@/views/components/CodeJarEditor';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import {
+  convertRecord,
+  fetchDebugExamples,
+  parseLogs,
+  wplCodeFormat,
+  omlCodeFormat,
+  base64Decode,
+} from '@/services/debug';
+import CodeEditor from '@/views/components/CodeEditor';
+import { useWorkspace } from '@/hooks/useWorkspace';
+import { useMultipleInstances, createDefaultInstance } from '@/hooks/useMultipleInstances';
+import InstanceSelector from '@/views/components/InstanceSelector';
 
 /**
  * Wp Editor
@@ -18,45 +30,221 @@ const DEFAULT_EXAMPLES = [
   {
     name: 'nginx',
     wpl_code:
-      'package /nginx/ {\n    rule nginx {\n        (\n            ip:sip,_^2,chars:timestamp<[,]>,http/request",chars:status,chars:size,chars:referer",http/agent",_"\n        )\n    }\n}\n',
+      'package /nginx/ {\n    rule nginx {\n        (\n            ip:sip,2*_,chars:timestamp<[,]>,http/request",chars:status,chars:size,chars:referer",http/agent",_"\n        )\n    }\n}\n',
     oml_code: '',
     sample_data:
       '180.57.30.148 - - [21/Jan/2025:01:40:02 +0800] "GET /nginx-logo.png HTTP/1.1" 500 368 "<http://207.131.38.110/>" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.142 Safari/537.36" "-"',
   },
 ];
 
+const buildTypedName = (i18nT, type, number) => {
+  const prefix = i18nT(`multipleInstances.type.${type}`);
+  const useNoSpace = type === 'log' && /[\u4e00-\u9fff]/.test(prefix);
+  const spacer = useNoSpace ? '' : ' ';
+  return `${prefix}${spacer}${number}`;
+};
+
+const shouldNormalizeTypedName = (name) => {
+  if (!name) return true;
+  if (name.includes('{number}') || name.includes('{{number}}')) return true;
+  if (/^(实例|Instance)\s*\d+$/.test(name)) return true;
+  if (/^(日志)\d+$/.test(name)) return true;
+  if (/^(log|wpl|oml)\s*\d+$/i.test(name)) return true;
+  return false;
+};
+
+const createLogInstance = (instanceNumber, i18nT) => {
+  const instance = createDefaultInstance(instanceNumber, i18nT);
+  return {
+    ...instance,
+    name: buildTypedName(i18nT, 'log', instanceNumber),
+    wpl: '',
+    oml: '',
+  };
+};
+
+const createWplInstance = (instanceNumber, i18nT) => {
+  const instance = createDefaultInstance(instanceNumber, i18nT);
+  return {
+    ...instance,
+    name: buildTypedName(i18nT, 'wpl', instanceNumber),
+    log: '',
+    oml: '',
+  };
+};
+
+const createOmlInstance = (instanceNumber, i18nT) => {
+  const instance = createDefaultInstance(instanceNumber, i18nT);
+  return {
+    ...instance,
+    name: buildTypedName(i18nT, 'oml', instanceNumber),
+    log: '',
+    wpl: '',
+  };
+};
+
 function SimulateDebugPage() {
   const { t } = useTranslation();
+  const { message } = AntdApp.useApp();
+  
+  // 工作区管理
+  const {
+    workspaceMode,
+    workspaceData,
+    saveWorkspace,
+    updateWorkspace,
+    clearWorkspace,
+    switchMode,
+  } = useWorkspace();
+  
+  // 多实例管理（日志/WPL/OML 分离）
+  const {
+    instances: logInstances,
+    activeInstanceIndex: activeLogIndex,
+    activeInstance: activeLogInstance,
+    addInstance: addLogInstance,
+    removeInstance: removeLogInstance,
+    switchInstance: switchLogInstance,
+    renameInstance: renameLogInstance,
+    updateActiveInstance: updateActiveLogInstance,
+    clearAllInstances: clearAllLogInstances,
+    saveToStorage: saveLogInstances,
+    restoreFromStorage: restoreLogInstances,
+  } = useMultipleInstances({
+    storageKey: 'warpparse_multiple_instances_log',
+    createDefaultInstance: createLogInstance,
+    normalizeName: (instance, index, i18nT) => (
+      shouldNormalizeTypedName(instance?.name) ? buildTypedName(i18nT, 'log', index + 1) : null
+    ),
+  });
+
+  const {
+    instances: wplInstances,
+    activeInstanceIndex: activeWplIndex,
+    activeInstance: activeWplInstance,
+    addInstance: addWplInstance,
+    removeInstance: removeWplInstance,
+    switchInstance: switchWplInstance,
+    renameInstance: renameWplInstance,
+    updateActiveInstance: updateActiveWplInstance,
+    clearAllInstances: clearAllWplInstances,
+    saveToStorage: saveWplInstances,
+    restoreFromStorage: restoreWplInstances,
+  } = useMultipleInstances({
+    storageKey: 'warpparse_multiple_instances_wpl',
+    createDefaultInstance: createWplInstance,
+    normalizeName: (instance, index, i18nT) => (
+      shouldNormalizeTypedName(instance?.name) ? buildTypedName(i18nT, 'wpl', index + 1) : null
+    ),
+  });
+
+  const {
+    instances: omlInstances,
+    activeInstanceIndex: activeOmlIndex,
+    activeInstance: activeOmlInstance,
+    addInstance: addOmlInstance,
+    removeInstance: removeOmlInstance,
+    switchInstance: switchOmlInstance,
+    renameInstance: renameOmlInstance,
+    updateActiveInstance: updateActiveOmlInstance,
+    clearAllInstances: clearAllOmlInstances,
+    saveToStorage: saveOmlInstances,
+    restoreFromStorage: restoreOmlInstances,
+  } = useMultipleInstances({
+    storageKey: 'warpparse_multiple_instances_oml',
+    createDefaultInstance: createOmlInstance,
+    normalizeName: (instance, index, i18nT) => (
+      shouldNormalizeTypedName(instance?.name) ? buildTypedName(i18nT, 'oml', index + 1) : null
+    ),
+  });
+  
   const [activeKey, setActiveKey] = useState('parse');
-  const [inputValue, setInputValue] = useState('');
-  const [ruleValue, setRuleValue] = useState('');
-  const [result, setResult] = useState(null);
+  const isExamplesMode = workspaceMode === 'examples';
+  
+  // 示例区独立状态（避免污染工作区）
+  const [exampleLog, setExampleLog] = useState('');
+  const [exampleWpl, setExampleWpl] = useState('');
+  const [exampleOml, setExampleOml] = useState('');
+  const [exampleParseResult, setExampleParseResult] = useState(null);
+  const [exampleParseError, setExampleParseError] = useState(null);
+  const [exampleTransformParseResult, setExampleTransformParseResult] = useState(null);
+  const [exampleTransformResult, setExampleTransformResult] = useState(null);
+  const [exampleTransformError, setExampleTransformError] = useState(null);
+  const [exampleSelected, setExampleSelected] = useState(null);
+
+  // 从激活实例中提取数据（日志/WPL/OML 分离）
+  const inputValue = isExamplesMode ? exampleLog : activeLogInstance.log;
+  const setInputValue = (value) => (
+    isExamplesMode ? setExampleLog(value) : updateActiveLogInstance({ log: value })
+  );
+  const ruleValue = isExamplesMode ? exampleWpl : activeWplInstance.wpl;
+  const setRuleValue = (value) => (
+    isExamplesMode ? setExampleWpl(value) : updateActiveWplInstance({ wpl: value })
+  );
+  const result = isExamplesMode ? exampleParseResult : activeLogInstance.parseResult;
+  const setResult = (value) => (
+    isExamplesMode ? setExampleParseResult(value) : updateActiveLogInstance({ parseResult: value })
+  );
+  const parseError = isExamplesMode ? exampleParseError : activeLogInstance.parseError;
+  const setParseError = (value) => (
+    isExamplesMode ? setExampleParseError(value) : updateActiveLogInstance({ parseError: value })
+  );
+  const transformOml = isExamplesMode ? exampleOml : activeOmlInstance.oml;
+  const setTransformOml = (value) => (
+    isExamplesMode ? setExampleOml(value) : updateActiveOmlInstance({ oml: value })
+  );
+  const transformParseResult = isExamplesMode ? exampleTransformParseResult : activeLogInstance.transformParseResult;
+  const setTransformParseResult = (value) => (
+    isExamplesMode
+      ? setExampleTransformParseResult(value)
+      : updateActiveLogInstance({ transformParseResult: value })
+  );
+  const transformResult = isExamplesMode ? exampleTransformResult : activeOmlInstance.transformResult;
+  const setTransformResult = (value) => (
+    isExamplesMode ? setExampleTransformResult(value) : updateActiveOmlInstance({ transformResult: value })
+  );
+  const transformError = isExamplesMode ? exampleTransformError : activeOmlInstance.transformError;
+  const setTransformError = (value) => (
+    isExamplesMode ? setExampleTransformError(value) : updateActiveOmlInstance({ transformError: value })
+  );
+  const selectedExample = isExamplesMode ? exampleSelected : activeLogInstance.selectedExample;
+  const setSelectedExample = (value) => (
+    isExamplesMode ? setExampleSelected(value) : updateActiveLogInstance({ selectedExample: value })
+  );
+  
   const [loading, setLoading] = useState(false);
   const [viewMode, setViewMode] = useState('table');
   // 解析页“显示空值”开关
   const [showEmpty, setShowEmpty] = useState(true);
 
-  // 解析错误状态
-  const [parseError, setParseError] = useState(null);
 
   // 转换相关状态
-  const [transformOml, setTransformOml] = useState('');
-  const [transformParseResult, setTransformParseResult] = useState(null);
-  const [transformResult, setTransformResult] = useState(null);
   const [transformParseViewMode, setTransformParseViewMode] = useState('table');
   const [transformResultViewMode, setTransformResultViewMode] = useState('table');
   // 转换页"显示空值"开关（转换结果）
   const [transformResultShowEmpty, setTransformResultShowEmpty] = useState(true);
   // 转换页"显示空值"开关（解析结果）
   const [transformParseShowEmpty, setTransformParseShowEmpty] = useState(true);
-  // 转换错误状态
-  const [transformError, setTransformError] = useState(null);
+  
   // 示例列表状态
   const [examples, setExamples] = useState(DEFAULT_EXAMPLES);
   const examplesOpen = true;
   const [examplesLoading, setExamplesLoading] = useState(false);
   const [examplesLoaded, setExamplesLoaded] = useState(false);
   const examplesFetchedRef = useRef(false); // 防止严格模式导致的重复请求
+
+  const formatJsonForDisplay = (formatJson, fallbackData, postProcess) => {
+    if (formatJson) {
+      try {
+        const parsed = JSON.parse(formatJson);
+        const processed = postProcess ? postProcess(parsed) : parsed;
+        return JSON.stringify(processed, null, 2);
+      } catch (_e) {
+        return formatJson;
+      }
+    }
+    return JSON.stringify(fallbackData, null, 2);
+  };
 
   /**
    * 处理测试/解析按钮点击
@@ -113,12 +301,36 @@ function SimulateDebugPage() {
   const wplFormat = async () => {
     try {
       const response = await wplCodeFormat(ruleValue);
-      console.log('格式化WPL代码响应:', response);
-      setRuleValue(response?.wpl_code || '');
+      const formattedWpl = response?.wpl_code || '';
+      setRuleValue(formattedWpl);
+      setParseError(null);
     } catch (error) {
-      message.error(`${t('simulateDebug.parseRule.formatError')}：${error?.message || error}`);
+      const detail = error?.responseData?.error?.detail;
+      const baseMessage = error?.responseData?.error?.message || error?.message || error;
+      const fullMessage = detail || baseMessage;
+      const err = new Error(fullMessage);
+      err.code = error?.code || error?.responseData?.error?.code;
+      err.responseData = error?.responseData;
+      setParseError(err);
+      setResult(null);
     }
   };
+
+  // 监听输入变化，在工作区模式下更新工作区数据
+  useEffect(() => {
+    if (workspaceMode === 'workspace') {
+      // 保存所有实例到工作区
+      updateWorkspace({
+        logInstances: logInstances,
+        logActiveIndex: activeLogIndex,
+        wplInstances: wplInstances,
+        wplActiveIndex: activeWplIndex,
+        omlInstances: omlInstances,
+        omlActiveIndex: activeOmlIndex,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [logInstances, activeLogIndex, wplInstances, activeWplIndex, omlInstances, activeOmlIndex, workspaceMode]);
 
   // 页面加载后默认展开示例并尝试拉取
   useEffect(() => {
@@ -129,30 +341,32 @@ function SimulateDebugPage() {
   /**
    * 应用某个示例到日志、规则与 OML 输入区域，并自动尝试解析
    */
-  const handleApplyExample = async (exampleItem) => {
+  const handleApplyExample = async exampleItem => {
     if (!exampleItem) return;
     const { sample_data: sampleData, wpl_code: wplCode, oml_code: omlCode } = exampleItem;
-    setInputValue(sampleData || '');
-    setRuleValue(wplCode || '');
-    setTransformOml(omlCode || '');
+    
+    setExampleLog(sampleData || '');
+    setExampleWpl(wplCode || '');
+    setExampleOml(omlCode || '');
+    setExampleSelected(exampleItem.name); // 更新选中的示例
 
     if (!sampleData || !wplCode) {
       return;
     }
 
     setLoading(true);
-    setParseError(null);
+    setExampleParseError(null);
     try {
       const response = await parseLogs({
         logs: sampleData,
         rules: wplCode,
       });
-      setResult(response);
+      setExampleParseResult(response);
       if (response?.fields && response?.rawFields) {
-        setTransformParseResult({ fields: response.rawFields, formatJson: response.formatJson });
+        setExampleTransformParseResult({ fields: response.rawFields, formatJson: response.formatJson });
       }
     } catch (error) {
-      setParseError(error);
+      setExampleParseError(error);
     } finally {
       setLoading(false);
     }
@@ -163,26 +377,77 @@ function SimulateDebugPage() {
    * 清空解析和转换的所有输入和结果
    */
   const handleClear = () => {
-    // 清空解析页面
-    setInputValue('');
-    setRuleValue('');
-    setResult(null);
-    setParseError(null); // 清空解析错误
-    // 清空转换页面
-    setTransformOml('');
-    setTransformParseResult(null);
-    setTransformResult(null);
-    setTransformError(null); // 清空转换错误
+    if (workspaceMode === 'examples') {
+      setExampleLog('');
+      setExampleWpl('');
+      setExampleOml('');
+      setExampleParseResult(null);
+      setExampleParseError(null);
+      setExampleTransformParseResult(null);
+      setExampleTransformResult(null);
+      setExampleTransformError(null);
+      setExampleSelected(null);
+      return;
+    }
+
+    // 使用 clearAllInstances 清空所有实例
+    clearAllLogInstances();
+    clearAllWplInstances();
+    clearAllOmlInstances();
+    
+    // 如果在工作区模式，也清空工作区数据（包括解析结果）
+    if (workspaceMode === 'workspace') {
+      clearWorkspace();
+    }
+  };
+  
+  /**
+   * 切换工作区/示例区
+   */
+  const handleSwitchMode = (mode) => {
+    if (workspaceMode === 'workspace' && mode === 'examples') {
+      saveLogInstances();
+      saveWplInstances();
+      saveOmlInstances();
+    }
+
+    // 保存所有实例数据
+    const currentData = {
+      logInstances: logInstances,
+      logActiveIndex: activeLogIndex,
+      wplInstances: wplInstances,
+      wplActiveIndex: activeWplIndex,
+      omlInstances: omlInstances,
+      omlActiveIndex: activeOmlIndex,
+    };
+    
+    const loadedData = switchMode(mode, currentData);
+    
+    if (mode === 'workspace') {
+      restoreLogInstances();
+      restoreWplInstances();
+      restoreOmlInstances();
+    }
+
+    if (mode === 'workspace' && loadedData) {
+      // 切换回工作区，恢复所有实例
+      // 注意：实例数据已经通过 useMultipleInstances 持久化到 localStorage
+      // 这里只需要显示提示消息
+      message.success(t('simulateDebug.workspace.loadSuccess'));
+    } else if (mode === 'examples') {
+      // 切换到示例区
+      message.success(t('simulateDebug.workspace.autoSaved'));
+    }
   };
 
   // 处理 Base64 解码按钮点击
   const handleBase64Decode = async () => {
     try {
       const response = await base64Decode(inputValue);
-      console.log('Base64解码响应:', response);
-      setInputValue(response || '');
+      const decodedValue = response || '';
+      setInputValue(decodedValue);
     } catch (error) {
-      message.error(`${t('simulateDebug.logData.base64Error')}：${error?.message || error}`);
+      message.error(`${t('simulateDebug.logData.base64Error')}`);
     }
   };
 
@@ -192,18 +457,19 @@ function SimulateDebugPage() {
       return;
     }
     setLoading(true);
-    setTransformError(null); // 重置转换错误状态
+    setTransformError(null);
     try {
-      console.log('转换页解析结果:', transformParseResult);
-      const response = await convertRecord({ oml: transformOml, parseResult: transformParseResult });
-      // 新 API 直接返回 { fields: [...] } 格式
+      const response = await convertRecord({
+        oml: transformOml,
+        parseResult: transformParseResult,
+      });
       let fieldsData = [];
       if (Array.isArray(response?.fields)) {
         fieldsData = response.fields;
       } else if (response?.fields && Array.isArray(response?.fields?.items)) {
         fieldsData = response.fields.items;
       }
-      const processedFields = processFieldsForDisplay(fieldsData);
+      const processedFields = processFieldsForDisplay(fieldsData, response.formatJson || '');
       setTransformResult({
         fields: processedFields,
         formatJson: response.formatJson || '',
@@ -219,13 +485,21 @@ function SimulateDebugPage() {
     }
   };
 
-
   const omlFormat = async () => {
     try {
       const response = await omlCodeFormat(transformOml);
-      setTransformOml(response?.oml_code || '');
+      const formattedOml = response?.oml_code || '';
+      setTransformOml(formattedOml);
+      setTransformError(null);
     } catch (error) {
-      message.error(`${t('simulateDebug.omlInput.formatError')}：${error?.message || error}`);
+      const detail = error?.responseData?.error?.detail;
+      const baseMessage = error?.responseData?.error?.message || error?.message || error;
+      const fullMessage = detail || baseMessage;
+      const err = new Error(fullMessage);
+      err.code = error?.code || error?.responseData?.error?.code;
+      err.responseData = error?.responseData;
+      setTransformError(err);
+      setTransformResult(null);
     }
   };
 
@@ -242,7 +516,17 @@ function SimulateDebugPage() {
       title: t('simulateDebug.table.value'),
       dataIndex: 'value',
       key: 'value',
-      style: { wordWrap: 'break-word', wordBreak: 'break-all', maxWidth: 300 },
+      width: 300,
+      render: (text) => (
+        <div style={{ 
+          wordWrap: 'break-word', 
+          wordBreak: 'break-all', 
+          maxWidth: '300px',
+          whiteSpace: 'pre-wrap'
+        }}>
+          {text}
+        </div>
+      ),
     },
   ];
 
@@ -265,11 +549,46 @@ function SimulateDebugPage() {
   };
 
   /**
+   * 过滤 JSON 对象中的空字段
+   * 用于 JSON 模式下的显示空值开关
+   */
+  const filterEmptyFields = (obj) => {
+    if (!obj || typeof obj !== 'object') {
+      return obj;
+    }
+    
+    if (Array.isArray(obj)) {
+      return obj
+        .map(item => filterEmptyFields(item))
+        .filter(item => item !== null && item !== undefined && item !== '');
+    }
+    
+    const filtered = {};
+    Object.keys(obj).forEach(key => {
+      const value = obj[key];
+      if (value !== null && value !== undefined && value !== '') {
+        if (typeof value === 'object') {
+          const filteredValue = filterEmptyFields(value);
+          if (Object.keys(filteredValue).length > 0 || Array.isArray(filteredValue)) {
+            filtered[key] = filteredValue;
+          }
+        } else {
+          filtered[key] = value;
+        }
+      }
+    });
+    
+    return filtered;
+  };
+
+  /**
    * 从 value 对象中提取值
    * @param {Object} valueObj - value 对象，如 { "IpAddr": "..." } 或 { "Chars": "..." }
+   * @param {string} fieldName - 字段名称
+   * @param {string} formatJson - format_json 字符串
    * @returns {string} 提取的值字符串
    */
-  const extractValueFromObj = (valueObj) => {
+  const extractValueFromObj = (valueObj, fieldName, formatJson) => {
     if (valueObj === null || valueObj === undefined) {
       return '';
     }
@@ -281,21 +600,19 @@ function SimulateDebugPage() {
     // 处理普通数组
     if (Array.isArray(valueObj)) {
       const arrayValues = valueObj
-        .map(item => extractValueFromObj(item))
+        .map(item => extractValueFromObj(item, fieldName, formatJson))
         .filter(val => val !== '' && val !== null && val !== undefined);
       return arrayValues.length > 0 ? `[${arrayValues.join(', ')}]` : '';
     }
 
     // 处理 Array 字段（包含 meta/name/value 结构的数组）
     if (Array.isArray(valueObj.Array)) {
-      const arrayValues = valueObj.Array
-        .map(item => {
-          if (item && typeof item === 'object' && 'value' in item) {
-            return extractValueFromObj(item.value);
-          }
-          return extractValueFromObj(item);
-        })
-        .filter(val => val !== '' && val !== null && val !== undefined);
+      const arrayValues = valueObj.Array.map(item => {
+        if (item && typeof item === 'object' && 'value' in item) {
+          return extractValueFromObj(item.value, fieldName, formatJson);
+        }
+        return extractValueFromObj(item, fieldName, formatJson);
+      }).filter(val => val !== '' && val !== null && val !== undefined);
       return arrayValues.length > 0 ? `[${arrayValues.join(', ')}]` : '';
     }
 
@@ -311,8 +628,20 @@ function SimulateDebugPage() {
       return '';
     }
 
+    // 对于复杂嵌套对象（如 IpNet），尝试从 format_json 中读取
+    if (typeof rawValue === 'object' && fieldName && formatJson) {
+      try {
+        const jsonData = JSON.parse(formatJson);
+        if (jsonData && jsonData[fieldName] !== undefined) {
+          return String(jsonData[fieldName]);
+        }
+      } catch (e) {
+        // JSON 解析失败，继续使用原有逻辑
+      }
+    }
+
     if (typeof rawValue === 'object') {
-      return extractValueFromObj(rawValue);
+      return extractValueFromObj(rawValue, fieldName, formatJson);
     }
 
     return String(rawValue);
@@ -321,9 +650,10 @@ function SimulateDebugPage() {
   /**
    * 处理需要展示的字段列表，添加 no 序号并提取 value 值
    * @param {Array} fields - 原始字段数组
+   * @param {string} formatJson - format_json 字符串
    * @returns {Array} 处理后的字段数组
    */
-  const processFieldsForDisplay = (fields) => {
+  const processFieldsForDisplay = (fields, formatJson) => {
     const list = Array.isArray(fields) ? fields : [];
     return list.map((field, index) => {
       // 处理 meta 字段
@@ -337,12 +667,12 @@ function SimulateDebugPage() {
           metaDisplay = JSON.stringify(field.meta);
         }
       }
-      
+
       return {
         ...field,
         no: index + 1,
         meta: metaDisplay,
-        value: extractValueFromObj(field?.value),
+        value: extractValueFromObj(field?.value, field?.name, formatJson),
       };
     });
   };
@@ -361,8 +691,19 @@ function SimulateDebugPage() {
           margin: '10px',
         }}
       >
-        <h4 style={{ color: '#f5222d', marginBottom: '8px', fontWeight: 'bold' }}>{t('simulateDebug.parseResult.parseFailed')}</h4>
-        <pre style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word', color: '#666', margin: '0 0 8px 0', fontSize: '14px', lineHeight: '1.5' }}>
+        <h4 style={{ color: '#f5222d', marginBottom: '8px', fontWeight: 'bold' }}>
+          {t('simulateDebug.parseResult.parseFailed')}
+        </h4>
+        <pre
+          style={{
+            whiteSpace: 'pre-wrap',
+            wordWrap: 'break-word',
+            color: '#666',
+            margin: '0 0 8px 0',
+            fontSize: '14px',
+            lineHeight: '1.5',
+          }}
+        >
           {parseError.message || t('simulateDebug.parseResult.parseError')}
         </pre>
         {parseError.code && (
@@ -379,6 +720,7 @@ function SimulateDebugPage() {
   const renderTransformError = () => {
     if (!transformError) return null;
     const errorMessage =
+      transformError.responseData?.error?.detail ||
       transformError.message ||
       transformError.responseData?.error?.message ||
       transformError.data?.error?.message ||
@@ -394,8 +736,19 @@ function SimulateDebugPage() {
           margin: '10px',
         }}
       >
-        <h4 style={{ color: '#f5222d', marginBottom: '8px', fontWeight: 'bold' }}>{t('simulateDebug.convertResult.convertFailed')}</h4>
-        <pre style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word', color: '#666', margin: '0 0 8px 0', fontSize: '14px', lineHeight: '1.5' }}>
+        <h4 style={{ color: '#f5222d', marginBottom: '8px', fontWeight: 'bold' }}>
+          {t('simulateDebug.convertResult.convertFailed')}
+        </h4>
+        <pre
+          style={{
+            whiteSpace: 'pre-wrap',
+            wordWrap: 'break-word',
+            color: '#666',
+            margin: '0 0 8px 0',
+            fontSize: '14px',
+            lineHeight: '1.5',
+          }}
+        >
           {errorMessage}
         </pre>
         {transformError.code && (
@@ -406,15 +759,6 @@ function SimulateDebugPage() {
         )}
       </div>
     );
-  };
-
-  // 获取页面标题（与旧版本一致）
-  const getPageTitle = () => {
-    const titles = {
-      parse: t('simulateDebug.tabs.parse'),
-      convert: t('simulateDebug.tabs.convert'),
-    };
-    return titles[activeKey] || 'Wp Editor';
   };
 
   return (
@@ -435,84 +779,151 @@ function SimulateDebugPage() {
           >
             <h2>{t('simulateDebug.tabs.convert')}</h2>
           </button>
-
         </aside>
-        <div className="example-list example-list--compact example-list--spaced">
-          <div className="example-list__header">
-            <div>
-              <h4 className="example-list__title">{t('simulateDebug.examples.title')}</h4>
-              <p className="example-list__desc">{t('simulateDebug.examples.desc')}</p>
+
+        <aside style={{ marginTop: "10px", marginBottom: "10px" }} className="side-nav" data-group="workspace-mode">
+          <button
+            type="button"
+            className={`side-item ${workspaceMode === 'workspace' ? 'is-active' : ''}`}
+            onClick={() => handleSwitchMode('workspace')}
+          >
+            <h2>{t('simulateDebug.workspace.title')}</h2>
+          </button>
+          <button
+            type="button"
+            className={`side-item ${workspaceMode === 'examples' ? 'is-active' : ''}`}
+            onClick={() => handleSwitchMode('examples')}
+          >
+            <h2>{t('simulateDebug.examples.title')}</h2>
+          </button>
+        </aside>
+        
+        {workspaceMode === 'examples' && (
+          <div className="example-list example-list--compact example-list--spaced">
+            <div className="example-list__header">
+              <div>
+                <h4 className="example-list__title">{t('simulateDebug.examples.title')}</h4>
+                <p className="example-list__desc">{t('simulateDebug.examples.desc')}</p>
+              </div>
             </div>
+            {examplesLoading ? (
+              <div className="example-list__message">{t('simulateDebug.examples.loading')}</div>
+            ) : examples && examples.length > 0 ? (
+              <div className="example-list__grid example-list__grid--small">
+                {examples.map(exampleItem => (
+                  <button
+                    key={exampleItem.name || exampleItem.key}
+                    type="button"
+                    className={`example-list__item ${selectedExample === exampleItem.name ? 'is-active' : ''}`}
+                    onClick={() => handleApplyExample(exampleItem)}
+                  >
+                    {exampleItem.name || t('simulateDebug.examples.unnamed')}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="example-list__message">{t('simulateDebug.examples.noData')}</div>
+            )}
           </div>
-          {examplesLoading ? (
-            <div className="example-list__message">{t('simulateDebug.examples.loading')}</div>
-          ) : examples && examples.length > 0 ? (
-            <div className="example-list__grid example-list__grid--small">
-              {examples.map(exampleItem => (
-                <button
-                  key={exampleItem.name || exampleItem.key}
-                  type="button"
-                  className="example-list__item"
-                  onClick={() => handleApplyExample(exampleItem)}
-                >
-                  {exampleItem.name || t('simulateDebug.examples.unnamed')}
-                </button>
-              ))}
-            </div>
-          ) : (
-            <div className="example-list__message">{t('simulateDebug.examples.noData')}</div>
-          )}
-        </div>
+        )}
       </div>
       <section className="page-panels">
         <article className="panel is-visible">
-          <header className="panel-header">
-            <h2>{getPageTitle()}</h2>
-          </header>
           <section className="panel-body simulate-body">
             {/* 解析页面 */}
             {activeKey === 'parse' && (
               <>
                 <div className="panel-block">
-                  <div className="block-header">
-                    <div>
+                  <div className="block-header" style={{ flexWrap: 'nowrap', alignItems: 'center' }}>
+                    <div style={{ minWidth: 0, flex: 1, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                       <h3>{t('simulateDebug.logData.title')}</h3>
-                      <p className="block-desc">{t('simulateDebug.logData.desc')}</p>
+                      {workspaceMode === 'workspace' && (
+                        <InstanceSelector
+                          instances={logInstances}
+                          activeIndex={activeLogIndex}
+                          maxInstances={10}
+                          onSwitch={switchLogInstance}
+                          onAdd={addLogInstance}
+                          onRemove={removeLogInstance}
+                          onRename={renameLogInstance}
+                          inline
+                          showAddButton={false}
+                          collapseThreshold={6}
+                        />
+                      )}
                     </div>
-                      <div className="block-actions" style={{ flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
-                        <div style={{ display: 'flex', gap: 8 }}>
-                          <button
-                            type="button"
-                            className="btn ghost"
-                            onClick={handleBase64Decode}
-                          >
-                            {t('simulateDebug.logData.base64Decode')}
-                          </button>
-                          <button type="button" className="btn ghost" onClick={handleClear}>
-                            {t('simulateDebug.logData.clearAll')}
-                          </button>
-                        </div>
-                   
+                    <div
+                      className="block-actions"
+                      style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'nowrap', minWidth: 0 }}
+                    >
+                      {workspaceMode === 'workspace' && (
+                        <button
+                          type="button"
+                          className="btn primary"
+                          onClick={addLogInstance}
+                          disabled={logInstances.length >= 10}
+                          title={logInstances.length >= 10
+                            ? t('multipleInstances.maxInstancesReached')
+                            : t('multipleInstances.addInstance')}
+                        >
+                          {t('multipleInstances.addInstance')}
+                        </button>
+                      )}
+                      <button type="button" className="btn ghost" onClick={handleBase64Decode}>
+                        {t('simulateDebug.logData.base64Decode')}
+                      </button>
+                      <button type="button" className="btn ghost" onClick={handleClear}>
+                        {t('simulateDebug.logData.clearAll')}
+                      </button>
                     </div>
                   </div>
-                  <CodeJarEditor
-                    className="code-area"
-                    value={inputValue}
-                    onChange={value => setInputValue(value)}
-                  />
+                <CodeEditor
+                  key={`log-${workspaceMode}-${activeLogInstance?.id || activeLogIndex}`}
+                  className="code-area"
+                  language="json"
+                  theme="vscodeDark"
+                  value={inputValue}
+                  onChange={value => setInputValue(value)}
+                />
                 </div>
 
                 <div className="split-layout">
                   <div className="split-col">
                     <div className="panel-block panel-block--fill">
-                      <div className="block-header">
-                        <h3>{t('simulateDebug.parseRule.title')}</h3>
-                        <div className="block-actions">
-                          <button
-                            type="button"
-                            className="btn ghost"
-                            onClick={wplFormat}
-                          >
+                      <div className="block-header" style={{ flexWrap: 'nowrap', alignItems: 'center' }}>
+                        <div style={{ minWidth: 0, flex: 1, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                          <h3>{t('simulateDebug.parseRule.title')}</h3>
+                          {workspaceMode === 'workspace' && (
+                            <InstanceSelector
+                              instances={wplInstances}
+                              activeIndex={activeWplIndex}
+                              maxInstances={10}
+                              onSwitch={switchWplInstance}
+                              onAdd={addWplInstance}
+                              onRemove={removeWplInstance}
+                              onRename={renameWplInstance}
+                              inline
+                              inlineMaxWidth="400px"
+                              showAddButton={false}
+                              collapseThreshold={6}
+                            />
+                          )}
+                        </div>
+                        <div className="block-actions" style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'nowrap', minWidth: 0 }}>
+                          {workspaceMode === 'workspace' && (
+                            <button
+                              type="button"
+                              className="btn primary"
+                              onClick={addWplInstance}
+                              disabled={wplInstances.length >= 10}
+                              title={wplInstances.length >= 10
+                                ? t('multipleInstances.maxInstancesReached')
+                                : t('multipleInstances.addInstance')}
+                            >
+                              {t('multipleInstances.addInstance')}
+                            </button>
+                          )}
+                          <button type="button" className="btn ghost" onClick={wplFormat}>
                             {t('simulateDebug.parseRule.format')}
                           </button>
                           <button
@@ -521,15 +932,19 @@ function SimulateDebugPage() {
                             onClick={handleTest}
                             disabled={loading}
                           >
-                            {loading ? t('simulateDebug.parseRule.parsing') : t('simulateDebug.parseRule.parse')}
+                            {loading
+                              ? t('simulateDebug.parseRule.parsing')
+                              : t('simulateDebug.parseRule.parse')}
                           </button>
                         </div>
                       </div>
-                      <CodeJarEditor
-                        className="code-area code-area--large"
-                        value={ruleValue}
-                        onChange={value => setRuleValue(value)}
-                      />
+                    <CodeEditor
+                      key={`wpl-${workspaceMode}-${activeWplInstance?.id || activeWplIndex}`}
+                      className="code-area code-area--large"
+                      language="wpl"
+                      value={ruleValue}
+                      onChange={value => setRuleValue(value)}
+                    />
                     </div>
                   </div>
 
@@ -562,7 +977,9 @@ function SimulateDebugPage() {
                             onChange={e => setShowEmpty(e.target.checked)}
                           />
                           <span className="switch-slider"></span>
-                          <span className="switch-label">{t('simulateDebug.parseResult.showEmpty')}</span>
+                          <span className="switch-label">
+                            {t('simulateDebug.parseResult.showEmpty')}
+                          </span>
                         </label>
                       </div>
                       <div className={`mode-content ${viewMode === 'table' ? 'is-active' : ''}`}>
@@ -590,30 +1007,27 @@ function SimulateDebugPage() {
                         {parseError ? (
                           renderParseError()
                         ) : result ? (
-                          <pre
+                          <SyntaxHighlighter
                             className="code-block"
-                            style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}
+                            language="json"
+                            style={oneDark}
+                            customStyle={{ 
+                              margin: 0, 
+                              background: '#0f172a',
+                              maxWidth: '100%',
+                              width: '100%',
+                              overflowX: 'hidden'
+                            }}
+                            codeTagProps={{ style: { background: 'transparent' } }}
+                            wrapLines
+                            lineProps={{ style: { background: 'transparent' } }}
+                            wrapLongLines
                           >
-                            {(() => {
-                              if (result.formatJson) {
-                                try {
-                                  const parsed = JSON.parse(result.formatJson);
-                                  return JSON.stringify(parsed, null, 2);
-                                } catch (_e) {
-                                  // 如果不是严格 JSON 字符串，则按原样输出
-                                  return result.formatJson;
-                                }
-                              }
-                              return JSON.stringify(
-                                {
-                                  ...result,
-                                  fields: filterFieldsByShowEmpty(result.fields, showEmpty),
-                                },
-                                null,
-                                2
-                              );
-                            })()}
-                          </pre>
+                            {formatJsonForDisplay(result.formatJson, {
+                              ...result,
+                              fields: filterFieldsByShowEmpty(result.fields, showEmpty),
+                            })}
+                          </SyntaxHighlighter>
                         ) : (
                           <div style={{ padding: '40px', textAlign: 'center', color: '#999' }}>
                             {t('simulateDebug.parseResult.clickToParse')}
@@ -631,17 +1045,40 @@ function SimulateDebugPage() {
               <div className="split-layout transform-layout">
                 <div className="split-col transform-col">
                   <div className="panel-block panel-block--stretch panel-block--fill">
-                    <div className="block-header">
-                      <div>
+                    <div className="block-header" style={{ flexWrap: 'nowrap', alignItems: 'center' }}>
+                      <div style={{ minWidth: 0, flex: 1, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                         <h3>{t('simulateDebug.omlInput.title')}</h3>
-                        <p className="block-desc">{t('simulateDebug.omlInput.desc')}</p>
+                        {workspaceMode === 'workspace' && (
+                          <InstanceSelector
+                            instances={omlInstances}
+                            activeIndex={activeOmlIndex}
+                            maxInstances={10}
+                            onSwitch={switchOmlInstance}
+                            onAdd={addOmlInstance}
+                            onRemove={removeOmlInstance}
+                            onRename={renameOmlInstance}
+                            inline
+                            inlineMaxWidth="400px"
+                            showAddButton={false}
+                            collapseThreshold={6}
+                          />
+                        )}
                       </div>
-                      <div className="block-actions">
-                        <button
-                          type="button"
-                          className="btn primary"
-                          onClick={omlFormat}
-                        >
+                      <div className="block-actions" style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'nowrap', minWidth: 0 }}>
+                        {workspaceMode === 'workspace' && (
+                          <button
+                            type="button"
+                            className="btn primary"
+                            onClick={addOmlInstance}
+                            disabled={omlInstances.length >= 10}
+                            title={omlInstances.length >= 10
+                              ? t('multipleInstances.maxInstancesReached')
+                              : t('multipleInstances.addInstance')}
+                          >
+                            {t('multipleInstances.addInstance')}
+                          </button>
+                        )}
+                        <button type="button" className="btn primary" onClick={omlFormat}>
                           {t('simulateDebug.omlInput.format')}
                         </button>
                         <button
@@ -650,7 +1087,9 @@ function SimulateDebugPage() {
                           onClick={handleTransform}
                           disabled={loading}
                         >
-                          {loading ? t('simulateDebug.omlInput.converting') : t('simulateDebug.omlInput.convert')}
+                          {loading
+                            ? t('simulateDebug.omlInput.converting')
+                            : t('simulateDebug.omlInput.convert')}
                         </button>
                         <button
                           type="button"
@@ -661,8 +1100,10 @@ function SimulateDebugPage() {
                         </button>
                       </div>
                     </div>
-                    <CodeJarEditor
+                    <CodeEditor
+                      key={`oml-${workspaceMode}-${activeOmlInstance?.id || activeOmlIndex}`}
                       className="code-area code-area--large"
+                      language="oml"
                       value={transformOml}
                       onChange={value => setTransformOml(value)}
                     />
@@ -676,16 +1117,18 @@ function SimulateDebugPage() {
                         <div className="mode-toggle">
                           <button
                             type="button"
-                            className={`toggle-btn ${transformParseViewMode === 'table' ? 'is-active' : ''
-                              }`}
+                            className={`toggle-btn ${
+                              transformParseViewMode === 'table' ? 'is-active' : ''
+                            }`}
                             onClick={() => setTransformParseViewMode('table')}
                           >
                             {t('simulateDebug.parseResult.tableMode')}
                           </button>
                           <button
                             type="button"
-                            className={`toggle-btn ${transformParseViewMode === 'json' ? 'is-active' : ''
-                              }`}
+                            className={`toggle-btn ${
+                              transformParseViewMode === 'json' ? 'is-active' : ''
+                            }`}
                             onClick={() => setTransformParseViewMode('json')}
                           >
                             {t('simulateDebug.parseResult.jsonMode')}
@@ -699,12 +1142,15 @@ function SimulateDebugPage() {
                           onChange={e => setTransformParseShowEmpty(e.target.checked)}
                         />
                         <span className="switch-slider"></span>
-                        <span className="switch-label">{t('simulateDebug.parseResult.showEmpty')}</span>
+                        <span className="switch-label">
+                          {t('simulateDebug.parseResult.showEmpty')}
+                        </span>
                       </label>
                     </div>
                     <div
-                      className={`mode-content ${transformParseViewMode === 'table' ? 'is-active' : ''
-                        }`}
+                      className={`mode-content ${
+                        transformParseViewMode === 'table' ? 'is-active' : ''
+                      }`}
                     >
                       {transformParseResult ? (
                         <div style={{ paddingBottom: '10px' }}>
@@ -712,7 +1158,7 @@ function SimulateDebugPage() {
                             size="small"
                             columns={resultColumns}
                             dataSource={filterFieldsByShowEmpty(
-                              processFieldsForDisplay(transformParseResult.fields),
+                              processFieldsForDisplay(transformParseResult.fields, transformParseResult.formatJson),
                               transformParseShowEmpty
                             )}
                             pagination={false}
@@ -728,36 +1174,35 @@ function SimulateDebugPage() {
                       )}
                     </div>
                     <div
-                      className={`mode-content ${transformParseViewMode === 'json' ? 'is-active' : ''
-                        }`}
+                      className={`mode-content ${
+                        transformParseViewMode === 'json' ? 'is-active' : ''
+                      }`}
                     >
                       {transformParseResult ? (
-                        <pre
+                        <SyntaxHighlighter
                           className="code-block"
-                          style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}
+                          language="json"
+                          style={oneDark}
+                          customStyle={{ 
+                            margin: 0, 
+                            background: '#0f172a',
+                            maxWidth: '100%',
+                            width: '100%',
+                            overflowX: 'hidden'
+                          }}
+                          codeTagProps={{ style: { background: 'transparent' } }}
+                          wrapLines
+                          lineProps={{ style: { background: 'transparent' } }}
+                          wrapLongLines
                         >
-                          {(() => {
-                            if (transformParseResult.formatJson) {
-                              try {
-                                const parsed = JSON.parse(transformParseResult.formatJson);
-                                return JSON.stringify(parsed, null, 2);
-                              } catch (_e) {
-                                return transformParseResult.formatJson;
-                              }
-                            }
-                            return JSON.stringify(
-                              {
-                                ...transformParseResult,
-                                fields: filterFieldsByShowEmpty(
-                                  processFieldsForDisplay(transformParseResult.fields),
-                                  transformParseShowEmpty
-                                ),
-                              },
-                              null,
-                              2
-                            );
-                          })()}
-                        </pre>
+                          {formatJsonForDisplay(transformParseResult.formatJson, {
+                            ...transformParseResult,
+                            fields: filterFieldsByShowEmpty(
+                              processFieldsForDisplay(transformParseResult.fields, transformParseResult.formatJson),
+                              transformParseShowEmpty
+                            ),
+                          })}
+                        </SyntaxHighlighter>
                       ) : (
                         <div style={{ padding: '40px', textAlign: 'center', color: '#999' }}>
                           {t('simulateDebug.parseResult.willShowHere')}
@@ -773,16 +1218,18 @@ function SimulateDebugPage() {
                         <div className="mode-toggle">
                           <button
                             type="button"
-                            className={`toggle-btn ${transformResultViewMode === 'table' ? 'is-active' : ''
-                              }`}
+                            className={`toggle-btn ${
+                              transformResultViewMode === 'table' ? 'is-active' : ''
+                            }`}
                             onClick={() => setTransformResultViewMode('table')}
                           >
                             {t('simulateDebug.parseResult.tableMode')}
                           </button>
                           <button
                             type="button"
-                            className={`toggle-btn ${transformResultViewMode === 'json' ? 'is-active' : ''
-                              }`}
+                            className={`toggle-btn ${
+                              transformResultViewMode === 'json' ? 'is-active' : ''
+                            }`}
                             onClick={() => setTransformResultViewMode('json')}
                           >
                             {t('simulateDebug.parseResult.jsonMode')}
@@ -796,12 +1243,15 @@ function SimulateDebugPage() {
                           onChange={e => setTransformResultShowEmpty(e.target.checked)}
                         />
                         <span className="switch-slider"></span>
-                        <span className="switch-label">{t('simulateDebug.parseResult.showEmpty')}</span>
+                        <span className="switch-label">
+                          {t('simulateDebug.parseResult.showEmpty')}
+                        </span>
                       </label>
                     </div>
                     <div
-                      className={`mode-content ${transformResultViewMode === 'table' ? 'is-active' : ''
-                        }`}
+                      className={`mode-content ${
+                        transformResultViewMode === 'table' ? 'is-active' : ''
+                      }`}
                     >
                       {transformError ? (
                         renderTransformError()
@@ -827,41 +1277,42 @@ function SimulateDebugPage() {
                       )}
                     </div>
                     <div
-                      className={`mode-content ${transformResultViewMode === 'json' ? 'is-active' : ''
-                        }`}
+                      className={`mode-content ${
+                        transformResultViewMode === 'json' ? 'is-active' : ''
+                      }`}
                     >
                       {transformError ? (
                         renderTransformError()
                       ) : transformResult ? (
-                        <pre
+                        <SyntaxHighlighter
                           className="code-block"
-                          style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}
+                          language="json"
+                          style={oneDark}
+                          customStyle={{ 
+                            margin: 0, 
+                            background: '#0f172a',
+                            maxWidth: '100%',
+                            width: '100%',
+                            overflowX: 'hidden'
+                          }}
+                          codeTagProps={{ style: { background: 'transparent' } }}
+                          wrapLines
+                          lineProps={{ style: { background: 'transparent' } }}
+                          wrapLongLines
                         >
-                          {(() => {
-                            if (transformResult.formatJson) {
-                              try {
-                                const parsed = JSON.parse(transformResult.formatJson);
-                                if (transformResultShowEmpty) {
-                                  return JSON.stringify(parsed, null, 2);
-                                }
-                                return JSON.stringify(filterEmptyFields(parsed), null, 2);
-                              } catch (_e) {
-                                return transformResult.formatJson;
-                              }
-                            }
-                            return JSON.stringify(
-                              {
-                                ...transformResult,
-                                fields: filterFieldsByShowEmpty(
-                                  transformResult.fields,
-                                  transformResultShowEmpty
-                                ),
-                              },
-                              null,
-                              2
-                            );
-                          })()}
-                        </pre>
+                          {formatJsonForDisplay(
+                            transformResult.formatJson,
+                            {
+                              ...transformResult,
+                              fields: filterFieldsByShowEmpty(
+                                transformResult.fields,
+                                transformResultShowEmpty
+                              ),
+                            },
+                            parsed =>
+                              transformResultShowEmpty ? parsed : filterEmptyFields(parsed)
+                          )}
+                        </SyntaxHighlighter>
                       ) : (
                         <div style={{ padding: '40px', textAlign: 'center', color: '#999' }}>
                           {t('simulateDebug.convertResult.willShowHere')}

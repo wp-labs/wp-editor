@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - "*"
-    tags:
-      - "*"
   pull_request:
     branches:
       - "*"
@@ -19,16 +17,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target:
-          - x86_64-unknown-linux-gnu
-          - aarch64-unknown-linux-gnu
-          - aarch64-apple-darwin
-        rustup_toolchain: [stable]
         include:
           - os: ubuntu-22.04
             target: x86_64-unknown-linux-gnu
-          - os: ubuntu-22.04-arm
-            target: aarch64-unknown-linux-gnu
           - os: macos-14
             target: aarch64-apple-darwin
     steps:
@@ -38,9 +29,10 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: ${{ matrix.rustup_toolchain }}
+          toolchain: stable
+          components: llvm-tools-preview
 
-      - name: Cargo build (Rust TLS)
+      - name: Cargo build
         run: cargo build --all
 
       - name: Cargo test

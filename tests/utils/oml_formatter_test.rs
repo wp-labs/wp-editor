@@ -5,7 +5,7 @@ fn format_content_should_keep_blocks_neat() {
     let formatter = OmlFormatter::new();
     let raw = "name : demo \r\nrule : demo/rule\r\n---\r\nblock = match read(kind){\r\nchars(A)=>{\r\nvalue = 1;\r\n}\r\n\r\nchars(B)=>{\r\n    value=2;\r\n}\r\n}\r\n";
 
-    let formatted = formatter.format_content(raw);
+    let formatted = formatter.format_content(raw).expect("格式化失败");
     let expected = "\
 name : demo
 rule : demo/rule
@@ -13,13 +13,12 @@ rule : demo/rule
 
 block = match read(kind) {
     chars(A) => {
-        value = 1;
+        value = 1 ;
     }
     chars(B) => {
-        value = 2;
+        value = 2 ;
     }
 }
-
 ";
 
     assert_eq!(formatted, expected, "格式化后应统一缩进与换行");
@@ -34,11 +33,10 @@ fn format_content_should_split_by_semicolon_outside_string() {
     let formatter = OmlFormatter::new();
     let raw = r#"pos_sn = read(option:[serial_num]); access_ip: ip = read(access_ip);"#;
 
-    let formatted = formatter.format_content(raw);
+    let formatted = formatter.format_content(raw).expect("格式化失败");
     let expected = "\
-pos_sn = read(option:[serial_num]);
-access_ip: ip = read(access_ip);
-
+pos_sn = read(option:[serial_num]) ;
+access_ip : ip = read(access_ip) ;
 ";
 
     assert_eq!(
@@ -52,11 +50,10 @@ fn format_content_should_remove_space_before_semicolon() {
     let formatter = OmlFormatter::new();
     let raw = "value = 1 \n ; another = 2\t ;";
 
-    let formatted = formatter.format_content(raw);
+    let formatted = formatter.format_content(raw).expect("格式化失败");
     let expected = "\
-value = 1;
-another = 2;
-
+value = 1 ;
+another = 2 ;
 ";
 
     assert_eq!(
@@ -95,29 +92,28 @@ data_src_system = digit(13);
 
 ";
 
-    let formatted = formatter.format_content(raw);
+    let formatted = formatter.format_content(raw).expect("格式化失败");
     let expected = "\
 name : flow_ssl
 rule : skyeye/flow_ssl_kafka
 ---
 
-vlan_id: digit = match read(vlan_id) {
-    in ( digit(0), digit(4095) ) => read(vlan_id);
-    _ => digit(0);
-};
-vxlan_id: digit = match read(option:[vxlan_id]) {
-    in ( digit(0), digit(16777215) ) => read(vxlan_id);
-    _ => digit(0);
-};
-gre_key: digit = match read(option:[gre_key]) {
-    in ( digit(0), digit(4294967295) ) => read(gre_key);
-    _ => digit(0);
-};
+vlan_id : digit = match read(vlan_id) {
+    in(digit(0), digit(4095)) => read(vlan_id) ;
+    _ => digit(0) ;
+} ;
+vxlan_id : digit = match read(option:[vxlan_id]) {
+    in(digit(0), digit(16777215)) => read(vxlan_id) ;
+    _ => digit(0) ;
+} ;
+gre_key : digit = match read(option:[gre_key]) {
+    in(digit(0), digit(4294967295)) => read(gre_key) ;
+    _ => digit(0) ;
+} ;
 extend_fields = object {
-    backrule_id, priv_info = read();
-};
-data_src_system = digit(13);
-
+    backrule_id, priv_info = read() ;
+} ;
+data_src_system = digit(13) ;
 ";
 
     assert_eq!(
@@ -139,15 +135,14 @@ value = read(a)
 
 ";
 
-    let formatted = formatter.format_content(raw);
+    let formatted = formatter.format_content(raw).expect("格式化失败");
     let expected = "\
 name : pipe_case
 rule : demo
 ---
 
-collect_time = pipe @collect_time_tmp | Time::to_ts_ms;
-value = read(a) | Func::call;
-
+collect_time = pipe @collect_time_tmp | Time : : to_ts_ms ;
+value = read(a) | Func : : call ;
 ";
 
     assert_eq!(
@@ -167,15 +162,14 @@ rule : demo
 value = 1;
 ";
 
-    let formatted = formatter.format_content(raw);
+    let formatted = formatter.format_content(raw).expect("格式化失败");
     let expected = "\
 name : comment_case
 rule : demo
 ---
 
 // comment with ; and | should stay
-value = 1;
-
+value = 1 ;
 ";
 
     assert_eq!(
@@ -199,14 +193,15 @@ rule : qingteng/host
 block = {}
 "#;
 
-    let formatted = formatter.format_content(raw);
+    let formatted = formatter.format_content(raw).expect("格式化失败");
     let expected = "\
-#[tag(dev_vendor: \"青藤云\",dev_name: \"万相主机自适应安全平台\",dev_type: \"青藤云HIDS系统\"),copy_raw(name:\"raw_msg\")]
+#[tag(
+dev_vendor : \"青藤云\", dev_name : \"万相主机自适应安全平台\", dev_type : \"青藤云HIDS系统\"), copy_raw(name : \"raw_msg\")]
 rule : qingteng/host
 ---
 
-block = {}
-
+block = {
+}
 ";
 
     assert_eq!(formatted, expected, "属性块应折叠为单行，内容保持原有顺序");
@@ -229,17 +224,15 @@ value = 1;
 value = 2;
 ";
 
-    let formatted = formatter.format_content(raw);
+    let formatted = formatter.format_content(raw).expect("格式化失败");
     let expected = "\
 rule : test
 ---
 
-block = {}
-
-value = 1;
-
-value = 2;
-
+block = {
+}
+value = 1 ;
+value = 2 ;
 ";
 
     assert_eq!(
@@ -260,15 +253,13 @@ huawei/atk_module_log/FIREWALLATCK
 pos_sn = read(dev_sn);
 ";
 
-    let formatted = formatter.format_content(raw);
+    let formatted = formatter.format_content(raw).expect("格式化失败");
     let expected = "\
 name : atk_module_log
-rule : 
-    huawei/atk_module_log/FIREWALLATCK
+rule : huawei/atk_module_log/FIREWALLATCK
 ---
 
-pos_sn = read(dev_sn);
-
+pos_sn = read(dev_sn) ;
 ";
 
     assert_eq!(
@@ -299,25 +290,13 @@ nsf/nsf_probes_flow_login_log
 pos_sn = read(dev_sn);
 ";
 
-    let formatted = formatter.format_content(raw);
+    let formatted = formatter.format_content(raw).expect("格式化失败");
     let expected = "\
 name : nsf_probes_flow_log
-rule : 
-    nsf/nsf_probes_flow_http_log
-    nsf/nsf_probes_flow_ftp_log
-    nsf/nsf_probes_flow_dns_log
-    nsf/nsf_probes_flow_mail_log
-    nsf/nsf_probes_flow_ssl_log
-    nsf/nsf_probes_flow_telnet_log
-    nsf/nsf_probes_flow_tcpudp_log
-    nsf/nsf_probes_flow_icmp_log
-    nsf/nsf_probes_flow_dbop_log
-    nsf/nsf_probes_flow_filetransfer_log
-    nsf/nsf_probes_flow_login_log
+rule : nsf/nsf_probes_flow_http_log nsf/nsf_probes_flow_ftp_log nsf/nsf_probes_flow_dns_log nsf/nsf_probes_flow_mail_log nsf/nsf_probes_flow_ssl_log nsf/nsf_probes_flow_telnet_log nsf/nsf_probes_flow_tcpudp_log nsf/nsf_probes_flow_icmp_log nsf/nsf_probes_flow_dbop_log nsf/nsf_probes_flow_filetransfer_log nsf/nsf_probes_flow_login_log
 ---
 
-pos_sn = read(dev_sn);
-
+pos_sn = read(dev_sn) ;
 ";
 
     assert_eq!(
@@ -343,20 +322,24 @@ event_risk_level = match read(option:[judgeForTI]) {
 };
 ";
 
-    let formatted = formatter.format_content(raw);
+    let formatted = formatter.format_content(raw).expect("格式化失败");
     let expected = "\
 name : skyeye_flow_td_ioc_kafka
 rule : skyeye/skyeye_flow_td_ioc_kafka
 ---
 
 event_risk_level = match read(option:[judgeForTI]) {
-    digit(0) => chars(不告警;情报库未命中);
-    digit(1) => chars(告警;可拦截);
-    digit(2) => chars(告警;不拦截);
-    digit(3) => chars(不告警;不拦截);
-    digit(4) => chars(不告警;可拦截);
-};
-
+    digit(0) => chars(不告警 ;
+    情报库未命中) ;
+    digit(1) => chars(告警 ;
+    可拦截) ;
+    digit(2) => chars(告警 ;
+    不拦截) ;
+    digit(3) => chars(不告警 ;
+    不拦截) ;
+    digit(4) => chars(不告警 ;
+    可拦截) ;
+} ;
 ";
 
     assert_eq!(

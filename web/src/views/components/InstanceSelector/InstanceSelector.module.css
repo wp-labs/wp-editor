@@ -1,0 +1,454 @@
+.container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  background: linear-gradient(to bottom, #fafafa 0%, #f5f5f5 100%);
+  border-radius: 8px;
+  border: 1px solid #e8e8e8;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+.instanceList {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 4px 0;
+}
+
+.inlineList {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.instanceList::-webkit-scrollbar {
+  height: 6px;
+}
+
+.instanceList::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.instanceList::-webkit-scrollbar-track {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.instanceTab {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background-color: #ffffff;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+  position: relative;
+  min-width: 56px;
+  flex-shrink: 0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.instanceTab:hover {
+  background-color: #e6f7ff;
+  border-color: #40a9ff;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 6px rgba(24, 144, 255, 0.12);
+}
+
+.instanceTab:hover .deleteButton {
+  opacity: 1;
+}
+
+.instanceTab.active {
+  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+  border-color: #096dd9;
+  color: #fff;
+  font-weight: 600;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(24, 144, 255, 0.28);
+}
+
+.instanceTab.active .instanceName {
+  color: #fff;
+}
+
+.instanceTab.active .statusIcon {
+  color: #fff;
+}
+
+.statusIcon {
+  display: flex;
+  align-items: center;
+  font-size: 16px;
+  transition: all 0.2s ease;
+}
+
+.statusIconError {
+  color: #ff4d4f;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.statusIconSuccess {
+  color: #52c41a;
+}
+
+.statusIconData {
+  color: #1890ff;
+}
+
+.instanceTab.active .statusIconError,
+.instanceTab.active .statusIconSuccess,
+.instanceTab.active .statusIconData {
+  color: #fff;
+  filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.5));
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.instanceName {
+  flex: 1;
+  font-size: 11px;
+  color: #262626;
+  user-select: none;
+}
+
+.nameInput {
+  flex: 1;
+  padding: 1px 4px;
+  border: 1px solid #1890ff;
+  border-radius: 2px;
+  outline: none;
+  font-size: 11px;
+  background-color: #fff;
+  color: #262626;
+  min-width: 44px;
+}
+
+.deleteButton {
+  opacity: 0;
+  transition: all 0.2s ease;
+  font-size: 10px;
+  color: #8c8c8c;
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.deleteButton:hover {
+  color: #ff4d4f;
+  background-color: rgba(255, 77, 79, 0.1);
+  transform: scale(1.1);
+}
+
+.instanceTab.active .deleteButton {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.instanceTab.active .deleteButton:hover {
+  color: #fff;
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.addButton {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  padding: 6px 10px;
+  height: 32px;
+}
+
+.inlineAddButton {
+  flex-shrink: 0;
+}
+
+.inlineSelect {
+  min-width: 140px;
+}
+
+.inlineWrap {
+  position: relative;
+  min-width: 0;
+  flex: 1 1 0;
+}
+
+.measureList {
+  position: absolute;
+  visibility: hidden;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.dropdownList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px 8px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.dropdownItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.dropdownItem:hover {
+  background-color: #f5f5f5;
+}
+
+.dropdownItem .deleteButton {
+  opacity: 0.9;
+}
+
+.editButton {
+  font-size: 12px;
+  color: #8c8c8c;
+  padding: 2px;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.editButton:hover {
+  color: #1890ff;
+  background-color: rgba(24, 144, 255, 0.1);
+}
+
+.inlineAddButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.inlineList .deleteButton {
+  opacity: 0.8;
+}
+
+.addButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* 响应式布局 */
+@media (max-width: 1024px) {
+  .container {
+    padding: 10px 12px;
+  }
+
+  .instanceTab {
+    padding: 4px 8px;
+    min-width: 56px;
+  }
+
+  .instanceName {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .instanceList {
+    overflow-x: auto;
+    padding: 2px 0;
+    /* 在移动端显示滚动提示 */
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .instanceTab {
+    flex-shrink: 0;
+    min-width: 100px;
+  }
+
+  .addButton {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* 移动端删除按钮始终显示 */
+  .deleteButton {
+    opacity: 0.6;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 8px;
+  }
+
+  .instanceTab {
+    padding: 6px 8px;
+    font-size: 13px;
+  }
+
+  .statusIcon {
+    font-size: 14px;
+  }
+
+  .instanceName {
+    font-size: 12px;
+  }
+
+  .deleteButton {
+    font-size: 11px;
+  }
+}
+
+/* 触摸设备优化 */
+@media (hover: none) and (pointer: coarse) {
+  .instanceTab {
+    padding: 10px 12px;
+    min-height: 44px; /* iOS 推荐的最小触摸目标 */
+  }
+
+  .deleteButton {
+    opacity: 1;
+    padding: 6px;
+    min-width: 32px;
+    min-height: 32px;
+  }
+
+  .addButton {
+    min-height: 44px;
+  }
+}
+
+/* 动画效果 */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes slideOut {
+  from {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(10px) scale(0.95);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes switchActive {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-3px) scale(1.05);
+  }
+  100% {
+    transform: translateY(-2px) scale(1);
+  }
+}
+
+.instanceTab {
+  animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 实例切换动画 */
+.instanceTab.active {
+  animation: switchActive 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 添加实例时的动画 */
+.instanceTab:last-of-type {
+  animation: slideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* 容器淡入动画 */
+.container {
+  animation: fadeIn 0.3s ease;
+}
+
+/* 删除按钮动画 */
+.deleteButton {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 状态图标动画 */
+.statusIcon {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 名称输入框动画 */
+.nameInput {
+  animation: fadeIn 0.2s ease;
+}
+
+/* 添加按钮动画 */
+.addButton {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.addButton:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(24, 144, 255, 0.2);
+}
+
+.addButton:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* 实例列表滚动动画 */
+.instanceList {
+  scroll-behavior: smooth;
+}
+
+/* 减少动画以提高性能（用户偏好） */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

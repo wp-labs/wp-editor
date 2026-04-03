@@ -1,3 +1,0 @@
-name : test
----
-ip_int = pipe take(sip) | ip4_to_1int ;

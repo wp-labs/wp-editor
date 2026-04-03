@@ -14,8 +14,8 @@ rule r{
 }
 "#;
 
-    let once = formatter.format_content(raw);
-    let twice = formatter.format_content(&once);
+    let once = formatter.format_content(raw).expect("格式化失败");
+    let twice = formatter.format_content(&once).expect("格式化失败");
     assert_eq!(once, twice, "多次格式化应保持输出不变");
     assert!(
         once.contains("| decode/base64 |"),
@@ -47,7 +47,7 @@ package log_pkg {
 }
 "#;
 
-    let formatted = formatter.format_content(raw);
+    let formatted = formatter.format_content(raw).expect("格式化失败");
     assert!(
         formatted.contains("opt(domain)@host:host_name"),
         "可选子字段与路径应保留：{}",
@@ -96,7 +96,7 @@ package huawei {
 }
 "#;
 
-    let formatted = formatter.format_content(raw);
+    let formatted = formatter.format_content(raw).expect("格式化失败");
     assert!(
         formatted.contains(r")\("),
         "转义括号不应触发分组重排：{}",
@@ -131,7 +131,7 @@ package skyeye_platform {
 }
 "#;
 
-    let formatted = formatter.format_content(raw);
+    let formatted = formatter.format_content(raw).expect("格式化失败");
     let expected = r#"#[tag(dev_vendor: "天眼分析平台", dev_name: "天眼分析平台", dev_type: "syslog"), copy_raw(name:"raw_msg")]
 package skyeye_platform {
     #[tag(log_desc: "告警日志", log_type: "skyeye_platform_sensor_alert", alert_src: "52")]
@@ -169,7 +169,7 @@ package demo {
 }
 "#;
 
-    let formatted = formatter.format_content(raw);
+    let formatted = formatter.format_content(raw).expect("格式化失败");
     let expected = r#"package demo {
     rule r {
         f_chars_not_has(a|b|c),
@@ -197,7 +197,7 @@ package demo {
 }
 "#;
 
-    let formatted = formatter.format_content(raw);
+    let formatted = formatter.format_content(raw).expect("格式化失败");
     let expected = r#"package demo {
     rule r {
         chars\,literal,
@@ -209,6 +209,36 @@ package demo {
     assert_eq!(
         formatted, expected,
         "转义逗号不应触发折行，换行只由未转义逗号决定"
+    );
+}
+
+// 分隔符语法 { ... } 应保持行内，不展开为块。
+#[test]
+fn format_should_keep_separator_inline() {
+    let formatter = WplFormatter::new();
+    let raw = r#"
+package all {
+    rule bh_file_operation_log {
+        (
+            _:pri<<,>>,
+            time:access_time,
+            2*_,
+        ),
+        (
+            kvarr(
+                @prod_id,
+                @prod_version,
+            ){,\s(\S=)}
+        )
+    }
+}
+"#;
+
+    let formatted = formatter.format_content(raw).expect("格式化失败");
+    assert!(
+        formatted.contains("){,\\s(\\S=)}"),
+        "分隔符语法应保持行内：{}",
+        formatted
     );
 }
 
@@ -226,7 +256,7 @@ package demo {
 }
 "#;
 
-    let formatted = formatter.format_content(raw);
+    let formatted = formatter.format_content(raw).expect("格式化失败");
     let expected = r#"package demo {
     rule r {
         symbol(LOGONFAIL)\(,
@@ -251,7 +281,7 @@ package /raw/web {
     rule nginx {
         (
             ip:sip,
-            _^2,
+            2*_,
             chars:timestamp<[,]>,
             http/request"
                 ,chars:status,
@@ -265,12 +295,12 @@ package /raw/web {
 }
 "#;
 
-    let formatted = formatter.format_content(raw);
+    let formatted = formatter.format_content(raw).expect("格式化失败");
     let expected = r#"package /raw/web {
     rule nginx {
         (
             ip:sip,
-            _^2,
+            2*_,
             chars:timestamp<[,]>,
             http/request",
             chars:status,
@@ -285,6 +315,136 @@ package /raw/web {
 
     assert_eq!(
         formatted, expected,
-        "双引号后紧跟逗号的场景应按普通字符处理，保持换行与缩进"
+        "双引号后紧跟逗号的场景应按普通字符处理,保持换行与缩进"
+    );
+}
+
+// 多规则包体内含分隔符与管道时，不应导致后续 rule 顶格。
+#[test]
+fn format_should_keep_rule_indent_in_package() {
+    let formatter = WplFormatter::new();
+    let raw = r#"
+package nsg {
+    #[tag(log_desc: "天翼安全网关告警日志", log_type: "ty_secgate_alert")]
+    rule ty_secgate_alert {
+        (
+            json(
+                chars@threat_name,
+                chars@domain,
+                chars@req_header,
+                chars@url,
+                chars@uri,
+                chars@rsp_status,
+                chars@req_header,
+                chars@req_body,
+                chars@rsp_header,
+                chars@rsp_body,
+                chars@xff,
+                chars@weak_passwd | (
+                    chars:user,
+                    chars:pwd
+                )\/,
+                chars@payload,
+                chars@ioc_type,
+                chars@ioc_value,
+                chars@log_type:type,
+            ) | f_chars_in(type, [flow_nsg_attack, flow_nsg_webattack])
+        )
+    }
+    #[tag(log_desc: "天翼安全网关告警日志", log_type: "ty_secgate_alert")]
+    rule ty_secgate_alert_ioc {
+        (
+            json(
+                chars@threat_name,
+                chars@vuln_desc,
+                chars@attack_result,
+                chars@severity,
+                chars@dev_type,
+                chars@sn,
+                chars@attacker,
+                chars@victim,
+                chars@addr_src,
+                chars@addr_dst,
+                chars@proto,
+                digit@port_src,
+                digit@port_dst,
+                chars@session_id,
+                time_timestamp@time,
+                chars@data_from,
+                chars@attack_type,
+                chars@solution,
+                chars@attack_type,
+                chars@up_payload,
+                chars@down_payload,
+                chars@payload,
+                chars@domain,
+                chars@req_header,
+                chars@url,
+                chars@uri,
+                chars@rsp_status,
+                chars@req_header,
+                chars@req_body,
+                chars@rsp_header,
+                chars@rsp_body,
+                chars@xff,
+                chars@weak_passwd | (
+                    chars:user,
+                    chars:pwd
+                )\/,
+                chars@payload,
+                chars@ioc_type,
+                chars@ioc_value,
+                chars@log_type:type,
+            ) | f_chars_has(type, flow_nsg_ioc)
+        )
+    }
+}
+"#;
+
+    let formatted = formatter.format_content(raw).expect("格式化失败");
+    assert!(
+        formatted.contains("\n    rule ty_secgate_alert_ioc {"),
+        "包内多个 rule 不应顶格：{}",
+        formatted
+    );
+}
+
+#[test]
+fn format_should_not_error_for_balanced_parens() {
+    let formatter = WplFormatter::new();
+    let raw = r#"
+package /path/ {
+    rule name {
+        (
+            mobile_phone
+        )
+    }
+}
+"#;
+
+    let result = formatter.format_with_error(raw);
+    assert!(result.is_ok(), "括号成对闭合的 WPL 不应触发格式化错误");
+}
+
+#[test]
+fn format_should_report_line_for_unclosed_paren() {
+    let formatter = WplFormatter::new();
+    let raw = r#"
+package /path/ {
+    rule name {
+        (
+            mobile_phone
+    }
+}
+"#;
+
+    let err = formatter
+        .format_with_error(raw)
+        .expect_err("缺少闭合括号应返回错误");
+    let err_text = err.to_string();
+    assert!(
+        err_text.contains("第 6 行") || err_text.contains("第 5 行"),
+        "错误信息应包含行号，当前为：{}",
+        err_text
     );
 }

@@ -1,4 +1,4 @@
-use wp_data_fmt::{DataFormat, FormatType, Json};
+use wp_data_fmt::{FormatType, Json, RecordFormatter};
 use wp_editor::{convert_record, record_to_fields, warp_check_record};
 
 #[test]
@@ -58,7 +58,7 @@ src_ip     = take(option:[src-ip,sip,source-ip] );
 
     // 测试 JSON 格式化
     let formatter = FormatType::Json(Json);
-    let json_string = formatter.format_record(&oml_record);
+    let json_string = formatter.fmt_record(&oml_record);
 
     assert!(!json_string.is_empty(), "JSON 格式化结果不应为空");
     assert!(json_string.contains("src_ip"), "JSON 应包含 src_ip 字段");

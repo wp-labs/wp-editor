@@ -1,2 +1,0 @@
-include:
-  - https://cnb.cool/dy-sec/s-devkit/ci-templates/-/blob/develop/.rust-ci.yml

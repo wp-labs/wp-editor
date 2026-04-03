@@ -1,4 +1,4 @@
-use crate::{OmlFormatter, WplFormatter};
+use crate::{OmlFormatter, WplFormatter, utils::format::remove_annotations};
 use serde::{Deserialize, Serialize};
 use std::{collections::BTreeMap, fs::File, io::Read, path::PathBuf};
 use wp_lang::WplCode;
@@ -18,6 +18,9 @@ pub fn wpl_examples(
     oml_examples: &Vec<(WildArray, String)>,
     examples: &mut BTreeMap<String, WplExample>,
 ) -> Result<(), Box<dyn std::error::Error>> {
+    if !wpl_path.exists() {
+        return Ok(());
+    }
     if wpl_path.is_file() {
         if wpl_path.extension().and_then(|ext| ext.to_str()) != Some("wpl") {
             return Ok(());
@@ -28,7 +31,7 @@ pub fn wpl_examples(
         // 获取原始的wpl代码
         let mut contents = String::new();
         file.read_to_string(&mut contents)?;
-        example.wpl_code = wpl_formatter.format_content(&contents);
+        example.wpl_code = wpl_formatter.format_content_or_original(&contents);
         // 获取日志示例数据
         let sample_data_dir = wpl_path.parent().unwrap().join("sample.dat");
         let mut sample_data = String::new();
@@ -75,6 +78,9 @@ pub fn oml_examples(
     oml_path: PathBuf,
 ) -> Result<Vec<(WildArray, String)>, Box<dyn std::error::Error>> {
     let mut results = Vec::new();
+    if !oml_path.exists() {
+        return Ok(results);
+    }
     if oml_path.is_file() {
         if oml_path.extension().and_then(|ext| ext.to_str()) != Some("oml") {
             return Ok(results);
@@ -84,7 +90,10 @@ pub fn oml_examples(
         // 获取原始的oml代码
         let mut contents = String::new();
         file.read_to_string(&mut contents)?;
-        let oml_fmt = oml_formatter.format_content(&contents);
+        let oml_fmt = oml_formatter.format_content_or_original(&contents);
+
+        // 去除注释
+        contents = remove_annotations(&contents);
         let code = oml_parse(&mut contents.as_str(), "")?;
         results.push((code.rules().clone(), oml_fmt));
         return Ok(results);
@@ -106,15 +115,6 @@ mod tests {
     use std::fs;
     use tempfile::TempDir;
 
-    // #[test]
-    // fn demo() {
-    //     let file_path = PathBuf::from("rules/models/wpl");
-    //     let mut examples = HashMap::new();
-
-    //     let result = wpl_examples(file_path, &mut examples);
-    //     println!("{:?}", examples);
-    //     assert!(result.is_ok());
-    // }
     #[test]
     fn test_wpl_examples_with_directory() {
         let temp_dir = TempDir::new().unwrap();
@@ -165,6 +165,6 @@ mod tests {
             &oml_examples(temp_dir.path().to_path_buf()).unwrap(),
             &mut examples,
         );
-        assert!(result.is_err());
+        assert!(result.is_ok());
     }
 }

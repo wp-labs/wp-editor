@@ -1,0 +1,199 @@
+.editor {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 160px;
+  border: 1px solid rgba(15, 23, 42, 0.5);
+  border-radius: 16px;
+  background: #0f172a;
+  overflow: hidden;
+  display: flex;
+}
+
+.editorActions {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.quickActionBtn {
+  height: 26px;
+  min-width: 64px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  background: rgba(30, 41, 59, 0.78);
+  color: #dbe4f0;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 26px;
+  letter-spacing: 0.2px;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+
+.quickActionBtn:hover {
+  background: rgba(51, 65, 85, 0.92);
+  color: #f8fafc;
+  transform: translateY(-1px);
+}
+
+.quickActionBtn:active {
+  transform: translateY(0);
+  background: rgba(30, 41, 59, 0.92);
+}
+
+.quickActionBtn:focus-visible {
+  outline: 2px solid rgba(56, 189, 248, 0.7);
+  outline-offset: 2px;
+}
+
+.quickCopyBtn {
+  border-color: rgba(125, 211, 252, 0.35);
+}
+
+.quickCopyBtn:hover {
+  border-color: rgba(125, 211, 252, 0.65);
+}
+
+.quickPasteBtn {
+  border-color: rgba(56, 189, 248, 0.45);
+}
+
+.quickPasteBtn:hover {
+  border-color: rgba(56, 189, 248, 0.75);
+}
+
+.code {
+  flex: 1;
+  height: 100%;
+  min-height: 160px;
+}
+
+.editor :global(.cm-editor) {
+  height: 100%;
+}
+
+.editor :global(.cm-scroller) {
+  font-variant-ligatures: none;
+}
+
+.editor :global(.cm-oml-keyword) {
+  color: #38bdf8;
+  font-weight: 600;
+}
+
+.editor :global(.cm-oml-string) {
+  color: #f472b6;
+}
+
+.editor :global(.cm-oml-plain) {
+  color: #f8fafc !important;
+  font-weight: inherit !important;
+  font-style: inherit !important;
+}
+
+.editor :global(.cm-oml-plain *) {
+  color: #f8fafc !important;
+  font-weight: inherit !important;
+  font-style: inherit !important;
+}
+
+.editor :global(.cm-oml-plain .cm-oml-function),
+.editor :global(.cm-oml-plain .cm-oml-punctuation),
+.editor :global(.cm-oml-plain .cm-oml-keyword),
+.editor :global(.cm-oml-plain .cm-oml-variable),
+.editor :global(.cm-oml-plain .cm-oml-string),
+.editor :global(.cm-oml-plain .cm-oml-number),
+.editor :global(.cm-oml-plain .cm-oml-operator),
+.editor :global(.cm-oml-plain .cm-oml-type),
+.editor :global(.cm-oml-plain .cm-oml-special) {
+  color: #f8fafc !important;
+  font-weight: inherit !important;
+  font-style: inherit !important;
+  text-decoration: inherit !important;
+}
+
+.editor :global(.cm-oml-number) {
+  color: #fbbf24;
+}
+
+.editor :global(.cm-oml-comment) {
+  color: #94a3b8;
+  font-style: italic;
+}
+
+.editor :global(.cm-oml-type) {
+  color: #a78bfa;
+}
+
+.editor :global(.cm-oml-function) {
+  color: #22d3ee;
+}
+
+.editor :global(.cm-oml-operator) {
+  color: #e2e8f0;
+}
+
+.editor :global(.cm-oml-punctuation) {
+  color: #cbd5f5;
+}
+
+.editor :global(.cm-oml-variable) {
+  color: #f8fafc;
+}
+
+.editor :global(.cm-oml-special) {
+  color: #fda4af;
+}
+
+.editor :global(.cm-wpl-keyword) {
+  color: #38bdf8;
+  font-weight: 600;
+}
+
+.editor :global(.cm-wpl-string) {
+  color: #eeebe9;
+}
+
+.editor :global(.cm-wpl-number) {
+  color: #fbbf24;
+}
+
+.editor :global(.cm-wpl-comment) {
+  color: #94a3b8;
+  font-style: italic;
+}
+
+.editor :global(.cm-wpl-type) {
+  color: #a78bfa;
+}
+
+.editor :global(.cm-wpl-function) {
+  color: #22d3ee;
+}
+
+.editor :global(.cm-wpl-operator) {
+  color: #e2e8f0;
+}
+
+.editor :global(.cm-wpl-punctuation) {
+  color: #cbd5f5;
+}
+
+.editor :global(.cm-wpl-variable) {
+  color: #f8fafc;
+}
+
+.editor :global(.cm-wpl-property) {
+  color: #fda4af;
+}
+
+.editor :global(.cm-wpl-special) {
+  color: #fda4af;
+}

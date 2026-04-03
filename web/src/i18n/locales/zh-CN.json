@@ -8,7 +8,7 @@
     "helpCenter": "帮助中心",
     "version": {
       "wpEditor": "wp-editor",
-      "warpEngine": "warp-engine",
+      "warpEngine": "wp-motor",
       "warpParse": "warp-parse"
     }
   },
@@ -37,10 +37,37 @@
     "loading": "加载中...",
     "noData": "暂无数据"
   },
+  "codeEditor": {
+    "quickCopy": "复制",
+    "quickPaste": "粘贴"
+  },
+  "multipleInstances": {
+    "addInstance": "添加实例",
+    "deleteInstance": "删除实例",
+    "renameInstance": "重命名实例",
+    "confirmDelete": "确定要删除这个实例吗？",
+    "deleteWarning": "删除后将无法恢复该实例的所有数据",
+    "maxInstancesReached": "已达到最大实例数量（10个）",
+    "defaultName": "实例 {{number}}",
+    "type": {
+      "log": "日志",
+      "wpl": "WPL",
+      "oml": "OML"
+    },
+    "storageError": "保存数据失败，请检查浏览器存储空间",
+    "dataCorrupted": "数据已损坏，已创建新的默认实例"
+  },
   "simulateDebug": {
     "tabs": {
       "parse": "解析",
       "convert": "转换"
+    },
+    "workspace": {
+      "title": "工作区",
+      "loadSuccess": "已加载工作区内容",
+      "loadSuccessWithResults": "已加载工作区内容和解析结果",
+      "autoSaved": "工作区内容已自动保存",
+      "autoSavedWithResults": "工作区内容和解析结果已自动保存"
     },
     "examples": {
       "title": "规则示例库",
@@ -53,7 +80,6 @@
     },
     "logData": {
       "title": "日志数据",
-      "desc": "粘贴实时采集的原始日志，支持文本与文件导入。",
       "base64Decode": "base64解码",
       "clearAll": "一键清空",
       "base64Error": "Base64解码失败"
@@ -78,7 +104,6 @@
     },
     "omlInput": {
       "title": "OML 输入",
-      "desc": "根据解析结果补齐转换逻辑。",
       "format": "格式化",
       "convert": "转换",
       "converting": "转换中...",

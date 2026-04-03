@@ -92,13 +92,9 @@ impl AppError {
         AppError::WplParse(e.to_string())
     }
 
-    pub fn wpl_best_error(
-        error: orion_error::StructError<WparseReason>,
-        depth: usize,
-        hint: impl Into<String>,
-    ) -> Self {
+    pub fn wpl_best_error(depth: usize, hint: impl Into<String>) -> Self {
         let hint_str = hint.into();
-        let err_msg = format!("{}\n解析深度: {depth}\n{hint_str}", error);
+        let err_msg = format!("解析深度: {depth}\n{hint_str}");
         AppError::WplParse(err_msg)
     }
 

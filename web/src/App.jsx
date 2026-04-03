@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Route, Routes } from 'react-router-dom';
-import { ConfigProvider } from 'antd';
+import { App as AntdApp, ConfigProvider } from 'antd';
 import enUS from 'antd/locale/en_US';
 import zhCN from 'antd/locale/zh_CN';
 import SimulateDebugPage from '@/views/pages/simulate-debug';
@@ -37,21 +37,23 @@ function App() {
 
   return (
     <ConfigProvider locale={antdLocale} theme={theme}>
-      <div className="app-shell">
-        <Header onWechatClick={() => setWechatModalOpen(true)} onLocaleChange={setAntdLocale} />
-        <div className="app-shell-body">
-          <div className="main-content">
-            <Routes>
-              <Route path="/" element={<SimulateDebugPage />} />
-              <Route path="/simulate-debug" element={<SimulateDebugPage />} />
-              <Route path="*" element={<SimulateDebugPage />} />
-            </Routes>
+      <AntdApp>
+        <div className="app-shell">
+          <Header onWechatClick={() => setWechatModalOpen(true)} onLocaleChange={setAntdLocale} />
+          <div className="app-shell-body">
+            <div className="main-content">
+              <Routes>
+                <Route path="/" element={<SimulateDebugPage />} />
+                <Route path="/simulate-debug" element={<SimulateDebugPage />} />
+                <Route path="*" element={<SimulateDebugPage />} />
+              </Routes>
+            </div>
           </div>
-        </div>
 
-        <WechatModal open={wechatModalOpen} onCancel={() => setWechatModalOpen(false)} />
-        <GitHubStarModal open={showReminder} onCancel={closeReminder} onGoToGitHub={goToGitHub} />
-      </div>
+          <WechatModal open={wechatModalOpen} onCancel={() => setWechatModalOpen(false)} />
+          <GitHubStarModal open={showReminder} onCancel={closeReminder} onGoToGitHub={goToGitHub} />
+        </div>
+      </AntdApp>
     </ConfigProvider>
   );
 }

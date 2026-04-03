@@ -1,117 +1,83 @@
-# wp-editor
+![WP Editor Logo](docs/WP—LOGO.V2.png)
 
-![License](https://img.shields.io/badge/license-Apache%202.0-blue)
+## 🚀 WP Editor
 
-wp-editor is a standalone web system designed for writing and validating WPL (log parsing rules) and OML (data transformation rules).
+**面向 WPL/OML 的可视化调试与规则编辑 Web 应用**
 
-## Features
+![Build & Test](https://github.com/wp-labs/wp-editor/actions/workflows/build-and-test.yml/badge.svg)![Release & Docker](https://github.com/wp-labs/wp-editor/actions/workflows/release.yml/badge.svg)![License: Elastic 2.0](https://img.shields.io/badge/License-Elastic%202.0-green.svg)![Rust Version](https://img.shields.io/badge/Rust-1.89+-orange.svg)![Node.js Version](https://img.shields.io/badge/Node.js-18+-green.svg)
 
-- **Log Parsing**: Supports WPL (Warp Parse Language) rules, capable of parsing logs in multiple formats
-- **Data Transformation**: Supports OML (Object Mapping Language) rules to transform parsed data into specified formats
-- **Real-time Preview**: Supports real-time parsing and transformation result preview
-- **Rule Editor**: Built-in CodeJar editor with syntax highlighting and Tab key indentation support
-
-## Tech Stack
-
-### Backend
-
-- **Language**: Rust (Edition 2024)
-- **Web Framework**: Actix Web 4.4
-- **Core Engine**: warp-flow
-- **Async Runtime**: Tokio
-
-### Frontend
-
-- **Framework**: React 19.0.0
-- **Build Tool**: Vite 6.3.5
-- **UI Components**: Ant Design 5.24.9
-- **Editor**: CodeJar
-
-## License
-
-This project is licensed under the Apache License 2.0. See the [LICENSE](LICENSE) file for details.
-
-### Apache License 2.0 Overview
-
-The Apache License 2.0 is a permissive open-source license that:
-
-- Allows commercial use, modification, and distribution
-- Requires preservation of copyright and license notices
-- Provides an explicit grant of patent rights from contributors
-- Disclaims warranties and limits liability
-- Is compatible with various other open-source licenses
-
-For the full license terms, please refer to the [LICENSE](LICENSE) file.
-
-## Contributing
-
-We welcome contributions of all kinds! For detailed contribution guidelines, development workflow, and the release process, please refer to our [CONTRIBUTING.md](CONTRIBUTING.md) guide.
-
-Key highlights:
-- Three-stage release process: alpha → beta → main
-- Pull requests should target the `alpha` branch
-- Code review is required before merging
-
-## Support
-
-If you have any questions or suggestions, please submit an Issue or contact the development team.
+中文 | [English](README.en.md)
 
 ---
 
-# wp-editor
+## 📖 项目简介
 
-![License](https://img.shields.io/badge/license-Apache%202.0-blue)
+**WP Editor** 是一个基于 Warp Parse 解析引擎的现代化 Web 应用，专为日志解析、字段转换和结果验证而设计。它提供了完整的 WPL（Web Processing Language）解析和 OML（Output Mapping Language）转换的在线调试能力。
 
-wp-editor 是一个独立运行的 WEB 系统，专门用于 WPL（日志解析规则）和 OML（数据转换规则）的编写和验证。
+🌐 **在线体验**: [https://editor.warpparse.ai/](https://editor.warpparse.ai/)
 
-## 功能特性
+### 🏗️ 架构特点
 
-- **日志解析**: 支持 WPL (Warp Parse Language) 规则，可解析多种格式的日志
-- **数据转换**: 支持 OML (Object Mapping Language) 规则，将解析后的数据转换为指定格式
-- **实时预览**: 支持实时解析和转换结果预览
-- **规则编辑**: 内置 CodeJar 编辑器，支持语法高亮和 Tab 键缩进
+*   **🦀 Rust 后端**: 使用 Actix Web 构建高性能 API 服务
+*   **⚛️ React 前端**: 现代化的用户界面，支持多语言
+*   **📦 单二进制部署**: 通过 `rust-embed` 将前端资源打包进服务端
+*   **🔧 零配置启动**: 开箱即用，无需复杂配置
 
-## 技术栈
+## ✨ 功能特性
 
-### 后端
+### 🔍 **调试功能**
 
-- **语言**: Rust (Edition 2024)
-- **Web 框架**: Actix Web 4.4
-- **核心引擎**: warp-flow
-- **异步运行时**: Tokio
+*   **WPL 规则解析调试** - 实时解析日志并查看字段结果
+*   **OML 规则转换调试** - 基于解析结果执行字段转换
+*   **Base64 解码** - 快速处理编码日志数据
+*   **错误诊断** - 详细的错误信息和调试提示
 
-### 前端
+### 🎨 **用户体验**
 
-- **框架**: React 19.0.0
-- **构建工具**: Vite 6.3.5
-- **UI 组件**: Ant Design 5.24.9
-- **编辑器**: CodeJar
+*   **代码编辑器** - CodeJar + 语法高亮 + 行号显示
+*   **多视图展示** - 表格/JSON 切换，支持空值显示
+*   **规则格式化** - WPL/OML 一键美化
+*   **多语言界面** - 中英文无缝切换
 
-## 许可证
+### 📚 **示例库**
 
-本项目采用 Apache License 2.0 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情。
+*   **规则库加载** - 从本地读取 WPL/OML 示例，并自动根据WPL匹配相应的OML
+*   **样本数据** - 配套的测试日志数据
+*   **快速复现** - 一键加载完整的调试场景
 
-### Apache License 2.0 概述
+### 🔧 **开发友好**
 
-Apache License 2.0 是一个宽松的开源许可证，具有以下特点：
+*   **版本信息** - 实时显示组件版本
+*   **API 文档** - 完整的接口说明
+*   **热重载** - 开发模式下的实时更新
 
-- 允许商业使用、修改和分发
-- 要求保留版权和许可证声明
-- 为贡献者明确授予专利权
-- 免除担保并限制责任
-- 与多种其他开源许可证兼容
+### 🛠️ 实用工具
 
-有关完整的许可证条款，请参考 [LICENSE](LICENSE) 文件。
+*   **🎨 规则格式化**: 一键美化 WPL/OML 代码
+*   **🔓 Base64 解码**: 快速解码编码的日志数据
+*   **🌐 语言切换**: 中英文界面切换
 
-## 贡献指南
+## 🤝 贡献指南
 
-我们欢迎任何形式的贡献！有关详细的贡献指南、开发流程和发布流程，请参考我们的 [CONTRIBUTING.md](CONTRIBUTING.md) 文档。
+我们欢迎所有形式的贡献！
 
-主要亮点：
-- 三阶段发布流程：alpha → beta → main
-- Pull Request 应该针对 `alpha` 分支
-- 合并前需要代码审查
+1.  **🍴 Fork** 项目
+2.  **🌿 创建** 特性分支 (`git checkout -b feature/AmazingFeature`)
+3.  **💾 提交** 更改 (`git commit -m 'Add some AmazingFeature'`)
+4.  **📤 推送** 分支 (`git push origin feature/AmazingFeature`)
+5.  **🔀 创建** Pull Request
 
-## 支持
+## 📄 许可证
 
-如有问题或建议，请提交 Issue 或联系开发团队。
+本项目采用 **Elastic License 2.0** 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情。
+
+## 📚 更多文档
+
+*   [API 文档](docs/API.md)
+*   [配置说明](docs/CONFIGURATION.md)
+*   [项目结构](docs/PROJECT_STRUCTURE.md)
+
+**⭐ 如果这个项目对你有帮助，请给我们一个 Star！**
+
+[🐛 报告问题](https://github.com/wp-labs/wp-editor/issues) •  
+[💡 功能建议](https://github.com/wp-labs/wp-editor/issues)

@@ -8,7 +8,7 @@
     "helpCenter": "Help Center",
     "version": {
       "wpEditor": "wp-editor",
-      "warpEngine": "warp-engine",
+      "warpEngine": "wp-motor",
       "warpParse": "warp-parse"
     }
   },
@@ -37,10 +37,37 @@
     "loading": "Loading...",
     "noData": "No Data"
   },
+  "codeEditor": {
+    "quickCopy": "Copy",
+    "quickPaste": "Paste"
+  },
+  "multipleInstances": {
+    "addInstance": "Add Instance",
+    "deleteInstance": "Delete Instance",
+    "renameInstance": "Rename Instance",
+    "confirmDelete": "Are you sure you want to delete this instance?",
+    "deleteWarning": "All data in this instance will be permanently lost",
+    "maxInstancesReached": "Maximum number of instances reached (10)",
+    "defaultName": "Instance {{number}}",
+    "type": {
+      "log": "Log",
+      "wpl": "WPL",
+      "oml": "OML"
+    },
+    "storageError": "Failed to save data, please check browser storage space",
+    "dataCorrupted": "Data corrupted, created new default instance"
+  },
   "simulateDebug": {
     "tabs": {
       "parse": "Parse",
       "convert": "Convert"
+    },
+    "workspace": {
+      "title": "Workspace",
+      "loadSuccess": "Workspace content loaded",
+      "loadSuccessWithResults": "Workspace content and parse results loaded",
+      "autoSaved": "Workspace content auto-saved",
+      "autoSavedWithResults": "Workspace content and parse results auto-saved"
     },
     "examples": {
       "title": "Rule Examples",
@@ -53,7 +80,6 @@
     },
     "logData": {
       "title": "Log Data",
-      "desc": "Paste raw logs collected in real-time, supports text and file import.",
       "base64Decode": "Base64 Decode",
       "clearAll": "Clear All",
       "base64Error": "Base64 decode failed"
@@ -78,7 +104,6 @@
     },
     "omlInput": {
       "title": "OML Input",
-      "desc": "Complete conversion logic based on parse results.",
       "format": "Format",
       "convert": "Convert",
       "converting": "Converting...",

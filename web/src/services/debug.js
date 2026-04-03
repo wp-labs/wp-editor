@@ -56,7 +56,18 @@ export async function wplCodeFormat(wplCode) {
     }
     return data || {};
   } catch (error) {
+    const responseData = error?.response?.data || error?.data;
+    if (responseData && responseData.success === false) {
+      const errorMessage = responseData.error?.message || error?.message || '格式化 WPL 代码失败，请稍后重试';
+      const wrapped = new Error(errorMessage);
+      wrapped.code = responseData.error?.code;
+      wrapped.responseData = responseData;
+      throw wrapped;
+    }
     if (error instanceof Error) {
+      if (responseData && !error.responseData) {
+        error.responseData = responseData;
+      }
       throw error;
     }
     throw new Error(typeof error === 'string' ? error : '格式化WPL代码失败，请稍后重试');
@@ -87,7 +98,18 @@ export async function omlCodeFormat(omlCode) {
     }
     return data || {};
   } catch (error) {
+    const responseData = error?.response?.data || error?.data;
+    if (responseData && responseData.success === false) {
+      const errorMessage = responseData.error?.message || error?.message || '格式化 OML 代码失败，请稍后重试';
+      const wrapped = new Error(errorMessage);
+      wrapped.code = responseData.error?.code;
+      wrapped.responseData = responseData;
+      throw wrapped;
+    }
     if (error instanceof Error) {
+      if (responseData && !error.responseData) {
+        error.responseData = responseData;
+      }
       throw error;
     }
     throw new Error(typeof error === 'string' ? error : '格式化WPL代码失败，请稍后重试');
@@ -121,9 +143,11 @@ export async function fetchDebugExamples() {
 /**
  * 从 value 对象中提取值
  * @param {Object} valueObj - value 对象，如 { "IpAddr": "..." } 或 { "Chars": "..." }
+ * @param {string} fieldName - 字段名称
+ * @param {string} formatJson - format_json 字符串
  * @returns {string} 提取的值字符串
  */
-const extractValueFromObj = (valueObj) => {
+const extractValueFromObj = (valueObj, fieldName, formatJson) => {
   if (valueObj === null || valueObj === undefined) {
     return '';
   }
@@ -134,7 +158,7 @@ const extractValueFromObj = (valueObj) => {
 
   if (Array.isArray(valueObj)) {
     const arrayValues = valueObj
-      .map(item => extractValueFromObj(item))
+      .map(item => extractValueFromObj(item, fieldName, formatJson))
       .filter(val => val !== '' && val !== null && val !== undefined);
     return arrayValues.join(', ');
   }
@@ -145,10 +169,10 @@ const extractValueFromObj = (valueObj) => {
       .map(item => {
         if (item && typeof item === 'object') {
           if ('value' in item) {
-            return extractValueFromObj(item.value);
+            return extractValueFromObj(item.value, fieldName, formatJson);
           }
           if ('Array' in item) {
-            return extractValueFromObj(item);
+            return extractValueFromObj(item, fieldName, formatJson);
           }
         }
         return '';
@@ -169,9 +193,21 @@ const extractValueFromObj = (valueObj) => {
     return '';
   }
 
+  // 对于复杂嵌套对象（如 IpNet），尝试从 format_json 中读取
+  if (typeof rawValue === 'object' && fieldName && formatJson) {
+    try {
+      const jsonData = JSON.parse(formatJson);
+      if (jsonData && jsonData[fieldName] !== undefined) {
+        return String(jsonData[fieldName]);
+      }
+    } catch (e) {
+      // JSON 解析失败，继续使用原有逻辑
+    }
+  }
+
   if (typeof rawValue === 'object') {
     // 嵌套对象或数组继续递归，尽量拿到最终值
-    return extractValueFromObj(rawValue);
+    return extractValueFromObj(rawValue, fieldName, formatJson);
   }
 
   return String(rawValue);
@@ -180,9 +216,10 @@ const extractValueFromObj = (valueObj) => {
 /**
  * 处理字段列表，添加 no 序号并提取 value 值
  * @param {Array} fields - 字段数组
+ * @param {string} formatJson - format_json 字符串
  * @returns {Array} 处理后的字段数组
  */
-const processFields = (fields) => {
+const processFields = (fields, formatJson = '') => {
   if (!Array.isArray(fields)) {
     return [];
   }
@@ -203,7 +240,7 @@ const processFields = (fields) => {
       ...field,
       no: index + 1,
       meta: metaDisplay,
-      value: extractValueFromObj(field?.value),
+      value: extractValueFromObj(field?.value, field?.name, formatJson),
     };
   });
 };
@@ -270,7 +307,7 @@ export async function parseLogs(options) {
     }
 
     return {
-      fields: processFields(fieldsData),
+      fields: processFields(fieldsData, payload?.format_json || ''),
       rawFields: fieldsData,
       formatJson: typeof payload?.format_json === 'string' ? payload.format_json : '',
     };
@@ -315,7 +352,6 @@ export async function parseLogs(options) {
  */
 export async function convertRecord(options) {
   const { oml, connectionId, parseResult } = options;
-  console.log('convertRecord', { oml, connectionId, parseResult });
 
   /**
    * 构造转换错误对象，携带后端响应内容，便于前端展示

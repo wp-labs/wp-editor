@@ -1,6 +1,6 @@
 [package]
 name = "wp-editor"
-version = "1.0.0"
+version = "1.14.0"
 edition = "2024"
 build = "build.rs"
 
@@ -35,9 +35,10 @@ thiserror = "2.0"
 strum = { version = "0.26", features = ["derive"] }
 regex = "1.12"
 base64 = "0.22"
-orion-error = "0.5"
+orion-error = "0.6"
 tempfile = "3.24"
-
+tree-sitter = "0.26.6"
+tree-sitter-wpl = { package = "tree-sitter-wpl", git = "https://github.com/wp-labs/tree-sitter-wpl.git", branch = "main" }
 
 # PostgreSQL 数据库支持 - SeaORM
 sea-orm = { version = "1.1", features = [
@@ -47,25 +48,34 @@ sea-orm = { version = "1.1", features = [
     "with-chrono",
 ] }# --- External: Open API (Public Interfaces) ---
 
-wp-connector-api =  "0.7"
-wp-parse-api     =  "0.7"
-wp-model-core    =  "0.7"
-
-# --- External: Advanced API (Enterprise Features) ---
-wp_ctrl_api   = { package = "wp-ctrl-api",   git = "https://github.com/wp-labs/wp-advanced-api", tag = "v0.0.5-beta" }
-wp_enrich_api = { package = "wp-enrich-api", git = "https://github.com/wp-labs/wp-advanced-api", tag = "v0.0.5-beta" }
+wp-connector-api =  "0.8"
+#wp-parse-api     =  "0.8"
+wp-model-core    =  "0.8"
 
 # --- External: Infrastructure Libraries ---
-wp-log       =  "0.1"
-wp-error     =  "0.7"
-wp-specs     =  "0.7"
-wp-conf-base =  "0.1"
-wp-data-fmt  =  "0.1"
+wp-log       =  "0.2"
+wp-error     =  "0.8"
+wp-specs     =  "0.8"
+wp-conf-base =  "0.2"
+wp-data-fmt  =  "0.2"
 wp-editor-migrations = { path = "crates/migrations" }
 
-wp_lang = { package = "wp-lang", git = "https://github.com/wp-labs/wp-engine", tag = "v1.8.2-alpha" }
-wp_oml = { package = "wp-oml", git = "https://github.com/wp-labs/wp-engine", tag = "v1.8.2-alpha" }
-wp_parser = { package = "wp-parser", git = "https://github.com/wp-labs/wp-engine", tag = "v1.8.2-alpha" }
-wp_knowledge = { package = "wp-knowledge", git = "https://github.com/wp-labs/wp-engine", tag = "v1.8.2-alpha" }
-wp_data_utils = { package = "wp-data-utils", git = "https://github.com/wp-labs/wp-engine", tag = "v1.8.2-alpha" }
-wp_engine = { package = "wp-engine", git = "https://github.com/wp-labs/wp-engine", tag = "v1.8.2-alpha" }
+wp-engine     = {                            git = "https://github.com/wp-labs/wp-motor", tag = "v1.18.3" }
+wp-config     = { package = "wp-config",     git = "https://github.com/wp-labs/wp-motor", tag = "v1.18.3" }
+wp_oml         = { package = "wp-oml",       git = "https://github.com/wp-labs/wp-motor", tag = "v1.18.3" }
+wp-lang       = { package = "wp-lang",       git = "https://github.com/wp-labs/wp-motor", tag = "v1.18.3" }
+wp_knowledge  = { package = "wp-knowledge",  git = "https://github.com/wp-labs/wp-motor", tag = "v1.18.3" }
+wp_data_utils = { package = "wp-data-utils", git = "https://github.com/wp-labs/wp-motor", tag = "v1.18.3" }
+wp-proj       = { package = "wp-proj",       git = "https://github.com/wp-labs/wp-motor", tag = "v1.18.3" }
+
+#wp-engine = { path = "../wp-motor" }
+#wp-config = { path = "../wp-motor/crates/wp-config" }
+#wp-oml    = { package = "wp-oml",    path = "../wp-motor/crates/wp-oml" }
+#wp-lang   = { package = "wp-lang", path = "../wp-motor/crates/wp-lang" }
+#wp-knowledge  = { path = "../wp-motor/crates/wp-knowledge" }
+##wp-cli-core   = { path = "../wp-motor/crates/wp-cli-core" }
+#wp-data-utils = { path = "../wp-motor/crates/wp-data-utils"  }
+#wp-proj       = { path = "../wp-motor/crates/wp-proj" }
+
+
+semver = "1.0.27"

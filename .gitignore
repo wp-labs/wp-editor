@@ -49,7 +49,5 @@ project_root/
 CLAUDE.md
 web/vibecoding
 vibecoding
-<<<<<<< HEAD
-=======
-Cargo.lock
->>>>>>> a44e1240a4c730adc3c431ad6247b2d4f8a1d5c0
+web/public/tree-sitter/
+

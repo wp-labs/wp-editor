@@ -2215,7 +2215,7 @@ mark.diff-highlight {
 
 .example-list__item {
   width: 100%;
-  padding: 10px 12px;
+  padding: 6px 8px;
   border: none;
   border-radius: 12px;
   background: transparent;
@@ -2223,7 +2223,8 @@ mark.diff-highlight {
   color: var(--muted);
   cursor: pointer;
   transition: all 0.2s ease;
-  font-size: 14px;
+  font-size: 12px;
+  line-height: 1.2;
   font-family: 'PingFang SC', 'Microsoft YaHei', 'Segoe UI', sans-serif;
 }
 
@@ -2233,6 +2234,13 @@ mark.diff-highlight {
   color: var(--primary);
   outline: none;
 }
+
+.example-list__item.is-active {
+  background: rgba(39, 94, 254, 0.12);
+  color: var(--primary);
+  font-weight: 500;
+}
+
 
 .example-list__message {
   color: #666;
@@ -3399,9 +3407,30 @@ mark.diff-highlight {
 .panel-block--scrollable .mode-content.is-active .code-block {
   flex: 1 1 auto;
   overflow-y: auto;
-  overflow-x: auto;
+  overflow-x: hidden;
   min-height: 0;
+  min-width: 0;
   max-height: 500px;
+  max-width: 100%;
+  width: 100%;
+  word-wrap: break-word;
+  word-break: break-all;
+  overflow-wrap: anywhere;
+}
+
+/* 确保代码块内的长行能够正确换行 */
+.code-block pre {
+  white-space: pre-wrap !important;
+  word-wrap: break-word !important;
+  word-break: break-all !important;
+  overflow-wrap: break-word !important;
+}
+
+/* 表格value列样式优化 */
+.data-table.compact .ant-table-tbody > tr > td {
+  word-wrap: break-word;
+  word-break: break-all;
+  white-space: pre-wrap;
 }
 
 /* 分页样式 */

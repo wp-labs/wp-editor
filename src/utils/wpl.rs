@@ -5,11 +5,10 @@ use orion_error::UvsReason;
 use serde::{Deserialize, Serialize};
 use wp_engine::sources::event_id::next_event_id;
 use wp_lang::{
-    AnnotationType, WparseError, WparseReason, WplCode, WplEvaluator, WplExpress, WplPackage,
-    WplStatementType,
+    AnnotationType, WparseReason, WplCode, WplEvaluator, WplExpress, WplPackage, WplStatementType,
 };
 use wp_model_core::model::{DataField, DataRecord, DataType};
-use wp_parse_api::RawData;
+use wp_model_core::raw::RawData;
 
 type RunParseProc = (WplExpress, Vec<AnnotationType>);
 
@@ -29,9 +28,9 @@ pub fn record_to_fields(record: &DataRecord) -> Vec<ParsedField> {
         .enumerate()
         .map(|(index, field)| ParsedField {
             no: index as i32 + 1,
-            meta: field.meta.to_string(),
-            name: field.name.to_string(),
-            value: field.value.to_string(),
+            meta: field.get_meta().to_string(),
+            name: field.get_name().to_string(),
+            value: field.get_value().to_string(),
         })
         .collect()
 }
@@ -53,14 +52,11 @@ pub fn warp_check_record(wpl: &str, data: &str) -> Result<DataRecord, AppError> 
 /// 尝试用规则列表解析数据
 fn try_parse_with_rules(rule_items: Vec<RunParseProc>, data: &str) -> Result<DataRecord, AppError> {
     let mut max_depth = 0;
-    let mut best_error = None;
-    let rule_cnt = rule_items.len();
     let mut best_wpl = 1;
     for (index, (vm_unit, _funcs)) in rule_items.iter().enumerate() {
-        let is_last = index == rule_cnt - 1;
         let evaluator = WplEvaluator::from(vm_unit, None).map_err(AppError::wpl_parse)?;
         let raw = RawData::from_string(data.to_string());
-        match evaluator.proc(raw, 0) {
+        match evaluator.proc(0, raw, 0) {
             Ok((mut tdc, _pipeline)) => {
                 if let Some(tags) = vm_unit.tags.clone() {
                     for tag in tags.export_tags() {
@@ -68,41 +64,24 @@ fn try_parse_with_rules(rule_items: Vec<RunParseProc>, data: &str) -> Result<Dat
                     }
                 }
                 tdc.append(DataField::from_digit("wp_event_id", next_event_id() as i64));
-                tdc.items.retain(|item| item.meta != DataType::Ignore);
-                return Ok(DataRecord { items: tdc.items });
+                tdc.items
+                    .retain(|item| *item.get_meta() != DataType::Ignore);
+                return Ok(DataRecord::from(tdc.items));
             }
             Err(e) => {
                 // 记录解析深度最高的错误
-                if let WparseReason::Uvs(UvsReason::DataError(_, Some(pos))) = e.reason() {
-                    if *pos > max_depth {
-                        max_depth = *pos;
-                        best_wpl = index + 1;
-                        best_error = Some(e.clone());
+                best_wpl = index + 1;
+                if matches!(e.reason(), WparseReason::Uvs(UvsReason::DataError)) {
+                    // 新版 UvsReason::DataError 不再携带位置参数，保底记为 1 表示已进入规则解析。
+                    if max_depth == 0 {
+                        max_depth = 1;
                     }
-                } else if best_error.is_none() {
-                    // 如果不是 DataError，作为备选记录第一个错误
-                    best_wpl = index + 1;
-                    best_error = Some(e.clone());
-                    break;
-                }
-
-                if is_last {
-                    break;
                 }
             }
         }
     }
-    let best_error: orion_error::StructError<WparseReason> = best_error.unwrap_or_else(|| {
-        WparseError::from(WparseReason::Uvs(UvsReason::SystemError(
-            "No matching rule".to_string(),
-        )))
-    });
     let friendly_hint = build_best_match_hint(data, max_depth, best_wpl);
-    Err(AppError::wpl_best_error(
-        best_error,
-        max_depth,
-        friendly_hint,
-    ))
+    Err(AppError::wpl_best_error(max_depth, friendly_hint))
 }
 
 /// 从 WPL 包中提取规则项

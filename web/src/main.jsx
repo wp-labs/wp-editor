@@ -2,7 +2,6 @@ import '@ant-design/v5-patch-for-react-19';
 import React, { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
-import logger from '@seed-fe/logger';
 import App from '@/App';
 import '@/styles/theme.css';
 import { configureRequest } from '@/services/request';
@@ -20,7 +19,7 @@ configureRequest();
 const rootElement = document.getElementById('root');
 
 if (!rootElement) {
-  logger.error('未找到 id 为 root 的 DOM 元素，无法挂载应用。');
+  console.error('未找到 id 为 root 的 DOM 元素，无法挂载应用。');
   throw new Error('Root element not found');
 }
 
