@@ -5962,23 +5962,15 @@ dependencies = [
 
 [[package]]
 name = "wp-conf-base"
-version = "0.2.1"
+version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "429a73c355b37c93270c20f8891120137b90906cfa7bb316e35bf798d1e501e8"
+checksum = "34b3728590c8546e8212f659145b07f064bde39ca74ee240cbf1ff69ab11f8fd"
 dependencies = [
  "anyhow",
- "chrono",
- "derive_more 2.1.1",
- "getset",
  "log",
- "orion-error",
  "orion-variate",
  "orion_conf",
  "serde",
- "serde_json",
- "thiserror 2.0.18",
- "toml 1.0.7+spec-1.1.0",
- "winnow 0.7.15",
  "wp-connector-api",
  "wp-model-core",
 ]
@@ -6054,9 +6046,9 @@ dependencies = [
 
 [[package]]
 name = "wp-data-fmt"
-version = "0.2.3"
+version = "0.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9bbfbe7c38249b5cc6eeb826c154f7fa95784f2c0e97ced1adbf4c719b21df99"
+checksum = "aa95e159e9214f5cc4d7895996515d48a0987e163e9387cb191bc3489bd2aba3"
 dependencies = [
  "chrono",
  "serde",
@@ -6236,30 +6228,20 @@ dependencies = [
 
 [[package]]
 name = "wp-error"
-version = "0.8.2"
+version = "0.8.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dba3a0dddbd2c75bcddd5ac5674e4923bc63baf8be83e7aee080537fe9304abf"
+checksum = "80f1cc521f4ea17d26679d355d5da35278559dc4a1358575f7a0d21639284980"
 dependencies = [
- "anyhow",
- "chrono",
  "derive_more 2.1.1",
- "getset",
- "log",
- "log4rs",
  "orion-error",
  "orion-sec",
- "orion-variate",
  "orion_conf",
  "serde",
  "serde_json",
- "strum_macros 0.27.2",
  "thiserror 2.0.18",
- "toml 1.0.7+spec-1.1.0",
  "unicode-segmentation",
- "winnow 0.7.15",
  "wp-connector-api",
  "wp-log",
- "wp-model-core",
 ]
 
 [[package]]
@@ -6357,9 +6339,9 @@ dependencies = [
 
 [[package]]
 name = "wp-log"
-version = "0.2.0"
+version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5bc364e56eccac8dd27fe05f2ca054d5f3cfc57a55aef63e7c496beed71fa233"
+checksum = "e867a8c80d4b365bf772e6f693bc5de71ce976a493d9bc5bdccb64108761586c"
 dependencies = [
  "anyhow",
  "chrono",
@@ -6376,7 +6358,6 @@ dependencies = [
  "thiserror 2.0.18",
  "toml 1.0.7+spec-1.1.0",
  "unicode-segmentation",
- "winnow 0.7.15",
 ]
 
 [[package]]
@@ -6503,23 +6484,13 @@ dependencies = [
 
 [[package]]
 name = "wp-specs"
-version = "0.8.0"
+version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "505634ff67cca575b2bd7fc13bc6dda287407f830531164f8be43832cb191a9c"
+checksum = "efaa11920f7fd004e99ecaedab1d87261dadfb24129bccb4385885d0ff4c209b"
 dependencies = [
- "anyhow",
- "chrono",
- "derive_more 2.1.1",
- "log",
- "orion-error",
  "serde",
- "serde_json",
- "thiserror 2.0.18",
- "toml 1.0.7+spec-1.1.0",
  "wildmatch",
- "winnow 0.7.15",
  "wp-connector-api",
- "wp-model-core",
 ]
 
 [[package]]
