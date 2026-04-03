@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.13.0-alpha] - 2026-03-12
+
+### Changed
+
+- Upgrade wp-motor dependency to v1.19.16
+- Unified version identifiers to `1.13.0` / `v1.13.0-alpha` (synchronized in `Cargo.toml`, `Cargo.lock`, and `version.txt`)
+- Updated alpha release manifest `dist/install-manifest-alpha.json`, changing the release marker from `v1.14.0-alpha` to `v1.13.0-alpha`
+- Updated artifact filename mapping for:
+  - `wp-editor-v1.13.0-alpha-aarch64-apple-darwin.tar.gz`
+  - `wp-editor-v1.13.0-alpha-aarch64-unknown-linux-gnu.tar.gz`
+  - `wp-editor-v1.13.0-alpha-x86_64-unknown-linux-gnu.tar.gz`
+- Updated async call chains in `debug_examples` and `debug_transform` by adding missing `await`
+
+### Fixed
+
+- Fixed `oml_examples` directory recursion logic that treated a `Future` as a `Result`
+- Fixed OML parse error propagation (`oml_parse(...).await?`)
+- Fixed argument borrowing style for `oml_parse` by using a stable `parse_input` binding
+- Updated related tests to async style and added missing `await` for OML example loading
+
 ## [1.13.0] - 2026-03-08
 
 ### Changed

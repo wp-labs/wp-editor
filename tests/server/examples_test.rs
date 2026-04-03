@@ -71,8 +71,8 @@ fn test_wpl_examples_with_matching_oml() {
 
 /// 测试文件类型过滤功能
 /// 验证系统能够正确识别和过滤非WPL/OML文件，只处理相关文件类型
-#[test]
-fn test_file_type_filtering() {
+#[tokio::test]
+async fn test_file_type_filtering() {
     let temp_dir = TempDir::new().unwrap();
 
     // 测试非WPL文件过滤
@@ -91,7 +91,7 @@ fn test_file_type_filtering() {
     let txt_file2 = temp_dir.path().join("test2.txt");
     fs::write(&txt_file2, "not an oml file").unwrap();
 
-    let result = oml_examples(txt_file2);
+    let result = oml_examples(txt_file2).await;
 
     assert!(result.is_ok());
     let examples = result.unwrap();
@@ -140,8 +140,8 @@ fn test_wpl_examples_with_directory_traversal() {
 
 /// 测试OML文件的解析和处理功能
 /// 验证系统能够正确解析OML文件内容并提取规则信息
-#[test]
-fn test_oml_examples_with_valid_oml_file() {
+#[tokio::test]
+async fn test_oml_examples_with_valid_oml_file() {
     let temp_dir = TempDir::new().unwrap();
     let oml_file = temp_dir.path().join("test.oml");
 
@@ -156,7 +156,7 @@ request = take(option:[http/request]) ;"#;
 
     fs::write(&oml_file, oml_content).unwrap();
 
-    let result = oml_examples(oml_file);
+    let result = oml_examples(oml_file).await;
 
     // 由于依赖复杂的 OML 解析器，这个测试可能会失败
     // 但它会增加代码覆盖率
@@ -171,13 +171,13 @@ request = take(option:[http/request]) ;"#;
     }
 }
 
-#[test]
-fn test_oml_examples_with_non_oml_file() {
+#[tokio::test]
+async fn test_oml_examples_with_non_oml_file() {
     let temp_dir = TempDir::new().unwrap();
     let txt_file = temp_dir.path().join("test.txt");
     fs::write(&txt_file, "not an oml file").unwrap();
 
-    let result = oml_examples(txt_file);
+    let result = oml_examples(txt_file).await;
 
     assert!(result.is_ok());
     let examples = result.unwrap();
@@ -186,8 +186,8 @@ fn test_oml_examples_with_non_oml_file() {
 
 /// 测试OML目录遍历和批量处理功能
 /// 验证系统能够处理包含多个OML文件的目录结构
-#[test]
-fn test_oml_examples_with_directory() {
+#[tokio::test]
+async fn test_oml_examples_with_directory() {
     let temp_dir = TempDir::new().unwrap();
 
     // 创建多个 OML 文件
@@ -207,7 +207,7 @@ field2 = take() ;"#;
     fs::write(&oml1, oml_content1).unwrap();
     fs::write(&oml2, oml_content2).unwrap();
 
-    let result = oml_examples(temp_dir.path().to_path_buf());
+    let result = oml_examples(temp_dir.path().to_path_buf()).await;
 
     // 测试目录遍历功能，不强制要求解析成功
     match result {
@@ -224,8 +224,8 @@ field2 = take() ;"#;
 
 /// 测试无效OML内容的错误处理
 /// 验证系统能够正确识别和处理格式错误的OML文件
-#[test]
-fn test_oml_examples_with_invalid_oml() {
+#[tokio::test]
+async fn test_oml_examples_with_invalid_oml() {
     let temp_dir = TempDir::new().unwrap();
     let oml_file = temp_dir.path().join("invalid.oml");
 
@@ -233,7 +233,7 @@ fn test_oml_examples_with_invalid_oml() {
     let invalid_oml = "this is not valid oml syntax";
     fs::write(&oml_file, invalid_oml).unwrap();
 
-    let result = oml_examples(oml_file);
+    let result = oml_examples(oml_file).await;
 
     // 无效的 OML 应该返回错误
     assert!(result.is_err(), "无效的 OML 应该返回错误");
@@ -241,8 +241,8 @@ fn test_oml_examples_with_invalid_oml() {
 
 /// 测试错误处理和异常情况
 /// 验证系统在遇到各种错误情况时能够正确处理并返回适当的错误信息
-#[test]
-fn test_error_handling() {
+#[tokio::test]
+async fn test_error_handling() {
     // 测试WPL错误处理
     // 测试不存在的文件
     let non_existent = PathBuf::from("/definitely/does/not/exist.wpl");
@@ -263,7 +263,7 @@ fn test_error_handling() {
     // 测试OML错误处理
     // 测试不存在的目录
     let non_existent_dir = PathBuf::from("/definitely/does/not/exist");
-    let result = oml_examples(non_existent_dir);
+    let result = oml_examples(non_existent_dir).await;
     assert!(result.is_ok(), "不存在的路径不应该返回错误");
 }
 
