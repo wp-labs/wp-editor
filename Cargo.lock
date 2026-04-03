@@ -7443,9 +7443,9 @@ dependencies = [
 
 [[package]]
 name = "wp-lang"
-version = "0.1.7"
+version = "0.1.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "deb41d5deb76b587f82947f43f13d717ed05114e3df8453d92f683990bebc0fe"
+checksum = "9210ce662905072cb5f7c45d4c1ce22c7df34a5ec0f7b1570093ee3c9cfabd19"
 dependencies = [
  "ahash 0.8.12",
  "anyhow",
