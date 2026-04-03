@@ -1,8 +1,8 @@
 use crate::{error::AppError, utils::format::remove_annotations};
-use wp_model_core::model::DataRecord;
-use wp_oml::{AsyncDataTransformer};
-use wp_oml::parser::oml_parse;
 use wp_knowledge::cache::FieldQueryCache;
+use wp_model_core::model::DataRecord;
+use wp_oml::AsyncDataTransformer;
+use wp_oml::parser::oml_parse;
 
 pub async fn convert_record(oml: &str, record: DataRecord) -> Result<DataRecord, AppError> {
     // 预处理：去除注释

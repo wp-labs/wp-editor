@@ -6,7 +6,9 @@ use serde::{Deserialize, Serialize};
 use wp_engine::sources::event_id::next_event_id;
 use wp_model_core::model::{DataField, DataRecord, DataType};
 use wp_model_core::raw::RawData;
-use wpl::{AnnotationType, WplCode, WplExpress, WplPackage, WplStatementType, WplEvaluator, WparseReason};
+use wpl::{
+    AnnotationType, WparseReason, WplCode, WplEvaluator, WplExpress, WplPackage, WplStatementType,
+};
 
 type RunParseProc = (WplExpress, Vec<AnnotationType>);
 
