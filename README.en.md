@@ -1,6 +1,4 @@
-![WP Editor Logo](docs/WP—LOGO.V2.png)
-
-## 🚀 WP Editor
+# 🚀 WP Editor
 
 **Visual Debugging and Rule Editing Web Application for WPL/OML**
 

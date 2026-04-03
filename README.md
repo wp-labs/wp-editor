@@ -1,6 +1,4 @@
-![WP Editor Logo](docs/WP—LOGO.V2.png)
-
-## 🚀 WP Editor
+# 🚀 WP Editor
 
 **面向 WPL/OML 的可视化调试与规则编辑 Web 应用**
 
