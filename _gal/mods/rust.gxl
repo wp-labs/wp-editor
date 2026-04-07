@@ -8,6 +8,9 @@ mod rust_flow  {
    flow build {
     gx.cmd ( cmd: "cargo build  ${ENV_BUILD_FLAG} ${ENV_TARGET_FLAG} "  );
   }
+  flow update {
+    gx.cmd ( "cargo update"  );
+  }
 }
 
 mod rust_env {
