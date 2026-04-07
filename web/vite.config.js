@@ -14,6 +14,33 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  // 开发态依赖预构建：减少 node_modules 碎片化请求数量
+  optimizeDeps: {
+    // 强制重新预构建，避免沿用旧缓存导致碎片请求
+    force: true,
+    // 关闭预构建 sourcemap，减少开发态 *.map 请求
+    esbuildOptions: {
+      sourcemap: false,
+    },
+    include: [
+      'react',
+      'react-dom',
+      'react/jsx-runtime',
+      'react-router-dom',
+      'antd',
+      '@ant-design/icons',
+      'i18next',
+      'react-i18next',
+      'axios',
+      '@seed-fe/request',
+      '@codemirror/state',
+      '@codemirror/view',
+      '@codemirror/language',
+      '@codemirror/autocomplete',
+      'react-syntax-highlighter',
+      'web-tree-sitter',
+    ],
+  },
   build: {
     // 使用 esbuild 压缩，比 terser 快很多
     minify: 'esbuild',
@@ -26,39 +53,32 @@ export default defineConfig({
       output: {
         // 更细粒度的代码分割
         manualChunks(id) {
+          // 将 Rollup/Vite 注入的公共运行时 helper 固定到 React 基础包，避免与 UI 包形成循环依赖
+          if (
+            id.includes('commonjsHelpers.js') ||
+            id.includes('vite/preload-helper') ||
+            id.includes('vite/modulepreload-polyfill')
+          ) {
+            return 'vendor-react';
+          }
+
           // node_modules 按包分割
           if (id.includes('node_modules')) {
-            // React + Ant Design 合并为单 chunk，避免相互依赖导致初始化顺序问题
+            // React 核心运行时单独分组，减小首屏阻塞与回源体积
             if (id.includes('/node_modules/react/') ||
                 id.includes('/node_modules/react-dom/') ||
-                id.includes('/node_modules/scheduler/') ||
+                id.includes('/node_modules/scheduler/')) {
+              return 'vendor-react';
+            }
+            // Ant Design 生态独立分组，便于与 React 运行时分离加载
+            if (
                 id.includes('antd') ||
                 id.includes('@ant-design') ||
                 id.includes('rc-')) {
-              return 'vendor-ui';
+              return 'vendor-antd';
             }
-            // CodeMirror
-            if (id.includes('@codemirror') || id.includes('@lezer')) {
-              return 'vendor-codemirror';
-            }
-            // 语法高亮（独立分组，避免循环依赖）
-            if (id.includes('react-syntax-highlighter') || id.includes('refractor') || id.includes('prismjs')) {
-              return 'vendor-highlighter';
-            }
-            // Markdown 相关（按需加载）
-            if (id.includes('react-markdown') || id.includes('remark') || id.includes('rehype') ||
-                id.includes('mdast') || id.includes('micromark') || id.includes('unist') || id.includes('hast')) {
-              return 'vendor-markdown';
-            }
-            // 路由
-            if (id.includes('react-router')) {
-              return 'vendor-router';
-            }
-            // 其他工具库
-            if (id.includes('dayjs') || id.includes('ahooks') || id.includes('diff') ||
-                id.includes('i18next') || id.includes('axios') || id.includes('@seed-fe')) {
-              return 'vendor-utils';
-            }
+            // 其余三方依赖统一合并，降低刷新时并发请求数量
+            return 'vendor-app';
           }
         },
         // 优化文件命名

@@ -1,5 +1,6 @@
 //extern mod cfm { git = "https://github.com/galaxy-operators/cfm-gxl.git", branch = "${GXL_CHANNEL:develop}" }
 extern mod ver { path = "./_gal/mods" }
+extern mod rust { path = "./_gal/mods" }
 mod  envs {
   env default {
     root = "./" ;
@@ -9,10 +10,10 @@ mod main    {
   flow _setup_depends {
     gx.cmd (  "cargo install cargo-semver --vers 1.0.0-alpha.3" );
   }
-  flow ver.patch|  @up_patch    {
+  flow ver.patch| rust_flow.update|  @up_patch    {
     gx.cmd (  "cargo semver set ${VERSION}" );
   }
-  flow ver.feature| @up_feat    {
+  flow ver.feature| rust_flow.update|  @up_feat    {
     gx.cmd (  "cargo semver set ${VERSION}" );
   }
   flow ver.use | @release_stable  | _dist {
