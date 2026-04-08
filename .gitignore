@@ -33,7 +33,7 @@ pnpm-debug.log*
 .eslintcache
 .stylelintcache
 Cargo.lock
-package-lock.json
+# package-lock.json
 *.log
 out
 rescue
