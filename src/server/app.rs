@@ -1,13 +1,13 @@
 // 应用启动逻辑
 
 use crate::{api, server::Setting};
-use actix_web_prom::{ActixMetricsConfiguration, PrometheusMetricsBuilder};
 use actix_web::{
     App, HttpRequest, HttpResponse, HttpServer, Result,
     http::header,
     middleware::{Compress, Logger},
     web,
 };
+use actix_web_prom::{ActixMetricsConfiguration, PrometheusMetricsBuilder};
 use mime_guess::from_path;
 use rust_embed::RustEmbed;
 use std::sync::Arc;
@@ -91,7 +91,7 @@ pub async fn start() -> std::io::Result<()> {
                     .exclude("/simulate-debug")
                     .exclude("/favicon.ico")
                     .exclude_regex("^/assets/")
-                    .exclude("/metrics")
+                    .exclude("/metrics"),
             )
             .app_data(shared_record_data.clone())
             // 系统 API
