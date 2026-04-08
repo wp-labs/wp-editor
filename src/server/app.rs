@@ -1,6 +1,7 @@
 // 应用启动逻辑
 
 use crate::{api, server::Setting};
+use actix_web_prom::{ActixMetricsConfiguration, PrometheusMetricsBuilder};
 use actix_web::{
     App, HttpRequest, HttpResponse, HttpServer, Result,
     http::header,
@@ -61,6 +62,17 @@ pub async fn start() -> std::io::Result<()> {
     let setting = Setting::load();
     simple_log::quick!(&setting.log.level);
 
+    let prometheus = PrometheusMetricsBuilder::new("")
+        .endpoint("/metrics")
+        .mask_unmatched_patterns("UNKNOWN")
+        .metrics_configuration(
+            ActixMetricsConfiguration::default()
+                .http_requests_total_name("http_requests_total")
+                .http_requests_duration_seconds_name("http_requests_duration_seconds"),
+        )
+        .build()
+        .expect("failed to build Prometheus metrics middleware");
+
     info!("启动 WpEditor 服务器");
     info!("Web 地址: {}:{}", setting.web.host, setting.web.port);
 
@@ -72,12 +84,14 @@ pub async fn start() -> std::io::Result<()> {
         App::new()
             // 自动启用 gzip/deflate 压缩，降低 JS/CSS 首屏传输体积
             .wrap(Compress::default())
+            .wrap(prometheus.clone())
             // HTTP 请求访问日志：使用默认格式，并排除常见前端路由和静态资源，只保留 /api/... 日志
             .wrap(
                 Logger::default()
                     .exclude("/simulate-debug")
                     .exclude("/favicon.ico")
-                    .exclude_regex("^/assets/"),
+                    .exclude_regex("^/assets/")
+                    .exclude("/metrics")
             )
             .app_data(shared_record_data.clone())
             // 系统 API
