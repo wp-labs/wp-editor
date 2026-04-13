@@ -5231,7 +5231,7 @@ checksum = "009994f150cc0cd50ff54917d5bc8bffe8cad10ca10d81c34da2ec421ae61782"
 [[package]]
 name = "tree-sitter-wpl"
 version = "0.0.1"
-source = "git+https://github.com/wp-labs/tree-sitter-wpl.git?branch=main#3cc86519ff4adeb818e75b70c1c565098c1876b0"
+source = "git+https://github.com/wp-labs/tree-sitter-wpl.git?branch=main#44689663cd7e5d8a783baa2d405080cc47331cb0"
 dependencies = [
  "cc",
  "tree-sitter",
