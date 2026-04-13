@@ -30,7 +30,7 @@ actix-multipart = "0.7"
 futures-util = "0.3"
 mime_guess = "2"
 config = "0.14"
-toml = "0.9"
+toml = "1.1"
 chrono = { version = "0.4", features = ["serde"] }
 thiserror = "2.0"
 strum = { version = "0.26", features = ["derive"] }
