@@ -29,8 +29,8 @@ fn test_library_exports() {
 /// 端到端工作流集成测试
 /// 测试完整的日志处理流程：WPL解析 -> OML转换 -> 字段提取
 /// 验证整个系统的集成工作流程和数据流转
-#[test]
-fn test_end_to_end_workflow() {
+#[tokio::test]
+async fn test_end_to_end_workflow() {
     // 端到端工作流测试：WPL解析 -> OML转换 -> 字段提取
 
     let log_data =
@@ -61,7 +61,9 @@ response_size = take(option:[size]) ;"#;
     assert!(!wpl_fields.is_empty(), "WPL解析应该产生字段");
 
     // 步骤2: OML转换
-    let oml_record = convert_record(oml_rule, wpl_record).expect("OML转换应该成功");
+    let oml_record = convert_record(oml_rule, wpl_record)
+        .await
+        .expect("OML转换应该成功");
 
     let oml_fields = record_to_fields(&oml_record);
     assert!(!oml_fields.is_empty(), "OML转换应该产生字段");
@@ -100,8 +102,8 @@ response_size = take(option:[size]) ;"#;
 
 /// 测试错误处理工作流的集成
 /// 验证系统在遇到无效输入时的错误传播和处理机制
-#[test]
-fn test_error_handling_workflow() {
+#[tokio::test]
+async fn test_error_handling_workflow() {
     // 测试错误处理工作流
 
     // 无效的WPL规则
@@ -121,7 +123,7 @@ rule simple {
     let wpl_record = warp_check_record(valid_wpl, "test_value").expect("有效WPL应该成功");
 
     let invalid_oml = "invalid oml syntax";
-    let oml_result = convert_record(invalid_oml, wpl_record);
+    let oml_result = convert_record(invalid_oml, wpl_record).await;
     assert!(oml_result.is_err(), "无效OML应该返回错误");
 }
 

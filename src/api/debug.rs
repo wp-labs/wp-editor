@@ -81,7 +81,7 @@ pub async fn debug_transform(
     } = req.into_inner();
     let parse_result = parse_result.fields.clone();
     let res = Record::from(parse_result);
-    let transformed = convert_record(&oml, res)?;
+    let transformed = convert_record(&oml, res).await?;
 
     let formatter = FormatType::Json(Json);
     let json_string = formatter.fmt_record(&transformed);
@@ -138,7 +138,8 @@ pub async fn debug_examples() -> HttpResponse {
     let mut rule_map = BTreeMap::new();
 
     // 加载 OML 规则
-    let oml_result = match examples::oml_examples(PathBuf::from(&setting.repo.oml_rule_repo)) {
+    let oml_result = match examples::oml_examples(PathBuf::from(&setting.repo.oml_rule_repo)).await
+    {
         Ok(result) => result,
         Err(e) => {
             return HttpResponse::InternalServerError().json(serde_json::json!({

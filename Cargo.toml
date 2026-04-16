@@ -15,6 +15,7 @@ clap = { version = "4.5", features = ["derive"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 actix-web = "4.12"
+actix-web-prom = "0.10"
 actix-files = "0.6"
 tracing = "0.1"
 simple-log = "2.4"
@@ -59,14 +60,14 @@ wp-specs     =  "0.8"
 wp-conf-base =  "0.2"
 wp-data-fmt  =  "0.2"
 wp-editor-migrations = { path = "crates/migrations" }
+wp-lang = "0.1"
+wp_knowledge  = { package = "wp-knowledge",  version = "0.11"}
 
-wp-engine     = {                            git = "https://github.com/wp-labs/wp-motor", tag = "v1.18.3" }
-wp-config     = { package = "wp-config",     git = "https://github.com/wp-labs/wp-motor", tag = "v1.18.3" }
-wp_oml         = { package = "wp-oml",       git = "https://github.com/wp-labs/wp-motor", tag = "v1.18.3" }
-wp-lang       = { package = "wp-lang",       git = "https://github.com/wp-labs/wp-motor", tag = "v1.18.3" }
-wp_knowledge  = { package = "wp-knowledge",  git = "https://github.com/wp-labs/wp-motor", tag = "v1.18.3" }
-wp_data_utils = { package = "wp-data-utils", git = "https://github.com/wp-labs/wp-motor", tag = "v1.18.3" }
-wp-proj       = { package = "wp-proj",       git = "https://github.com/wp-labs/wp-motor", tag = "v1.18.3" }
+wp-engine     = {                            git = "https://github.com/wp-labs/wp-motor", tag = "v1.19.16" }
+wp-config     = { package = "wp-config",     git = "https://github.com/wp-labs/wp-motor", tag = "v1.19.16" }
+wp_oml         = { package = "wp-oml",       git = "https://github.com/wp-labs/wp-motor", tag = "v1.19.16" }
+wp_data_utils = { package = "wp-data-utils", git = "https://github.com/wp-labs/wp-motor", tag = "v1.19.16" }
+wp-proj       = { package = "wp-proj",       git = "https://github.com/wp-labs/wp-motor", tag = "v1.19.16" }
 
 #wp-engine = { path = "../wp-motor" }
 #wp-config = { path = "../wp-motor/crates/wp-config" }
