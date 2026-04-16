@@ -27,6 +27,7 @@
 ; ── String literals ──
 (quoted_string) @string
 (raw_string) @string
+(single_quoted_raw) @string
 
 ; ── Number literals ──
 (number) @number
@@ -46,25 +47,25 @@
 (rule_decl name: (path_name) @function.definition)
 
 ; ── Type names ──
-(type_name (identifier) @type)
-(ns_type namespace: (identifier) @type name: (identifier) @type)
+(meta_token) @type
+(subfield_meta) @type
 
 ; ── Variable binding ──
 (field binding: (var_name) @variable)
 (subfield binding: (var_name) @variable)
 
 ; ── Subfield @ref ──
-(subfield ref: (ref_path) @variable.special)
+(subfield ref: (ref_path_or_quoted) @variable.special)
 
 ; ── Preprocessor ──
-(preproc_path ns: (identifier) @function.builtin name: (identifier) @function.builtin)
+(preproc_step) @function.builtin
+(plg_pipe_step name: (key) @function)
 
 ; ── Function calls ──
-(fun_call function: (identifier) @function)
-(fun_call function: "not" @function)
+(fun_call function: (function_name) @function)
 
 ; ── Annotation tag key ──
-(tag_kv key: (identifier) @property)
+(tag_kv key: (key) @property)
 
 ; ── Plain identifiers (fallback) ──
 (identifier) @variable
