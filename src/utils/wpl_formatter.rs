@@ -38,29 +38,26 @@ impl WplFormatter {
         }
     }
 
-    /// 对外入口：返回格式化结果或具体错误信息。
-    pub fn format_content(&self, content: &str) -> Result<String, WplFormatError> {
-        self.format_with_error(content)
-    }
-
     /// 兼容旧行为：出错时返回原文，避免影响调用方。
     pub fn format_content_or_original(&self, content: &str) -> String {
-        match self.format_with_error(content) {
+        match self.format_content(content) {
             Ok(v) => v,
             Err(_) => content.to_string(),
         }
     }
 
     /// 对外提供可返回错误信息的格式化接口。
+    /// 当前为 `format_content` 的兼容别名，便于保留既有调用点。
     pub fn format_with_error(&self, content: &str) -> Result<String, WplFormatError> {
-        self.format(content)
+        self.format_content(content)
     }
 
+    /// 对外入口：返回格式化结果或具体错误信息。
     /// 核心格式化流程：
     /// 1) 统一换行符；
     /// 2) 逐字符扫描并按规则输出；
     /// 3) 收尾时合并多余空行。
-    fn format(&self, content: &str) -> Result<String, WplFormatError> {
+    pub fn format_content(&self, content: &str) -> Result<String, WplFormatError> {
         // 统一换行符，避免不同平台的换行差异干扰缩进逻辑。
         let normalized = content.replace("\r\n", "\n").replace('\r', "\n");
         let (separator_ranges, ts_ok) = collect_separator_ranges(&normalized);

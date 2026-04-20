@@ -141,13 +141,43 @@ name : pipe_case
 rule : demo
 ---
 
-collect_time = pipe @collect_time_tmp | Time : : to_ts_ms ;
-value = read(a) | Func : : call ;
+collect_time = pipe @collect_time_tmp | Time::to_ts_ms ;
+value = read(a) | Func::call ;
 ";
 
     assert_eq!(
         formatted, expected,
         "管道两侧应补 1 个空格，且换行符应收敛为同一行"
+    );
+}
+
+#[test]
+fn format_content_should_keep_double_colon_in_pipeline_calls() {
+    let formatter = OmlFormatter::new();
+    let raw = "\
+name : /lean/json
+rule : /learn/json/*
+---
+
+time_int = pipe take(date) | Time::to_ts_ms ;
+ip_int = pipe take(src_ip) | ip4_to_int ;
+* = take() ;
+";
+
+    let formatted = formatter.format_content(raw).expect("格式化失败");
+    let expected = "\
+name : /lean/json
+rule : /learn/json/*
+---
+
+time_int = pipe take(date) | Time::to_ts_ms ;
+ip_int = pipe take(src_ip) | ip4_to_int ;
+* = take() ;
+";
+
+    assert_eq!(
+        formatted, expected,
+        "命名空间函数调用中的双冒号不应被拆成带空格的两个冒号"
     );
 }
 
