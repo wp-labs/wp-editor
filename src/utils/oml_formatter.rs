@@ -18,24 +18,20 @@ impl OmlFormatter {
 
     /// 对外入口：返回格式化结果或具体错误信息。
     pub fn format_content(&self, content: &str) -> Result<String, OmlFormatError> {
-        self.format_with_error(content)
+        let tokens = tokenize(content)?;
+        Ok(format_tokens(&tokens, self.indent))
     }
 
     /// 兼容旧行为：格式化失败时回退为原内容，保证调用方不崩溃。
     pub fn format_content_or_original(&self, content: &str) -> String {
-        self.format_with_error(content)
+        self.format_content(content)
             .unwrap_or_else(|_| content.to_string())
     }
 
     /// 对外提供可返回错误信息的格式化接口。
+    /// 当前为 `format_content` 的兼容别名，便于保留既有调用点。
     pub fn format_with_error(&self, content: &str) -> Result<String, OmlFormatError> {
-        self.format(content)
-    }
-
-    /// 主格式化流程：使用 tree-sitter 校验语法，再按 token 规则重排输出。
-    fn format(&self, content: &str) -> Result<String, OmlFormatError> {
-        let tokens = tokenize(content)?;
-        Ok(format_tokens(&tokens, self.indent))
+        self.format_content(content)
     }
 }
 
@@ -50,6 +46,7 @@ enum Symbol {
     Comma,
     Semicolon,
     Colon,
+    DoubleColon,
     Equal,
     FatArrow,
     Pipe,
@@ -87,6 +84,7 @@ fn tokenize(input: &str) -> Result<Vec<Token>, OmlFormatError> {
         if ch == '#' {
             let start = idx;
             let mut end = input_len;
+            // 当注释内容包含换行符时，注释结束位置为换行符位置
             while let Some(&(next_idx, next_ch)) = iter.peek() {
                 if next_ch == '\n' {
                     end = next_idx;
@@ -101,6 +99,7 @@ fn tokenize(input: &str) -> Result<Vec<Token>, OmlFormatError> {
             continue;
         }
 
+        // 双斜杠的注释，直到换行符结束
         if ch == '/' && matches!(iter.peek().map(|(_, c)| *c), Some('/')) {
             let start = idx;
             iter.next();
@@ -201,7 +200,12 @@ fn tokenize(input: &str) -> Result<Vec<Token>, OmlFormatError> {
                 continue;
             }
             ':' => {
-                tokens.push(symbol_token(Symbol::Colon, ":"));
+                if matches!(iter.peek().map(|(_, c)| *c), Some(':')) {
+                    tokens.push(symbol_token(Symbol::DoubleColon, "::"));
+                    iter.next();
+                } else {
+                    tokens.push(symbol_token(Symbol::Colon, ":"));
+                }
                 continue;
             }
             '|' => {
@@ -396,6 +400,9 @@ fn format_tokens(tokens: &[Token], indent_spaces: usize) -> String {
                     write_raw(&mut out, &mut line_empty, " ");
                 }
             }
+            TokenKind::Symbol(Symbol::DoubleColon) => {
+                write_raw(&mut out, &mut line_empty, "::");
+            }
             TokenKind::Symbol(Symbol::LParen) => {
                 if is_match_prefix(tokens.get(i.wrapping_sub(1))) {
                     write_raw(&mut out, &mut line_empty, " ");
@@ -478,6 +485,7 @@ fn needs_space_before(current: &Token, prev: Option<&Token>) -> bool {
                 | Symbol::Pipe
                 | Symbol::Equal
                 | Symbol::Colon
+                | Symbol::DoubleColon
                 | Symbol::FatArrow
                 | Symbol::Comma
         )

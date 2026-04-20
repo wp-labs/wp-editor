@@ -5,7 +5,6 @@ use tempfile::TempDir;
 use wp_editor::server::examples::{oml_examples, wpl_examples};
 
 /// 测试WplExample结构体的基本功能和特性
-
 /// 测试有效WPL文件的解析和处理
 /// 验证系统能够正确解析WPL文件内容、提取包名和规则，并处理示例数据
 #[test]
@@ -166,7 +165,7 @@ request = take(option:[http/request]) ;"#;
         }
         Err(_) => {
             // OML 解析可能因为依赖问题而失败，这是可以接受的
-            assert!(true, "OML 解析失败是可以接受的");
+            // assert!(true, "OML 解析失败是可以接受的");
         }
     }
 }
@@ -217,7 +216,7 @@ field2 = take() ;"#;
         }
         Err(_) => {
             // 解析失败也是可以接受的，重要的是覆盖代码路径
-            assert!(true, "OML 解析失败是可以接受的");
+            // assert!(true, "OML 解析失败是可以接受的");
         }
     }
 }
