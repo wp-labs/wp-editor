@@ -131,17 +131,17 @@ fn test_warp_check_different_rule_formats() {
     let log_data = r#"INFO 2023-12-07 15:30:00 Application started successfully"#;
 
     // 测试不同的规则格式
-    let wpl_rules = vec![
+    let wpl_rules = [
         r#"package /example/log {
-rule info_log {
-    (chars:level,time:timestamp,chars*:message)
-}
-}"#,
+        rule info_log {
+            (chars:level,time:timestamp,chars*:message)
+        }
+        }"#,
         r#"package /example/log {
-rule info_log {
-    (chars:log_level,date:log_date,time:log_time,chars*:log_message)
-}
-}"#,
+        rule info_log {
+            (chars:log_level,date:log_date,time:log_time,chars*:log_message)
+        }
+        }"#,
     ];
 
     for (i, rule) in wpl_rules.iter().enumerate() {

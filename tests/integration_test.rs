@@ -80,7 +80,7 @@ response_size = take(option:[size]) ;"#;
 
     for expected in expected_fields {
         assert!(
-            field_names.iter().any(|&name| name == expected),
+            field_names.contains(&expected),
             "应该包含字段: {}",
             expected
         );
@@ -160,7 +160,7 @@ rule simple {
 #[test]
 fn test_multiple_log_entries() {
     // 测试处理多个日志条目
-    let log_entries = vec![
+    let log_entries = [
         r#"192.168.1.1 - user1 [01/Jan/2024:12:00:00 +0000] "GET /page1 HTTP/1.1" 200 100"#,
         r#"192.168.1.2 - user2 [01/Jan/2024:12:01:00 +0000] "POST /api HTTP/1.1" 201 200"#,
         r#"192.168.1.3 - user3 [01/Jan/2024:12:02:00 +0000] "PUT /data HTTP/1.1" 404 50"#,
