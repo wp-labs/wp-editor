@@ -3,6 +3,14 @@
 本文件记录所有重要变更，格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，
 版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [1.17.2-alpha] - 2026-04-23
+
+### Changed
+
+- 版本号统一为 `1.17.2` / `v1.17.2-alpha`（同步更新 `Cargo.toml`、`Cargo.lock`、`version.txt`、`dist/install-manifest-alpha.json`）
+- 升级 wp-motor 相关依赖至 v1.21.4
+- 补齐 `1.17.2-alpha` 的中英文变更记录
+
 ## [1.17.0-alpha] - 2026-04-16
 
 ### Changed

@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.17.2-alpha] - 2026-04-23
+
+### Changed
+
+- Unified version identifiers to `1.17.2` / `v1.17.2-alpha` (synchronized in `Cargo.toml`, `Cargo.lock`, `version.txt`, and `dist/install-manifest-alpha.json`)
+- Upgrade wp-motor-related dependencies to v1.21.4
+- Add the Chinese and English changelog entries for `1.17.2-alpha`
+- Fix the grammatical errors caused by the oml formatting.
+
 ## [1.17.0-alpha] - 2026-04-16
 
 ### Changed
