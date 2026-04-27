@@ -6351,9 +6351,9 @@ dependencies = [
 
 [[package]]
 name = "wp-error"
-version = "0.8.3"
+version = "0.8.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "80f1cc521f4ea17d26679d355d5da35278559dc4a1358575f7a0d21639284980"
+checksum = "96619c8b1bf018e7cca7e492e594996ff2fcb0be3b18e6a78b6b51dff7259230"
 dependencies = [
  "derive_more 2.1.1",
  "orion-error",
