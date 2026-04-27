@@ -6798,9 +6798,9 @@ dependencies = [
 
 [[package]]
 name = "wp-connector-api"
-version = "0.8.1"
+version = "0.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4392f7c4de3e59c9e385d2e83f262713dcc34547a66654369ff3468560d357e9"
+checksum = "3b4cf401c324390f8f45912e4b83f81ac61888621f1f705850b50b171c7e162f"
 dependencies = [
  "anyhow",
  "async-broadcast",
@@ -7044,9 +7044,9 @@ dependencies = [
 
 [[package]]
 name = "wp-error"
-version = "0.8.3"
+version = "0.8.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "80f1cc521f4ea17d26679d355d5da35278559dc4a1358575f7a0d21639284980"
+checksum = "96619c8b1bf018e7cca7e492e594996ff2fcb0be3b18e6a78b6b51dff7259230"
 dependencies = [
  "derive_more 2.1.1",
  "orion-error",
@@ -7093,9 +7093,9 @@ dependencies = [
 
 [[package]]
 name = "wp-lang"
-version = "0.1.9"
+version = "0.1.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d3f3705f22626950b7d0aaf7d3206b9a9363eea98ce45146788e0376ea427aea"
+checksum = "848aed1a98f61e8fcb3be5a76a8753e603ed72ee64999fcdceaa8146be1a62d2"
 dependencies = [
  "ahash 0.8.12",
  "anyhow",
