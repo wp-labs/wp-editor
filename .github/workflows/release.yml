@@ -274,3 +274,131 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           prerelease: ${{ contains(github.ref, '-alpha') || contains(github.ref, '-beta') }}
           files: artifacts/*
+
+
+  deploy:
+    needs: [build-matrix]
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+    env:
+      SYSTEMD_DIR: /etc/systemd/system
+      WORK_DIR: ${{vars.WORK_DIR}}
+      HOST_IP: ${{ secrets.HOST_IP }}
+      HOST_USER: ${{ secrets.HOST_USER }}
+      HOST_SSH: ${{ secrets.HOST_SSH }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Determine deploy target
+        id: deploy_target
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          TAG_NAME="${GITHUB_REF_NAME}"
+          DEPLOY_VARIANT="main"
+          SERVICE_SUFFIX=""
+
+          if [[ "$TAG_NAME" == *-alpha ]]; then
+            DEPLOY_VARIANT="alpha"
+            SERVICE_SUFFIX="-alpha"
+          elif [[ "$TAG_NAME" == *-beta ]]; then
+            DEPLOY_VARIANT="beta"
+            SERVICE_SUFFIX="-beta"
+          fi
+
+          echo "deploy_variant=$DEPLOY_VARIANT" >> "$GITHUB_OUTPUT"
+          echo "remote_work_dir=${WORK_DIR}/${DEPLOY_VARIANT}" >> "$GITHUB_OUTPUT"
+          echo "service_suffix=$SERVICE_SUFFIX" >> "$GITHUB_OUTPUT"
+          echo "service_name=wp-editor${SERVICE_SUFFIX}.service" >> "$GITHUB_OUTPUT"
+
+      - name: Download Linux amd64 artifact
+        uses: actions/download-artifact@v7
+        with:
+          name: ${{ github.event.repository.name }}-${{ github.ref_name }}-x86_64-unknown-linux-gnu
+          path: deploy-artifact
+
+      - name: Prepare deploy bundle
+        shell: bash
+        env:
+          DEPLOY_VARIANT: ${{ steps.deploy_target.outputs.deploy_variant }}
+        run: |
+          set -euo pipefail
+
+          rm -rf deploy-bundle
+          mkdir -p deploy-bundle
+
+          tar -xzf deploy-artifact/*.tar.gz -C deploy-artifact
+          cp -a "dev-ops/${DEPLOY_VARIANT}/." deploy-bundle/
+          rm -f deploy-bundle/wp-editor.service
+          cp deploy-artifact/artifacts/wp-editor deploy-bundle/wp-editor
+          chmod +x deploy-bundle/wp-editor
+
+      - name: Configure SSH
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "$HOST_SSH" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H "$HOST_IP" >> ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Render service file
+        shell: bash
+        env:
+          REMOTE_WORK_DIR: ${{ steps.deploy_target.outputs.remote_work_dir }}
+        run: |
+          set -euo pipefail
+
+          sed "s|\${WORK_DIR}|${REMOTE_WORK_DIR}|g" dev-ops/alpha/wp-editor.service > service.rendered
+
+      - name: Stop service and clean remote directory
+        shell: bash
+        env:
+          SERVICE_NAME: ${{ steps.deploy_target.outputs.service_name }}
+          REMOTE_WORK_DIR: ${{ steps.deploy_target.outputs.remote_work_dir }}
+        run: |
+          set -euo pipefail
+
+          ssh "$HOST_USER@$HOST_IP" "SERVICE_NAME='$SERVICE_NAME' WORK_DIR='$REMOTE_WORK_DIR' bash -s" <<'EOF'
+          set -euo pipefail
+          sudo systemctl stop "$SERVICE_NAME" || true
+          sudo mkdir -p "$WORK_DIR"
+          sudo chown -R "$USER":"$USER" "$WORK_DIR"
+          shopt -s dotglob nullglob
+          files=("$WORK_DIR"/*)
+          if [ ${#files[@]} -gt 0 ]; then
+            rm -rf "${files[@]}"
+          fi
+          EOF
+
+      - name: Upload deploy bundle
+        shell: bash
+        env:
+          REMOTE_WORK_DIR: ${{ steps.deploy_target.outputs.remote_work_dir }}
+        run: |
+          set -euo pipefail
+
+          scp -r deploy-bundle/. "$HOST_USER@$HOST_IP:$REMOTE_WORK_DIR/"
+          scp service.rendered "$HOST_USER@$HOST_IP:/tmp/service.rendered"
+
+      - name: Install service and restart
+        shell: bash
+        env:
+          SERVICE_NAME: ${{ steps.deploy_target.outputs.service_name }}
+          SYSTEMD_TARGET: ${{ env.SYSTEMD_DIR }}/${{ steps.deploy_target.outputs.service_name }}
+        run: |
+          set -euo pipefail
+
+          ssh "$HOST_USER@$HOST_IP" "SERVICE_NAME='$SERVICE_NAME' SYSTEMD_TARGET='$SYSTEMD_TARGET' bash -s" <<'EOF'
+          set -euo pipefail
+          sudo install -m 0644 /tmp/service.rendered "$SYSTEMD_TARGET"
+          rm -f /tmp/service.rendered
+          sudo systemctl daemon-reload
+          sudo systemctl start "$SERVICE_NAME"
+          EOF
