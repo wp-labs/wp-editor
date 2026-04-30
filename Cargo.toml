@@ -36,7 +36,7 @@ thiserror = "2.0"
 strum = { version = "0.26", features = ["derive"] }
 regex = "1.12"
 base64 = "0.22"
-orion-error = "0.6"
+orion-error = "0.7"
 tempfile = "3.24"
 tree-sitter = "0.26.6"
 tree-sitter-wpl = { package = "tree-sitter-wpl", git = "https://github.com/wp-labs/tree-sitter-wpl.git", branch = "main" }

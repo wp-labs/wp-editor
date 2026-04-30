@@ -3385,6 +3385,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "orion-error"
+version = "0.7.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fb80edb5308a8db52f47ec6f4b34a1c2b1066f15f8ac5c8ee42b5f2cfc4af3ea"
+dependencies = [
+ "derive_more 2.1.1",
+ "log",
+ "orion-error-derive",
+ "thiserror 2.0.18",
+]
+
+[[package]]
+name = "orion-error-derive"
+version = "0.7.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d5979f4f7aae9b0ebb0f4130660e5fb94be1fac2bc9dade32f3a6f24ea703cff"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.117",
+]
+
+[[package]]
 name = "orion-sec"
 version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3398,7 +3421,7 @@ dependencies = [
  "indexmap",
  "log",
  "once_cell",
- "orion-error",
+ "orion-error 0.6.3",
  "orion-variate",
  "orion_conf",
  "serde",
@@ -3421,7 +3444,7 @@ dependencies = [
  "getset",
  "indexmap",
  "log",
- "orion-error",
+ "orion-error 0.6.3",
  "os_info",
  "serde",
  "serde_derive",
@@ -3442,7 +3465,7 @@ dependencies = [
  "derive-getters",
  "derive_more 2.1.1",
  "log",
- "orion-error",
+ "orion-error 0.6.3",
  "orion-variate",
  "serde",
  "serde_derive",
@@ -6403,7 +6426,7 @@ dependencies = [
  "chrono",
  "comfy-table",
  "glob",
- "orion-error",
+ "orion-error 0.6.3",
  "orion-variate",
  "orion_conf",
  "serde",
@@ -6454,7 +6477,7 @@ dependencies = [
  "glob",
  "log",
  "once_cell",
- "orion-error",
+ "orion-error 0.6.3",
  "orion-variate",
  "orion_conf",
  "orion_exp",
@@ -6490,7 +6513,7 @@ dependencies = [
  "async-trait",
  "derive_more 2.1.1",
  "once_cell",
- "orion-error",
+ "orion-error 0.6.3",
  "serde",
  "serde_derive",
  "serde_json",
@@ -6520,7 +6543,7 @@ dependencies = [
  "log",
  "memchr",
  "once_cell",
- "orion-error",
+ "orion-error 0.6.3",
  "orion_conf",
  "serde_json",
  "socket2 0.6.3",
@@ -6565,7 +6588,7 @@ dependencies = [
  "chrono",
  "derive_builder",
  "lru 0.17.0",
- "orion-error",
+ "orion-error 0.6.3",
  "orion_exp",
  "serde",
  "serde_derive",
@@ -6589,7 +6612,7 @@ dependencies = [
  "config",
  "futures-util",
  "mime_guess",
- "orion-error",
+ "orion-error 0.7.2",
  "regex",
  "rust-embed",
  "sea-orm",
@@ -6670,7 +6693,7 @@ dependencies = [
  "memchr",
  "mockall",
  "once_cell",
- "orion-error",
+ "orion-error 0.6.3",
  "orion-sec",
  "orion-variate",
  "orion_conf",
@@ -6732,7 +6755,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "96619c8b1bf018e7cca7e492e594996ff2fcb0be3b18e6a78b6b51dff7259230"
 dependencies = [
  "derive_more 2.1.1",
- "orion-error",
+ "orion-error 0.6.3",
  "orion-sec",
  "orion_conf",
  "serde",
@@ -6758,7 +6781,7 @@ dependencies = [
  "lazy_static",
  "log",
  "lru 0.16.4",
- "orion-error",
+ "orion-error 0.6.3",
  "orion-variate",
  "orion_conf",
  "r2d2",
@@ -6793,7 +6816,7 @@ dependencies = [
  "log",
  "mailchecker",
  "once_cell",
- "orion-error",
+ "orion-error 0.6.3",
  "phone",
  "rand 0.10.1",
  "regex",
@@ -6829,7 +6852,7 @@ dependencies = [
  "getset",
  "log",
  "log4rs",
- "orion-error",
+ "orion-error 0.6.3",
  "orion-variate",
  "orion_conf",
  "serde",
@@ -6878,7 +6901,7 @@ dependencies = [
  "log",
  "md5",
  "once_cell",
- "orion-error",
+ "orion-error 0.6.3",
  "orion_conf",
  "orion_exp",
  "parse-display",
@@ -6917,7 +6940,7 @@ checksum = "9108cdcb3f90e5b4f986ec7a1403f85e967916a21e660089b12690e5ecf72c32"
 dependencies = [
  "bytes",
  "derive_more 2.1.1",
- "orion-error",
+ "orion-error 0.6.3",
  "serde",
  "serde_derive",
  "thiserror 2.0.18",
@@ -6941,7 +6964,7 @@ dependencies = [
  "anyhow",
  "comfy-table",
  "glob",
- "orion-error",
+ "orion-error 0.6.3",
  "orion-variate",
  "orion_conf",
  "serde",
