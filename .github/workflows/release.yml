@@ -384,7 +384,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          scp -r deploy-bundle/. "$HOST_USER@$HOST_IP:$REMOTE_WORK_DIR/"
+          tar -C deploy-bundle -cf - . | ssh "$HOST_USER@$HOST_IP" "tar -C '$REMOTE_WORK_DIR' -xf -"
           scp service.rendered "$HOST_USER@$HOST_IP:/tmp/service.rendered"
 
       - name: Install service and restart
