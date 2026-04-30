@@ -3,6 +3,14 @@
 本文件记录所有重要变更，格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，
 版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [1.18.0] - 2026-04-30
+
+### Changed
+
+- 版本更新至 1.18.0
+- 升级 wp-motor 依赖至 v1.20.7
+- 同步刷新 `Cargo.lock` 中的相关依赖版本，收敛依赖栈并移除旧的 `mysql`、`mysql_async`、`tokio-postgres` 依赖链
+
 ## [1.13.0-alpha] - 2026-03-12
 
 ### Changed

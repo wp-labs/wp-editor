@@ -1,6 +1,6 @@
 [package]
 name = "wp-editor"
-version = "1.16.1"
+version = "1.18.0"
 edition = "2024"
 build = "build.rs"
 
@@ -63,11 +63,11 @@ wp-editor-migrations = { path = "crates/migrations" }
 wp-lang = "0.1"
 wp_knowledge  = { package = "wp-knowledge",  version = "0.11"}
 
-wp-engine     = {                            git = "https://github.com/wp-labs/wp-motor", tag = "v1.19.16" }
-wp-config     = { package = "wp-config",     git = "https://github.com/wp-labs/wp-motor", tag = "v1.19.16" }
-wp_oml         = { package = "wp-oml",       git = "https://github.com/wp-labs/wp-motor", tag = "v1.19.16" }
-wp_data_utils = { package = "wp-data-utils", git = "https://github.com/wp-labs/wp-motor", tag = "v1.19.16" }
-wp-proj       = { package = "wp-proj",       git = "https://github.com/wp-labs/wp-motor", tag = "v1.19.16" }
+wp-engine     = {                            git = "https://github.com/wp-labs/wp-motor", tag = "v1.20.7" }
+wp-config     = { package = "wp-config",     git = "https://github.com/wp-labs/wp-motor", tag = "v1.20.7" }
+wp_oml         = { package = "wp-oml",       git = "https://github.com/wp-labs/wp-motor", tag = "v1.20.7" }
+wp_data_utils = { package = "wp-data-utils", git = "https://github.com/wp-labs/wp-motor", tag = "v1.20.7" }
+wp-proj       = { package = "wp-proj",       git = "https://github.com/wp-labs/wp-motor", tag = "v1.20.7" }
 
 #wp-engine = { path = "../wp-motor" }
 #wp-config = { path = "../wp-motor/crates/wp-config" }
