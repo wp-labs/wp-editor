@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.19.2-alpha] - 2026-04-30
+
+### Changed
+
+- Upgrade wp-motor-related dependencies to v1.21.7 and synchronize the related dependency versions and source references in `Cargo.lock`
+- Update the alpha `systemd` service configuration so `ExecStart` and `WorkingDirectory` point directly to `${WORK_DIR}/wp-editor` and `${WORK_DIR}`, simplifying the deployment path layout
+
 ## [1.17.2-alpha] - 2026-04-23
 
 ### Changed

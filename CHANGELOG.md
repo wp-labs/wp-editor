@@ -3,6 +3,13 @@
 本文件记录所有重要变更，格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，
 版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [1.19.2-alpha] - 2026-04-30
+
+### Changed
+
+- 升级 wp-motor 相关依赖至 v1.21.7，并同步 `Cargo.lock` 中相关依赖版本与源码引用
+- 调整 alpha 环境 `systemd` 服务配置，`ExecStart` 与 `WorkingDirectory` 改为直接指向 `${WORK_DIR}` 下的 `wp-editor` 与工作目录，简化部署路径约束
+
 ## [1.17.2-alpha] - 2026-04-23
 
 ### Changed
