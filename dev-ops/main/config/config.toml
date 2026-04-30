@@ -1,0 +1,12 @@
+[log]
+level = "debug"
+output = "Console"
+output_path = "./logs/"
+
+[web]
+host = "0.0.0.0"
+port = 8083
+
+[repo]
+wpl_rule_repo = "wp-rule/models/wpl"
+oml_rule_repo = "wp-rule/models/oml"
