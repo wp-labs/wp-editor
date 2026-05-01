@@ -101,7 +101,7 @@ jobs:
 
       - name: Comment and close PR
         if: steps.check.outputs.should_close == 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const reason = '${{ steps.check.outputs.reason }}';
