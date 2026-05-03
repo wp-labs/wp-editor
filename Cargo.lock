@@ -897,9 +897,9 @@ checksum = "1e748733b7cbc798e1434b6ac524f0c1ff2ab456fe201501e6497c8417a4fc33"
 
 [[package]]
 name = "bytestring"
-version = "1.5.0"
+version = "1.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "113b4343b5f6617e7ad401ced8de3cc8b012e73a594347c307b90db3e9271289"
+checksum = "86566c496f2f47d9b8147a4c8b02ffdb69c919fe0c2b2e7195d22cbba0e635c9"
 dependencies = [
  "bytes",
 ]
@@ -3374,21 +3374,33 @@ dependencies = [
 
 [[package]]
 name = "orion-error"
-version = "0.6.3"
+version = "0.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6719d23a898c158da039ec98dd111f209dd1d578290a1ef219b3e70b8a5f3861"
+checksum = "fb80edb5308a8db52f47ec6f4b34a1c2b1066f15f8ac5c8ee42b5f2cfc4af3ea"
 dependencies = [
  "derive_more 2.1.1",
  "log",
+ "orion-error-derive",
  "serde",
  "thiserror 2.0.18",
 ]
 
 [[package]]
-name = "orion-sec"
-version = "0.4.1"
+name = "orion-error-derive"
+version = "0.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bfcff2ede38d9e802abc3c998cc73a353ea1022702d3892f4ed55b97eb4c1ed2"
+checksum = "d5979f4f7aae9b0ebb0f4130660e5fb94be1fac2bc9dade32f3a6f24ea703cff"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.117",
+]
+
+[[package]]
+name = "orion-sec"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e55c59c3c72d715a92029f3fec8139e6667a244408eb9a958476cdacec8d1c80"
 dependencies = [
  "chrono",
  "contracts",
@@ -3411,9 +3423,9 @@ dependencies = [
 
 [[package]]
 name = "orion-variate"
-version = "0.11.2"
+version = "0.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cd80ca6e997116f470d139f90437a1c6dc090dfeb78eb9360439ada5c36e0c03"
+checksum = "22f6f2196bb828c6ac65252e87d733a36377960d1c512282a4eea8f1a1c6b826"
 dependencies = [
  "contracts",
  "derive-getters",
@@ -3435,9 +3447,9 @@ dependencies = [
 
 [[package]]
 name = "orion_conf"
-version = "0.5.1"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "61f9daa1383db51b6620614bfb3c462b535fcc7e5ac033826fae2b732e35db35"
+checksum = "f33a50c04142ea6065269348eb2df6fb93c30e0848fa74631cae658df60c2ef7"
 dependencies = [
  "derive-getters",
  "derive_more 2.1.1",
@@ -3453,8 +3465,8 @@ dependencies = [
 
 [[package]]
 name = "orion_exp"
-version = "1.21.7"
-source = "git+https://github.com/wp-labs/wp-motor?tag=v1.21.7#fd5a836950968ee4954c0d89c695526f08be1d84"
+version = "1.21.9"
+source = "git+https://github.com/wp-labs/wp-motor?tag=v1.21.9#42c130da98ee3c2a9f120c85e191538ca9c37217"
 dependencies = [
  "arcstr",
  "chrono",
@@ -3466,8 +3478,8 @@ dependencies = [
 
 [[package]]
 name = "orion_overload"
-version = "1.21.7"
-source = "git+https://github.com/wp-labs/wp-motor?tag=v1.21.7#fd5a836950968ee4954c0d89c695526f08be1d84"
+version = "1.21.9"
+source = "git+https://github.com/wp-labs/wp-motor?tag=v1.21.9#42c130da98ee3c2a9f120c85e191538ca9c37217"
 dependencies = [
  "anyhow",
  "derive-getters",
@@ -6396,8 +6408,8 @@ dependencies = [
 
 [[package]]
 name = "wp-cli-core"
-version = "1.21.7"
-source = "git+https://github.com/wp-labs/wp-motor?tag=v1.21.7#fd5a836950968ee4954c0d89c695526f08be1d84"
+version = "1.21.9"
+source = "git+https://github.com/wp-labs/wp-motor?tag=v1.21.9#42c130da98ee3c2a9f120c85e191538ca9c37217"
 dependencies = [
  "anyhow",
  "chrono",
@@ -6416,8 +6428,8 @@ dependencies = [
 
 [[package]]
 name = "wp-condition"
-version = "1.21.7"
-source = "git+https://github.com/wp-labs/wp-motor?tag=v1.21.7#fd5a836950968ee4954c0d89c695526f08be1d84"
+version = "1.21.9"
+source = "git+https://github.com/wp-labs/wp-motor?tag=v1.21.9#42c130da98ee3c2a9f120c85e191538ca9c37217"
 dependencies = [
  "orion_exp",
  "winnow 1.0.2",
@@ -6426,23 +6438,27 @@ dependencies = [
 
 [[package]]
 name = "wp-conf-base"
-version = "0.2.2"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "34b3728590c8546e8212f659145b07f064bde39ca74ee240cbf1ff69ab11f8fd"
+checksum = "54f21436bf227bd6a08544a2df036e03e4a661ed5fbfe31305f3e16956800ac9"
 dependencies = [
  "anyhow",
+ "derive_more 2.1.1",
  "log",
+ "orion-error",
  "orion-variate",
  "orion_conf",
  "serde",
+ "toml 1.1.2+spec-1.1.0",
+ "winnow 1.0.2",
  "wp-connector-api",
  "wp-model-core",
 ]
 
 [[package]]
 name = "wp-config"
-version = "1.21.7"
-source = "git+https://github.com/wp-labs/wp-motor?tag=v1.21.7#fd5a836950968ee4954c0d89c695526f08be1d84"
+version = "1.21.9"
+source = "git+https://github.com/wp-labs/wp-motor?tag=v1.21.9#42c130da98ee3c2a9f120c85e191538ca9c37217"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -6481,9 +6497,9 @@ dependencies = [
 
 [[package]]
 name = "wp-connector-api"
-version = "0.8.2"
+version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3b4cf401c324390f8f45912e4b83f81ac61888621f1f705850b50b171c7e162f"
+checksum = "d4100180cc9d3af7f2a1ca55a659f0a80887d202bdbf4e8b39b3ad5e8d831884"
 dependencies = [
  "anyhow",
  "async-broadcast",
@@ -6496,16 +6512,15 @@ dependencies = [
  "serde_json",
  "smallvec",
  "smol_str",
- "thiserror 2.0.18",
  "toml 1.1.2+spec-1.1.0",
  "wp-model-core",
 ]
 
 [[package]]
 name = "wp-core-connectors"
-version = "0.1.4"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a86ee3574bad929ca0c94b0fa11a7126ad232c737843a282d3ea188f8423e7c9"
+checksum = "56bd7e4a1d38fab912c692f4d825875b1c4e51d616fadaf88161d83411ab1200"
 dependencies = [
  "anyhow",
  "arrow",
@@ -6536,14 +6551,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "wp-ctrl-api"
-version = "0.1.0"
-source = "git+https://github.com/wp-labs/wp-advanced-api?tag=v0.1.0#9ed1d5c9f7c5fde300e6d9b6306bf0607095181b"
-dependencies = [
- "serde",
-]
-
-[[package]]
 name = "wp-data-fmt"
 version = "0.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6558,8 +6565,8 @@ dependencies = [
 
 [[package]]
 name = "wp-data-utils"
-version = "1.21.7"
-source = "git+https://github.com/wp-labs/wp-motor?tag=v1.21.7#fd5a836950968ee4954c0d89c695526f08be1d84"
+version = "1.21.9"
+source = "git+https://github.com/wp-labs/wp-motor?tag=v1.21.9#42c130da98ee3c2a9f120c85e191538ca9c37217"
 dependencies = [
  "arcstr",
  "chrono",
@@ -6576,7 +6583,7 @@ dependencies = [
 
 [[package]]
 name = "wp-editor"
-version = "1.19.0"
+version = "1.19.1"
 dependencies = [
  "actix-files",
  "actix-multipart",
@@ -6638,8 +6645,8 @@ dependencies = [
 
 [[package]]
 name = "wp-engine"
-version = "1.21.7"
-source = "git+https://github.com/wp-labs/wp-motor?tag=v1.21.7#fd5a836950968ee4954c0d89c695526f08be1d84"
+version = "1.21.9"
+source = "git+https://github.com/wp-labs/wp-motor?tag=v1.21.9#42c130da98ee3c2a9f120c85e191538ca9c37217"
 dependencies = [
  "anyhow",
  "async-broadcast",
@@ -6696,15 +6703,12 @@ dependencies = [
  "wildmatch",
  "winnow 1.0.2",
  "wp-arrow",
- "wp-cli-core",
  "wp-conf-base",
  "wp-config",
  "wp-connector-api",
  "wp-core-connectors",
- "wp-ctrl-api",
  "wp-data-fmt",
  "wp-data-utils",
- "wp-enrich-api",
  "wp-error",
  "wp-knowledge",
  "wp-lang",
@@ -6718,18 +6722,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "wp-enrich-api"
-version = "0.1.0"
-source = "git+https://github.com/wp-labs/wp-advanced-api?tag=v0.1.0#9ed1d5c9f7c5fde300e6d9b6306bf0607095181b"
-dependencies = [
- "wp-model-core",
-]
-
-[[package]]
 name = "wp-error"
-version = "0.8.5"
+version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "96619c8b1bf018e7cca7e492e594996ff2fcb0be3b18e6a78b6b51dff7259230"
+checksum = "19c068cfb9d0a741cc35a2220cf2f1f528beb87ad231abf8dfad51f328521d2a"
 dependencies = [
  "derive_more 2.1.1",
  "orion-error",
@@ -6745,14 +6741,15 @@ dependencies = [
 
 [[package]]
 name = "wp-knowledge"
-version = "0.11.6"
+version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6f4b6ca94fc9b0323ff52693897e17d256ec4e348421b337d0e6dc909d1223f5"
+checksum = "58233801bdb3adbb223b3b47c9e4a36f71717621180aadcae6ca2a5c87121eba"
 dependencies = [
  "anyhow",
  "async-trait",
  "chrono",
  "csv",
+ "derive_more 2.1.1",
  "enum_dispatch",
  "futures",
  "lazy_static",
@@ -6768,19 +6765,17 @@ dependencies = [
  "serde_json",
  "sqlx",
  "tokio",
- "wp-error",
  "wp-log",
  "wp-model-core",
 ]
 
 [[package]]
 name = "wp-lang"
-version = "0.1.10"
+version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "848aed1a98f61e8fcb3be5a76a8753e603ed72ee64999fcdceaa8146be1a62d2"
+checksum = "b83089df6f012fa7f20b730e2f1efe04bf0e6bbd997631197b1ca64279f02096"
 dependencies = [
  "ahash 0.8.12",
- "anyhow",
  "base64 0.22.1",
  "bytes",
  "chrono",
@@ -6819,9 +6814,9 @@ dependencies = [
 
 [[package]]
 name = "wp-log"
-version = "0.2.1"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e867a8c80d4b365bf772e6f693bc5de71ce976a493d9bc5bdccb64108761586c"
+checksum = "5d0079b116107506944cde01f86e5a52eb5f85eee7b89bf0651c7533141e0236"
 dependencies = [
  "anyhow",
  "chrono",
@@ -6856,8 +6851,8 @@ dependencies = [
 
 [[package]]
 name = "wp-oml"
-version = "1.21.7"
-source = "git+https://github.com/wp-labs/wp-motor?tag=v1.21.7#fd5a836950968ee4954c0d89c695526f08be1d84"
+version = "1.21.9"
+source = "git+https://github.com/wp-labs/wp-motor?tag=v1.21.9#42c130da98ee3c2a9f120c85e191538ca9c37217"
 dependencies = [
  "anyhow",
  "arcstr",
@@ -6867,6 +6862,7 @@ dependencies = [
  "contracts",
  "derive-getters",
  "derive_builder",
+ "derive_more 2.1.1",
  "encoding_rs",
  "enum_dispatch",
  "escape8259",
@@ -6911,9 +6907,9 @@ dependencies = [
 
 [[package]]
 name = "wp-parse-api"
-version = "0.8.1"
+version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9108cdcb3f90e5b4f986ec7a1403f85e967916a21e660089b12690e5ecf72c32"
+checksum = "ebd7abf02a829db858f9899a5c476ec77798d926a4517e5ed2d7bf96a7c6d4c0"
 dependencies = [
  "bytes",
  "derive_more 2.1.1",
@@ -6935,8 +6931,8 @@ dependencies = [
 
 [[package]]
 name = "wp-proj"
-version = "1.21.7"
-source = "git+https://github.com/wp-labs/wp-motor?tag=v1.21.7#fd5a836950968ee4954c0d89c695526f08be1d84"
+version = "1.21.9"
+source = "git+https://github.com/wp-labs/wp-motor?tag=v1.21.9#42c130da98ee3c2a9f120c85e191538ca9c37217"
 dependencies = [
  "anyhow",
  "comfy-table",
@@ -6963,9 +6959,9 @@ dependencies = [
 
 [[package]]
 name = "wp-specs"
-version = "0.8.1"
+version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "efaa11920f7fd004e99ecaedab1d87261dadfb24129bccb4385885d0ff4c209b"
+checksum = "f349e7502371cc7e87b5d3e4ef9d28886fe52310d13a1d0ebd3b874858fc17e6"
 dependencies = [
  "serde",
  "wildmatch",
@@ -6974,8 +6970,8 @@ dependencies = [
 
 [[package]]
 name = "wp-stats"
-version = "1.21.7"
-source = "git+https://github.com/wp-labs/wp-motor?tag=v1.21.7#fd5a836950968ee4954c0d89c695526f08be1d84"
+version = "1.21.9"
+source = "git+https://github.com/wp-labs/wp-motor?tag=v1.21.9#42c130da98ee3c2a9f120c85e191538ca9c37217"
 dependencies = [
  "anyhow",
  "chrono",

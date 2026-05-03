@@ -3,6 +3,18 @@
 本文件记录所有重要变更，格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，
 版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [Unreleased]
+
+### Changed
+
+- **错误系统重构为 orion-error 0.7 结构化体系**
+  - `AppError` 从 `thiserror` 派生枚举重构为 `StructError<AppReason>` 的 newtype 包装，配合 `#[derive(OrionError)]` 生成稳定的机器可读身份码（`{category}.{snake_case}` 格式）
+  - 上游结构化错误（`WplCodeError`、`WparseError`、`OMLCodeError`）通过 `ConvStructError::conv()` 转换，完整保留 source chain、detail、context
+  - `internal()` 和 `oml_transform()` 构造器通过 `attach_source()` 保留底层 `std::error::Error` 源链
+  - `AppReason::Uvs(UvsReason)` 透明变体委托 `UvsReason` 的所有基础设施分类和子类构造器
+  - `wpl.rs` 中 `.map_err(AppError::wpl_parse)` 改为直接 `?`，错误转换由 `From` 实现自动处理
+  - 升级 `orion-error` 0.6 → 0.7，以及 wp-motor 相关依赖至 v1.21.9
+
 ## [1.19.2-alpha] - 2026-04-30
 
 ### Changed

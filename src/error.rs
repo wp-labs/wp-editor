@@ -1,8 +1,207 @@
 use actix_web::{HttpResponse, ResponseError};
+use orion_error::conversion_ext::ConvStructError;
+use orion_error::{ErrorIdentityProvider, OrionError, StructError, UvsReason};
 use serde::Serialize;
-use std::fmt::Display;
-use wp_error::parse_error::OMLCodeError;
+use std::fmt;
+use wp_error::parse_error::OMLCodeReason;
+use wpl::parser::error::WplCodeReason;
 use wpl::WparseReason;
+
+// ── Domain Reason ──────────────────────────────────────────────────────────
+
+#[derive(Debug, Clone, PartialEq, OrionError)]
+pub enum AppReason {
+    #[orion_error(identity = "biz.invalid_connection", message = "连接 ID 不存在或已删除")]
+    InvalidConnection { connection_id: i32 },
+
+    #[orion_error(identity = "biz.connection_mismatch", message = "该资源不属于指定连接")]
+    ConnectionMismatch {
+        resource_id: i32,
+        resource_connection_id: i32,
+        requested_connection_id: i32,
+    },
+
+    #[orion_error(identity = "biz.not_found", message = "资源不存在")]
+    NotFound(String),
+
+    #[orion_error(identity = "biz.validation_error", message = "参数验证失败")]
+    Validation(String),
+
+    #[orion_error(identity = "sys.internal_error", message = "服务器内部错误")]
+    Internal(String),
+
+    #[orion_error(identity = "sys.git_error", message = "Git 操作失败")]
+    Git(String),
+
+    #[orion_error(identity = "biz.wpl_parse_error", message = "WPL 解析失败")]
+    WplParse(String),
+
+    #[orion_error(identity = "biz.oml_transform_error", message = "OML 转换失败")]
+    OmlTransform(String),
+
+    #[orion_error(identity = "biz.no_parse_result", message = "未找到解析结果")]
+    NoParseResult,
+
+    #[orion_error(identity = "sys.port_unreachable", message = "端口不可达")]
+    PortUnreachable { addr: String, reason: String },
+
+    #[orion_error(identity = "biz.invalid_git_token", message = "Git Token 无效")]
+    InvalidGitToken(String),
+
+    #[orion_error(identity = "biz.invalid_base64", message = "Base64 解码失败")]
+    InvalidBase64(String),
+
+    #[orion_error(transparent)]
+    Uvs(UvsReason),
+}
+
+// ── From<UpstreamReason> for AppReason ─────────────────────────────────────
+
+impl From<WplCodeReason> for AppReason {
+    fn from(r: WplCodeReason) -> Self {
+        match r {
+            WplCodeReason::Plugin(s) => AppReason::WplParse(s),
+            WplCodeReason::Syntax(s) => AppReason::WplParse(s),
+            WplCodeReason::Empty(s) => AppReason::WplParse(s),
+            WplCodeReason::UnSupport(s) => AppReason::WplParse(s),
+            WplCodeReason::Uvs(uvs) => AppReason::Uvs(uvs),
+        }
+    }
+}
+
+impl From<WparseReason> for AppReason {
+    fn from(r: WparseReason) -> Self {
+        match r {
+            WparseReason::Plugin(s) => AppReason::WplParse(s),
+            WparseReason::NotMatch => AppReason::WplParse("规则不匹配".into()),
+            WparseReason::LineProc(s) => AppReason::WplParse(s),
+            WparseReason::Uvs(uvs) => AppReason::Uvs(uvs),
+        }
+    }
+}
+
+impl From<OMLCodeReason> for AppReason {
+    fn from(r: OMLCodeReason) -> Self {
+        match r {
+            OMLCodeReason::Syntax(s) => AppReason::OmlTransform(s),
+            OMLCodeReason::NotFound(s) => AppReason::NotFound(s),
+            OMLCodeReason::Uvs(uvs) => AppReason::Uvs(uvs),
+        }
+    }
+}
+
+// ── AppError newtype ───────────────────────────────────────────────────────
+
+#[derive(Debug)]
+pub struct AppError(StructError<AppReason>);
+
+impl AppError {
+    pub fn invalid_connection(connection_id: i32) -> Self {
+        AppError(StructError::from(AppReason::InvalidConnection { connection_id }))
+    }
+
+    pub fn internal<E: std::error::Error + Send + Sync + 'static>(e: E) -> Self {
+        AppError(
+            StructError::builder(AppReason::Internal(e.to_string()))
+                .attach_source(e)
+                .finish(),
+        )
+    }
+
+    pub fn internal_msg(msg: impl Into<String>) -> Self {
+        AppError(StructError::from(AppReason::Internal(msg.into())))
+    }
+
+    pub fn git(msg: impl Into<String>) -> Self {
+        AppError(StructError::from(AppReason::Git(msg.into())))
+    }
+
+    pub fn wpl_parse_msg(msg: impl Into<String>) -> Self {
+        let msg = msg.into();
+        AppError(StructError::from(AppReason::WplParse(msg.clone())).with_detail(msg))
+    }
+
+    pub fn wpl_best_error(depth: usize, hint: impl Into<String>) -> Self {
+        let hint_str = hint.into();
+        let err_msg = format!("解析深度: {depth}\n{hint_str}");
+        AppError(StructError::from(AppReason::WplParse(err_msg.clone())).with_detail(err_msg))
+    }
+
+    pub fn oml_transform<E: std::error::Error + Send + Sync + 'static>(e: E) -> Self {
+        AppError(
+            StructError::builder(AppReason::OmlTransform(e.to_string()))
+                .attach_source(e)
+                .finish(),
+        )
+    }
+
+    pub fn oml_transform_msg(msg: impl Into<String>) -> Self {
+        AppError(StructError::from(AppReason::OmlTransform(msg.into())))
+    }
+
+    pub fn not_found(msg: impl Into<String>) -> Self {
+        let msg = msg.into();
+        AppError(StructError::from(AppReason::NotFound(msg.clone())).with_detail(msg))
+    }
+
+    pub fn validation(msg: impl Into<String>) -> Self {
+        let msg = msg.into();
+        AppError(StructError::from(AppReason::Validation(msg.clone())).with_detail(msg))
+    }
+
+    pub fn port_unreachable(addr: impl Into<String>, reason: impl fmt::Display) -> Self {
+        AppError(StructError::from(AppReason::PortUnreachable {
+            addr: addr.into(),
+            reason: reason.to_string(),
+        }))
+    }
+
+    pub fn invalid_git_token(reason: impl Into<String>) -> Self {
+        AppError(StructError::from(AppReason::InvalidGitToken(reason.into())))
+    }
+
+    pub fn reason(&self) -> &AppReason {
+        self.0.reason()
+    }
+
+    pub fn stable_code(&self) -> &'static str {
+        self.0.stable_code()
+    }
+}
+
+impl fmt::Display for AppError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Display::fmt(&self.0, f)
+    }
+}
+
+// ── From impls ─────────────────────────────────────────────────────────────
+
+impl From<AppReason> for AppError {
+    fn from(reason: AppReason) -> Self {
+        AppError(StructError::from(reason))
+    }
+}
+
+impl From<StructError<WplCodeReason>> for AppError {
+    fn from(e: StructError<WplCodeReason>) -> Self {
+        AppError(e.conv())
+    }
+}
+
+impl From<StructError<WparseReason>> for AppError {
+    fn from(e: StructError<WparseReason>) -> Self {
+        AppError(e.conv())
+    }
+}
+
+impl From<StructError<OMLCodeReason>> for AppError {
+    fn from(e: StructError<OMLCodeReason>) -> Self {
+        AppError(e.conv())
+    }
+}
+
+// ── ResponseError ──────────────────────────────────────────────────────────
 
 #[derive(Debug, Serialize)]
 pub struct ErrorBody<T = serde_json::Value> {
@@ -18,179 +217,42 @@ pub struct ErrorDetail<T = serde_json::Value> {
     pub details: Option<T>,
 }
 
-#[derive(Debug, thiserror::Error)]
-pub enum AppError {
-    #[error("连接 ID {connection_id} 不存在或已删除")]
-    InvalidConnection { connection_id: i32 },
-
-    #[error("该资源不属于指定连接")]
-    ConnectionMismatch {
-        resource_id: i32,
-        resource_connection_id: i32,
-        requested_connection_id: i32,
-    },
-
-    #[error("资源不存在: {0}")]
-    NotFound(String),
-
-    #[error("参数验证失败: {0}")]
-    Validation(String),
-
-    #[error("服务器内部错误: {0}")]
-    Internal(String),
-
-    // Git/Gitea 相关错误
-    #[error("Git 操作失败: {0}")]
-    Git(String),
-
-    // WPL 解析相关错误
-    #[error("WPL 解析失败: {0}")]
-    WplParse(String),
-
-    #[error("Wpl 解析失败: {0}")]
-    WplParseOrion(#[from] orion_error::StructError<WparseReason>),
-
-    // OML 转换相关错误
-    #[error("OML 转换失败: {0}")]
-    OmlTransform(String),
-    //OmlTransform(anyhow::Error),
-    #[error("OML 解析失败: {0}")]
-    OmlParseOrion(#[from] OMLCodeError),
-
-    // 调试相关错误
-    #[error("未找到解析结果，请先执行日志解析")]
-    NoParseResult,
-
-    // 连接测试相关错误
-    #[error("端口 {addr} 不可达: {reason}")]
-    PortUnreachable { addr: String, reason: String },
-
-    #[error("Git Token 无效: {reason}")]
-    InvalidGitToken { reason: String },
-
-    #[error("Base64 解码失败: {0}")]
-    InvalidBase64(String),
-}
-
-impl AppError {
-    pub fn invalid_connection(connection_id: i32) -> Self {
-        AppError::InvalidConnection { connection_id }
-    }
-
-    pub fn internal<E: Display>(e: E) -> Self {
-        AppError::Internal(e.to_string())
-    }
-
-    pub fn git<E: Display>(e: E) -> Self {
-        AppError::Git(e.to_string())
-    }
-
-    pub fn wpl_parse<E>(e: E) -> Self
-    where
-        E: Display,
-    {
-        AppError::WplParse(e.to_string())
-    }
-
-    pub fn wpl_best_error(depth: usize, hint: impl Into<String>) -> Self {
-        let hint_str = hint.into();
-        let err_msg = format!("解析深度: {depth}\n{hint_str}");
-        AppError::WplParse(err_msg)
-    }
-
-    pub fn wpl_parse_msg(msg: impl Into<String>) -> Self {
-        AppError::WplParse(msg.into())
-    }
-
-    pub fn oml_transform<E>(e: E) -> Self
-    where
-        E: std::error::Error + Send + Sync + Display + 'static,
-    {
-        AppError::OmlTransform(e.to_string())
-    }
-
-    pub fn oml_transform_msg(msg: impl Into<String>) -> Self {
-        AppError::OmlTransform(msg.into())
-    }
-    /// 创建 NotFound 错误
-    pub fn not_found(msg: impl Into<String>) -> Self {
-        AppError::NotFound(msg.into())
-    }
-
-    /// 创建 Validation 错误
-    pub fn validation(msg: impl Into<String>) -> Self {
-        AppError::Validation(msg.into())
-    }
-
-    /// 创建 PortUnreachable 错误
-    pub fn port_unreachable(addr: impl Into<String>, reason: impl Display) -> Self {
-        AppError::PortUnreachable {
-            addr: addr.into(),
-            reason: reason.to_string(),
-        }
-    }
-
-    /// 创建 InvalidGitToken 错误
-    pub fn invalid_git_token(reason: impl Into<String>) -> Self {
-        AppError::InvalidGitToken {
-            reason: reason.into(),
-        }
-    }
-
-    fn code(&self) -> &'static str {
-        match self {
-            AppError::InvalidConnection { .. } => "INVALID_CONNECTION",
-            AppError::ConnectionMismatch { .. } => "CONNECTION_MISMATCH",
-            AppError::NotFound(_) => "NOT_FOUND",
-            AppError::Validation(_) => "VALIDATION_ERROR",
-            AppError::Internal(_) => "INTERNAL_ERROR",
-            AppError::Git(_) => "GIT_ERROR",
-            AppError::WplParse(_) => "WPL_PARSE_ERROR",
-            AppError::OmlTransform(_) => "OML_TRANSFORM_ERROR",
-            AppError::NoParseResult => "NO_PARSE_RESULT",
-            AppError::PortUnreachable { .. } => "PORT_UNREACHABLE",
-            AppError::InvalidGitToken { .. } => "INVALID_GIT_TOKEN",
-            AppError::InvalidBase64(_) => "INVALID_BASE64",
-            AppError::WplParseOrion(_) => "WPL_PARSE_ORION_ERROR",
-            AppError::OmlParseOrion(_) => "OML_PARSE_ORION_ERROR",
-        }
-    }
-}
-
 impl ResponseError for AppError {
     fn error_response(&self) -> HttpResponse {
         use actix_web::http::StatusCode;
 
-        let status = match self {
-            // 400 Bad Request - 客户端输入错误
-            AppError::InvalidConnection { .. }
-            | AppError::Validation(_)
-            | AppError::WplParse(_)
-            | AppError::OmlTransform(_)
-            | AppError::NoParseResult
-            | AppError::PortUnreachable { .. }
-            | AppError::OmlParseOrion(_)
-            | AppError::WplParseOrion(_)
-            | AppError::InvalidGitToken { .. } => StatusCode::BAD_REQUEST,
+        let reason = self.reason();
 
-            // 403 Forbidden - 权限/关联错误
-            AppError::ConnectionMismatch { .. } => StatusCode::FORBIDDEN,
+        let status = match reason {
+            AppReason::InvalidConnection { .. }
+            | AppReason::Validation(_)
+            | AppReason::WplParse(_)
+            | AppReason::OmlTransform(_)
+            | AppReason::NoParseResult
+            | AppReason::PortUnreachable { .. }
+            | AppReason::InvalidGitToken(_) => StatusCode::BAD_REQUEST,
 
-            // 404 Not Found - 资源不存在
-            AppError::NotFound(_) => StatusCode::NOT_FOUND,
+            AppReason::ConnectionMismatch { .. } => StatusCode::FORBIDDEN,
 
-            // 500 Internal Server Error - 服务器内部错误
-            AppError::Internal(_) | AppError::Git(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            AppReason::NotFound(_) => StatusCode::NOT_FOUND,
 
-            // 500 Bad Request - Base64 解码错误
-            AppError::InvalidBase64(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            AppReason::Internal(_)
+            | AppReason::Git(_)
+            | AppReason::InvalidBase64(_) => StatusCode::INTERNAL_SERVER_ERROR,
+
+            AppReason::Uvs(uvs) => match uvs {
+                UvsReason::NotFoundError => StatusCode::NOT_FOUND,
+                UvsReason::ValidationError => StatusCode::BAD_REQUEST,
+                UvsReason::PermissionError => StatusCode::FORBIDDEN,
+                _ => StatusCode::INTERNAL_SERVER_ERROR,
+            },
         };
 
-        let details = match self {
-            AppError::InvalidConnection { connection_id } => {
+        let details = match reason {
+            AppReason::InvalidConnection { connection_id } => {
                 Some(serde_json::json!({ "connection_id": connection_id }))
             }
-            AppError::ConnectionMismatch {
+            AppReason::ConnectionMismatch {
                 resource_id,
                 resource_connection_id,
                 requested_connection_id,
@@ -199,17 +261,19 @@ impl ResponseError for AppError {
                 "resource_connection_id": resource_connection_id,
                 "requested_connection_id": requested_connection_id,
             })),
-            AppError::PortUnreachable { addr, reason } => {
-                Some(serde_json::json!({ "addr": addr, "reason": reason }))
+            AppReason::PortUnreachable { addr, reason: msg } => {
+                Some(serde_json::json!({ "addr": addr, "reason": msg }))
             }
-            AppError::InvalidGitToken { reason } => Some(serde_json::json!({ "reason": reason })),
+            AppReason::InvalidGitToken(reason) => {
+                Some(serde_json::json!({ "reason": reason }))
+            }
             _ => None,
         };
 
         let body = ErrorBody {
             success: false,
             error: ErrorDetail {
-                code: self.code(),
+                code: self.stable_code(),
                 message: self.to_string(),
                 details,
             },
@@ -219,7 +283,8 @@ impl ResponseError for AppError {
     }
 }
 
-/// 通用数据库错误，供所有仓储层复用
+// ── DbError ────────────────────────────────────────────────────────────────
+
 #[derive(Debug, thiserror::Error)]
 pub enum DbError {
     #[error("{entity} 不存在")]
@@ -237,12 +302,11 @@ impl DbError {
     }
 }
 
-/// 自动转换 DbError 为 AppError
 impl From<DbError> for AppError {
     fn from(e: DbError) -> Self {
         match e {
             DbError::NotFound { entity } => {
-                AppError::NotFound(format!("{} 不存在或已删除", entity))
+                AppError::not_found(format!("{} 不存在或已删除", entity))
             }
             DbError::Db(db_err) => AppError::internal(db_err),
         }
