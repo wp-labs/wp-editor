@@ -54,7 +54,7 @@ wp-connector-api =  "0.8"
 wp-model-core    =  "0.8"
 
 # --- External: Infrastructure Libraries ---
-wp-log       =  "0.2"
+wp-log       =  "0.4"
 wp-error     =  "0.8"
 wp-specs     =  "0.8"
 wp-conf-base =  "0.2"
