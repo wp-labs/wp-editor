@@ -56,7 +56,7 @@ wp-model-core    =  "0.8"
 # --- External: Infrastructure Libraries ---
 wp-log       =  "0.2"
 wp-error     =  "0.8"
-wp-specs     =  "0.8"
+wp-specs     =  "0.10"
 wp-conf-base =  "0.2"
 wp-data-fmt  =  "0.2"
 wp-editor-migrations = { path = "crates/migrations" }
