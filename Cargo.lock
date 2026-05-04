@@ -6485,20 +6485,16 @@ dependencies = [
 
 [[package]]
 name = "wp-model-core"
-version = "0.8.6"
+version = "0.8.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "26c0c153df58a2c0e1cf0ec9023608ca30dcf932c5e0a262b365f7e00d643ade"
+checksum = "5c07a682d766cee0c376f63d3f6abbbe67cbf27b3fb9b6a1d0ebf40250e76524"
 dependencies = [
  "bytes",
  "chrono",
- "ipnet",
  "serde",
  "serde_derive",
- "serde_json",
- "smallvec",
  "smol_str",
  "thiserror 2.0.18",
- "wildmatch",
 ]
 
 [[package]]
