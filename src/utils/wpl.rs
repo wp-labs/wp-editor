@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use crate::error::AppError;
-use orion_error::UvsReason;
+use orion_error::UnifiedReason;
 use serde::{Deserialize, Serialize};
 use wp_engine::sources::event_id::next_event_id;
 use wp_model_core::model::{DataField, DataRecord, DataType};
@@ -71,8 +71,8 @@ fn try_parse_with_rules(rule_items: Vec<RunParseProc>, data: &str) -> Result<Dat
             Err(e) => {
                 // 记录解析深度最高的错误
                 best_wpl = index + 1;
-                if matches!(e.reason(), WparseReason::Uvs(UvsReason::DataError)) {
-                    // 新版 UvsReason::DataError 不再携带位置参数，保底记为 1 表示已进入规则解析。
+                if matches!(e.reason(), WparseReason::Uvs(UnifiedReason::DataError)) {
+                    // UnifiedReason::DataError 不再携带位置参数，保底记为 1 表示已进入规则解析。
                     if max_depth == 0 {
                         max_depth = 1;
                     }

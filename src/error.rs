@@ -1,17 +1,19 @@
 use actix_web::{HttpResponse, ResponseError};
-use orion_error::conversion_ext::ConvStructError;
-use orion_error::{ErrorIdentityProvider, OrionError, StructError, UvsReason};
+use orion_error::{OrionError, StructError, UnifiedReason, reason::ErrorIdentityProvider};
 use serde::Serialize;
 use std::fmt;
 use wp_error::parse_error::OMLCodeReason;
-use wpl::parser::error::WplCodeReason;
 use wpl::WparseReason;
+use wpl::parser::error::WplCodeReason;
 
 // ── Domain Reason ──────────────────────────────────────────────────────────
 
 #[derive(Debug, Clone, PartialEq, OrionError)]
 pub enum AppReason {
-    #[orion_error(identity = "biz.invalid_connection", message = "连接 ID 不存在或已删除")]
+    #[orion_error(
+        identity = "biz.invalid_connection",
+        message = "连接 ID 不存在或已删除"
+    )]
     InvalidConnection { connection_id: i32 },
 
     #[orion_error(identity = "biz.connection_mismatch", message = "该资源不属于指定连接")]
@@ -52,7 +54,7 @@ pub enum AppReason {
     InvalidBase64(String),
 
     #[orion_error(transparent)]
-    Uvs(UvsReason),
+    Uvs(UnifiedReason),
 }
 
 // ── From<UpstreamReason> for AppReason ─────────────────────────────────────
@@ -60,10 +62,10 @@ pub enum AppReason {
 impl From<WplCodeReason> for AppReason {
     fn from(r: WplCodeReason) -> Self {
         match r {
-            WplCodeReason::Plugin(s) => AppReason::WplParse(s),
-            WplCodeReason::Syntax(s) => AppReason::WplParse(s),
-            WplCodeReason::Empty(s) => AppReason::WplParse(s),
-            WplCodeReason::UnSupport(s) => AppReason::WplParse(s),
+            WplCodeReason::Plugin
+            | WplCodeReason::Syntax
+            | WplCodeReason::Empty
+            | WplCodeReason::UnSupport => AppReason::WplParse(String::new()),
             WplCodeReason::Uvs(uvs) => AppReason::Uvs(uvs),
         }
     }
@@ -97,23 +99,27 @@ pub struct AppError(StructError<AppReason>);
 
 impl AppError {
     pub fn invalid_connection(connection_id: i32) -> Self {
-        AppError(StructError::from(AppReason::InvalidConnection { connection_id }))
+        AppError(StructError::from(AppReason::InvalidConnection {
+            connection_id,
+        }))
     }
 
     pub fn internal<E: std::error::Error + Send + Sync + 'static>(e: E) -> Self {
         AppError(
             StructError::builder(AppReason::Internal(e.to_string()))
-                .attach_source(e)
+                .source(e)
                 .finish(),
         )
     }
 
     pub fn internal_msg(msg: impl Into<String>) -> Self {
-        AppError(StructError::from(AppReason::Internal(msg.into())))
+        let msg = msg.into();
+        AppError(StructError::from(AppReason::Internal(msg.clone())).with_detail(msg))
     }
 
     pub fn git(msg: impl Into<String>) -> Self {
-        AppError(StructError::from(AppReason::Git(msg.into())))
+        let msg = msg.into();
+        AppError(StructError::from(AppReason::Git(msg.clone())).with_detail(msg))
     }
 
     pub fn wpl_parse_msg(msg: impl Into<String>) -> Self {
@@ -130,13 +136,14 @@ impl AppError {
     pub fn oml_transform<E: std::error::Error + Send + Sync + 'static>(e: E) -> Self {
         AppError(
             StructError::builder(AppReason::OmlTransform(e.to_string()))
-                .attach_source(e)
+                .source(e)
                 .finish(),
         )
     }
 
     pub fn oml_transform_msg(msg: impl Into<String>) -> Self {
-        AppError(StructError::from(AppReason::OmlTransform(msg.into())))
+        let msg = msg.into();
+        AppError(StructError::from(AppReason::OmlTransform(msg.clone())).with_detail(msg))
     }
 
     pub fn not_found(msg: impl Into<String>) -> Self {
@@ -167,6 +174,10 @@ impl AppError {
     pub fn stable_code(&self) -> &'static str {
         self.0.stable_code()
     }
+
+    pub fn display_chain(&self) -> String {
+        self.0.display_chain()
+    }
 }
 
 impl fmt::Display for AppError {
@@ -179,25 +190,43 @@ impl fmt::Display for AppError {
 
 impl From<AppReason> for AppError {
     fn from(reason: AppReason) -> Self {
-        AppError(StructError::from(reason))
+        let detail = match &reason {
+            AppReason::NotFound(s)
+            | AppReason::Validation(s)
+            | AppReason::Internal(s)
+            | AppReason::Git(s)
+            | AppReason::WplParse(s)
+            | AppReason::OmlTransform(s)
+            | AppReason::InvalidGitToken(s)
+            | AppReason::InvalidBase64(s) => s.clone(),
+            _ => String::new(),
+        };
+        let mut err = StructError::from(reason);
+        if !detail.is_empty() {
+            err = err.with_detail(detail);
+        }
+        AppError(err)
     }
 }
 
 impl From<StructError<WplCodeReason>> for AppError {
     fn from(e: StructError<WplCodeReason>) -> Self {
-        AppError(e.conv())
+        let reason: AppReason = e.reason().clone().into();
+        AppError(StructError::builder(reason).source(e).finish())
     }
 }
 
 impl From<StructError<WparseReason>> for AppError {
     fn from(e: StructError<WparseReason>) -> Self {
-        AppError(e.conv())
+        let reason: AppReason = e.reason().clone().into();
+        AppError(StructError::builder(reason).source(e).finish())
     }
 }
 
 impl From<StructError<OMLCodeReason>> for AppError {
     fn from(e: StructError<OMLCodeReason>) -> Self {
-        AppError(e.conv())
+        let reason: AppReason = e.reason().clone().into();
+        AppError(StructError::builder(reason).source(e).finish())
     }
 }
 
@@ -236,14 +265,14 @@ impl ResponseError for AppError {
 
             AppReason::NotFound(_) => StatusCode::NOT_FOUND,
 
-            AppReason::Internal(_)
-            | AppReason::Git(_)
-            | AppReason::InvalidBase64(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            AppReason::Internal(_) | AppReason::Git(_) | AppReason::InvalidBase64(_) => {
+                StatusCode::INTERNAL_SERVER_ERROR
+            }
 
             AppReason::Uvs(uvs) => match uvs {
-                UvsReason::NotFoundError => StatusCode::NOT_FOUND,
-                UvsReason::ValidationError => StatusCode::BAD_REQUEST,
-                UvsReason::PermissionError => StatusCode::FORBIDDEN,
+                UnifiedReason::NotFoundError => StatusCode::NOT_FOUND,
+                UnifiedReason::ValidationError => StatusCode::BAD_REQUEST,
+                UnifiedReason::PermissionError => StatusCode::FORBIDDEN,
                 _ => StatusCode::INTERNAL_SERVER_ERROR,
             },
         };
@@ -264,9 +293,7 @@ impl ResponseError for AppError {
             AppReason::PortUnreachable { addr, reason: msg } => {
                 Some(serde_json::json!({ "addr": addr, "reason": msg }))
             }
-            AppReason::InvalidGitToken(reason) => {
-                Some(serde_json::json!({ "reason": reason }))
-            }
+            AppReason::InvalidGitToken(reason) => Some(serde_json::json!({ "reason": reason })),
             _ => None,
         };
 
@@ -274,7 +301,7 @@ impl ResponseError for AppError {
             success: false,
             error: ErrorDetail {
                 code: self.stable_code(),
-                message: self.to_string(),
+                message: self.display_chain(),
                 details,
             },
         };
