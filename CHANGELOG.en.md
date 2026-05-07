@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.19.3] - 2026-05-07
+
+### Changed
+
+- Refresh the logo assets by replacing the `favicon.png`, `home.png`, and `index.png` visuals.
+- Synchronize the updated images in both `web/public/assets/images` and `web/dist/assets/images` so the source assets and built output stay aligned.
+
 ## [1.19.2] - 2026-05-05
 
 ### Changed
