@@ -1,0 +1,5 @@
+package /learn/json {
+    rule json_1 {
+        (json(time@date ,ip@ip:src_ip ))
+    }
+}

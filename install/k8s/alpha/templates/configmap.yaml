@@ -1,0 +1,22 @@
+{{- if not .Values.config.existingConfigMap }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "wp-editor.fullname" . }}-config
+  labels:
+    {{- include "wp-editor.labels" . | nindent 4 }}
+data:
+  config.toml: |-
+    [log]
+    level = {{ .Values.config.log.level | quote }}
+    output = {{ .Values.config.log.output | quote }}
+    output_path = {{ .Values.config.log.outputPath | quote }}
+
+    [web]
+    host = {{ .Values.config.web.host | quote }}
+    port = {{ .Values.config.web.port }}
+
+    [repo]
+    wpl_rule_repo = "wp-rule/models/wpl"
+    oml_rule_repo = {{ .Values.config.repo.omlRuleRepo | quote }}
+{{- end }}

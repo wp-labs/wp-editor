@@ -1,0 +1,5 @@
+package /raw/web {
+   rule nginx {
+        (ip:sip,_^2,chars:timestamp<[,]>,http/request",chars:status,chars:size,chars:referer",http/agent",_")
+   }
+}
