@@ -1,6 +1,6 @@
 [package]
 name = "wp-editor"
-version = "1.17.2"
+version = "1.19.3"
 edition = "2024"
 build = "build.rs"
 
@@ -36,7 +36,7 @@ thiserror = "2.0"
 strum = { version = "0.26", features = ["derive"] }
 regex = "1.12"
 base64 = "0.22"
-orion-error = "0.6"
+orion-error = "0.8"
 tempfile = "3.24"
 tree-sitter = "0.26.6"
 tree-sitter-wpl = { package = "tree-sitter-wpl", git = "https://github.com/wp-labs/tree-sitter-wpl.git", branch = "main" }
@@ -49,25 +49,25 @@ sea-orm = { version = "1.1", features = [
     "with-chrono",
 ] }# --- External: Open API (Public Interfaces) ---
 
-wp-connector-api =  "0.8"
+wp-connector-api =  "0.10"
 #wp-parse-api     =  "0.8"
 wp-model-core    =  "0.8"
 
 # --- External: Infrastructure Libraries ---
-wp-log       =  "0.2"
-wp-error     =  "0.8"
-wp-specs     =  "0.8"
-wp-conf-base =  "0.2"
+wp-log       =  "0.4"
+wp-error     =  "0.10"
+wp-specs     =  "0.10"
+wp-conf-base =  "0.4"
 wp-data-fmt  =  "0.2"
 wp-editor-migrations = { path = "crates/migrations" }
-wp-lang = "0.1"
-wp_knowledge  = { package = "wp-knowledge",  version = "0.11"}
+wp-lang = "0.3"
+wp_knowledge  = { package = "wp-knowledge",  version = "0.13"}
 
-wp-engine     = {                            git = "https://github.com/wp-labs/wp-motor", tag = "v1.21.4" }
-wp-config     = { package = "wp-config",     git = "https://github.com/wp-labs/wp-motor", tag = "v1.21.4" }
-wp_oml         = { package = "wp-oml",       git = "https://github.com/wp-labs/wp-motor", tag = "v1.21.4" }
-wp_data_utils = { package = "wp-data-utils", git = "https://github.com/wp-labs/wp-motor", tag = "v1.21.4" }
-wp-proj       = { package = "wp-proj",       git = "https://github.com/wp-labs/wp-motor", tag = "v1.21.4" }
+wp-engine     = {                            git = "https://github.com/wp-labs/wp-motor", tag = "v1.21.11" }
+wp-config     = { package = "wp-config",     git = "https://github.com/wp-labs/wp-motor", tag = "v1.21.11" }
+wp_oml         = { package = "wp-oml",       git = "https://github.com/wp-labs/wp-motor", tag = "v1.21.11" }
+wp_data_utils = { package = "wp-data-utils", git = "https://github.com/wp-labs/wp-motor", tag = "v1.21.11" }
+wp-proj       = { package = "wp-proj",       git = "https://github.com/wp-labs/wp-motor", tag = "v1.21.11" }
 
 #wp-engine = { path = "../wp-motor" }
 #wp-config = { path = "../wp-motor/crates/wp-config" }

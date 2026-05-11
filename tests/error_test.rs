@@ -1,76 +1,92 @@
 use actix_web::{ResponseError, http::StatusCode};
 use serde_json::Value;
-use wp_editor::error::AppError;
+use wp_editor::error::{AppError, AppReason, DbError};
 
-/// 测试AppError的各种创建方法
-/// 验证所有错误类型都能正确创建，包括参数传递和类型匹配
 #[actix_web::test]
 async fn test_app_error_creation() {
-    // 测试各种错误创建方法
     let conn_err = AppError::invalid_connection(123);
-    assert!(matches!(
-        conn_err,
-        AppError::InvalidConnection { connection_id: 123 }
-    ));
+    assert_eq!(
+        conn_err.reason(),
+        &AppReason::InvalidConnection { connection_id: 123 }
+    );
 
-    let internal_err = AppError::internal("test error");
-    assert!(matches!(internal_err, AppError::Internal(_)));
+    let internal_err = AppError::internal_msg("test error");
+    assert_eq!(
+        internal_err.reason(),
+        &AppReason::Internal("test error".into())
+    );
 
     let git_err = AppError::git("git failed");
-    assert!(matches!(git_err, AppError::Git(_)));
+    assert_eq!(git_err.reason(), &AppReason::Git("git failed".into()));
 
-    let wpl_err = AppError::wpl_parse("parse failed");
-    assert!(matches!(wpl_err, AppError::WplParse(_)));
+    let wpl_msg_err = AppError::wpl_parse_msg("parse failed");
+    assert_eq!(
+        wpl_msg_err.reason(),
+        &AppReason::WplParse("parse failed".into())
+    );
 
     let oml_err = AppError::oml_transform_msg("transform failed");
-    assert!(matches!(oml_err, AppError::OmlTransform(_)));
+    assert_eq!(
+        oml_err.reason(),
+        &AppReason::OmlTransform("transform failed".into())
+    );
 
     let not_found_err = AppError::not_found("resource not found");
-    assert!(matches!(not_found_err, AppError::NotFound(_)));
+    assert_eq!(
+        not_found_err.reason(),
+        &AppReason::NotFound("resource not found".into())
+    );
 
     let validation_err = AppError::validation("invalid input");
-    assert!(matches!(validation_err, AppError::Validation(_)));
+    assert_eq!(
+        validation_err.reason(),
+        &AppReason::Validation("invalid input".into())
+    );
 
     let port_err = AppError::port_unreachable("localhost:8080", "connection refused");
-    assert!(matches!(port_err, AppError::PortUnreachable { .. }));
+    assert_eq!(
+        port_err.reason(),
+        &AppReason::PortUnreachable {
+            addr: "localhost:8080".into(),
+            reason: "connection refused".into()
+        }
+    );
 
     let token_err = AppError::invalid_git_token("invalid token");
-    assert!(matches!(token_err, AppError::InvalidGitToken { .. }));
+    assert_eq!(
+        token_err.reason(),
+        &AppReason::InvalidGitToken("invalid token".into())
+    );
 }
 
-/// 测试AppError的Display trait实现
-/// 验证错误消息能够正确格式化和显示，包含必要的上下文信息
 #[actix_web::test]
 async fn test_app_error_display() {
     let conn_err = AppError::invalid_connection(123);
     let display_str = format!("{}", conn_err);
-    assert!(display_str.contains("123"));
-    assert!(display_str.contains("连接 ID"));
+    assert!(display_str.contains("连接 ID 不存在或已删除"));
 
     let validation_err = AppError::validation("test validation");
     let display_str = format!("{}", validation_err);
+    assert!(display_str.contains("参数验证失败"));
     assert!(display_str.contains("test validation"));
 }
 
-/// 测试AppError的HTTP响应错误转换
-/// 验证错误能够正确转换为HTTP响应，包括状态码和响应体格式
 #[actix_web::test]
 async fn test_app_error_response_error() {
-    // 测试不同错误的HTTP响应
     let test_cases = vec![
         (AppError::invalid_connection(123), StatusCode::BAD_REQUEST),
         (AppError::validation("test"), StatusCode::BAD_REQUEST),
         (AppError::not_found("test"), StatusCode::NOT_FOUND),
         (
-            AppError::internal("test"),
+            AppError::internal_msg("test"),
             StatusCode::INTERNAL_SERVER_ERROR,
         ),
         (
-            AppError::ConnectionMismatch {
+            AppError::from(AppReason::ConnectionMismatch {
                 resource_id: 1,
                 resource_connection_id: 2,
                 requested_connection_id: 3,
-            },
+            }),
             StatusCode::FORBIDDEN,
         ),
     ];
@@ -79,7 +95,6 @@ async fn test_app_error_response_error() {
         let response = error.error_response();
         assert_eq!(response.status(), expected_status);
 
-        // 验证响应体结构
         let body = actix_web::body::to_bytes(response.into_body())
             .await
             .unwrap();
@@ -91,58 +106,51 @@ async fn test_app_error_response_error() {
     }
 }
 
-/// 测试DbError的完整功能
-/// 验证DbError的创建、显示和到AppError的转换功能
 #[actix_web::test]
 async fn test_db_error_complete() {
-    use wp_editor::error::DbError;
-
-    // 测试DbError创建和显示
     let not_found_err = DbError::not_found("user");
-    assert!(matches!(
-        not_found_err,
-        DbError::NotFound { entity: "user" }
-    ));
-
     let display_str = format!("{}", not_found_err);
     assert!(display_str.contains("user"));
     assert!(display_str.contains("不存在"));
 
-    // 测试DbError到AppError的转换
     let db_not_found = DbError::not_found("connection");
     let app_error: AppError = db_not_found.into();
-
-    assert!(matches!(app_error, AppError::NotFound(_)));
-    let display_str = format!("{}", app_error);
-    assert!(display_str.contains("connection"));
+    assert_eq!(
+        app_error.reason(),
+        &AppReason::NotFound("connection 不存在或已删除".into())
+    );
+    assert_eq!(app_error.stable_code(), "biz.not_found");
 }
 
-/// 测试错误代码映射的完整性
-/// 验证所有错误类型都有正确的错误代码映射，用于API响应
 #[actix_web::test]
 async fn test_error_codes() {
-    // 测试错误代码映射
-    let test_cases = vec![
-        (AppError::invalid_connection(1), "INVALID_CONNECTION"),
-        (AppError::not_found("test"), "NOT_FOUND"),
-        (AppError::validation("test"), "VALIDATION_ERROR"),
-        (AppError::internal("test"), "INTERNAL_ERROR"),
-        (AppError::git("test"), "GIT_ERROR"),
-        (AppError::wpl_parse("test"), "WPL_PARSE_ERROR"),
-        (AppError::oml_transform_msg("test"), "OML_TRANSFORM_ERROR"),
-        (AppError::NoParseResult, "NO_PARSE_RESULT"),
+    let test_cases: Vec<(AppError, &str)> = vec![
+        (AppError::invalid_connection(1), "biz.invalid_connection"),
+        (AppError::not_found("test"), "biz.not_found"),
+        (AppError::validation("test"), "biz.validation_error"),
+        (AppError::internal_msg("test"), "sys.internal_error"),
+        (AppError::git("test"), "sys.git_error"),
+        (AppError::wpl_parse_msg("test"), "biz.wpl_parse_error"),
+        (AppError::oml_transform_msg("test"), "biz.oml_transform_error"),
+        (AppError::from(AppReason::NoParseResult), "biz.no_parse_result"),
         (
             AppError::port_unreachable("addr", "reason"),
-            "PORT_UNREACHABLE",
+            "sys.port_unreachable",
         ),
-        (AppError::invalid_git_token("reason"), "INVALID_GIT_TOKEN"),
         (
-            AppError::InvalidBase64("test".to_string()),
-            "INVALID_BASE64",
+            AppError::invalid_git_token("reason"),
+            "biz.invalid_git_token",
         ),
     ];
 
     for (error, expected_code) in test_cases {
+        assert_eq!(
+            error.stable_code(),
+            expected_code,
+            "expected code '{expected_code}' but got '{}'",
+            error.stable_code()
+        );
+
         let response = error.error_response();
         let body = actix_web::body::to_bytes(response.into_body())
             .await

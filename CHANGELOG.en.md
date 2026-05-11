@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.19.3] - 2026-05-07
+
+### Changed
+
+- Refresh the logo assets by replacing the `favicon.png`, `home.png`, and `index.png` visuals.
+- Synchronize the updated images in both `web/public/assets/images` and `web/dist/assets/images` so the source assets and built output stay aligned.
+
+## [1.19.2] - 2026-05-05
+
+### Changed
+
+- Upgrade the error and WP dependency line: `orion-error 0.8`, `wp-motor v1.21.11`, and `wp-lang 0.3`.
+- Update the alpha `systemd` service configuration so `ExecStart` and `WorkingDirectory` point directly to `${WORK_DIR}/wp-editor` and `${WORK_DIR}`, simplifying the deployment path layout
+
 ## [1.17.2-alpha] - 2026-04-23
 
 ### Changed
@@ -12,7 +26,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Unified version identifiers to `1.17.2` / `v1.17.2-alpha` (synchronized in `Cargo.toml`, `Cargo.lock`, `version.txt`, and `dist/install-manifest-alpha.json`)
 - Upgrade wp-motor-related dependencies to v1.21.4
 - Add the Chinese and English changelog entries for `1.17.2-alpha`
-- Fix the grammatical errors caused by the oml formatting.
 
 ## [1.17.0-alpha] - 2026-04-16
 

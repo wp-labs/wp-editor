@@ -3,6 +3,21 @@
 本文件记录所有重要变更，格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，
 版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [1.19.3] - 2026-05-07
+
+### Changed
+
+- 更新logo资源，替换 `favicon.png`、`home.png`、`index.png` 的展示素材。
+- 同步刷新 `web/public/assets/images` 与 `web/dist/assets/images` 中对应图片，确保源码资源与构建产物保持一致。
+
+## [1.19.2] - 2026-05-05
+
+### Changed
+
+- 升级错误与 WP 依赖主线：`orion-error 0.8`、`wp-motor v1.21.11`、`wp-lang 0.3`。
+- 调整 alpha 环境 `systemd` 服务配置，`ExecStart` 与 `WorkingDirectory` 改为直接指向 `${WORK_DIR}` 下的 `wp-editor` 与工作目录，简化部署路径约束
+
+
 ## [1.17.2-alpha] - 2026-04-23
 
 ### Changed
