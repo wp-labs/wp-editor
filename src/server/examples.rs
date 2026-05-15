@@ -41,8 +41,7 @@ pub fn wpl_examples(
         }
         example.sample_data = sample_data.clone();
 
-        let code = WplCode::build(wpl_path.clone(), &contents)
-            .map_err(|e| e.into_std())?;
+        let code = WplCode::build(wpl_path.clone(), &contents).map_err(|e| e.into_std())?;
 
         let pkg = code.parse_pkg().map_err(|e| e.into_std())?;
         let pkg_name_raw = pkg.name().to_string();
@@ -96,7 +95,9 @@ pub async fn oml_examples(
         // 去除注释
         contents = remove_annotations(&contents);
         let mut parse_input = contents.as_str();
-        let code = oml_parse(&mut parse_input, "").await.map_err(|e| e.into_std())?;
+        let code = oml_parse(&mut parse_input, "")
+            .await
+            .map_err(|e| e.into_std())?;
         results.push((code.rules().clone(), oml_fmt));
         return Ok(results);
     }

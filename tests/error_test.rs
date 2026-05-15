@@ -131,8 +131,14 @@ async fn test_error_codes() {
         (AppError::internal_msg("test"), "sys.internal_error"),
         (AppError::git("test"), "sys.git_error"),
         (AppError::wpl_parse_msg("test"), "biz.wpl_parse_error"),
-        (AppError::oml_transform_msg("test"), "biz.oml_transform_error"),
-        (AppError::from(AppReason::NoParseResult), "biz.no_parse_result"),
+        (
+            AppError::oml_transform_msg("test"),
+            "biz.oml_transform_error",
+        ),
+        (
+            AppError::from(AppReason::NoParseResult),
+            "biz.no_parse_result",
+        ),
         (
             AppError::port_unreachable("addr", "reason"),
             "sys.port_unreachable",
