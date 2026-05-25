@@ -6808,9 +6808,9 @@ dependencies = [
 
 [[package]]
 name = "wp-model-core"
-version = "0.8.7"
+version = "0.8.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5c07a682d766cee0c376f63d3f6abbbe67cbf27b3fb9b6a1d0ebf40250e76524"
+checksum = "5f83b80e35ad6c94ef72fea7f4f59e4cf3271f2946539d95b755aeea3446c589"
 dependencies = [
  "bytes",
  "chrono",
