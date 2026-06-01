@@ -63,20 +63,20 @@ wp-editor-migrations = { path = "crates/migrations" }
 wp-lang = "0.3"
 wp_knowledge  = { package = "wp-knowledge",  version = "0.13"}
 
-wp-engine     = {                            git = "https://github.com/wp-labs/wp-motor", tag = "v1.22.2" }
-wp-config     = { package = "wp-config",     git = "https://github.com/wp-labs/wp-motor", tag = "v1.22.2" }
-wp_oml         = { package = "wp-oml",       git = "https://github.com/wp-labs/wp-motor", tag = "v1.22.2" }
-wp_data_utils = { package = "wp-data-utils", git = "https://github.com/wp-labs/wp-motor", tag = "v1.22.2" }
-wp-proj       = { package = "wp-proj",       git = "https://github.com/wp-labs/wp-motor", tag = "v1.22.2" }
+wp-engine     = {                            git = "https://github.com/wp-labs/wp-motor", tag = "v1.22.4" }
+wp-config     = { package = "wp-config",     git = "https://github.com/wp-labs/wp-motor", tag = "v1.22.4" }
+wp_oml         = { package = "wp-oml",       git = "https://github.com/wp-labs/wp-motor", tag = "v1.22.4" }
+wp_data_utils = { package = "wp-data-utils", git = "https://github.com/wp-labs/wp-motor", tag = "v1.22.4" }
+wp-proj       = { package = "wp-proj",       git = "https://github.com/wp-labs/wp-motor", tag = "v1.22.4" }
 
-#wp-engine = { path = "../wp-motor" }
-#wp-config = { path = "../wp-motor/crates/wp-config" }
-#wp-oml    = { package = "wp-oml",    path = "../wp-motor/crates/wp-oml" }
-#wp-lang   = { package = "wp-lang", path = "../wp-motor/crates/wp-lang" }
-#wp-knowledge  = { path = "../wp-motor/crates/wp-knowledge" }
+# wp-engine = { path = "../wp-motor" }
+# wp-config = { path = "../wp-motor/crates/wp-config" }
+# wp-oml    = { package = "wp-oml",    path = "../wp-motor/crates/wp-oml" }
+# wp-data-utils = { path = "../wp-motor/crates/wp-data-utils"  }
+# wp-proj       = { path = "../wp-motor/crates/wp-proj" }
+
+# wp-lang = {path = "../wp-lang"}
+# wp-knowledge  = { path = "../wp-motor/crates/wp-knowledge" }
 ##wp-cli-core   = { path = "../wp-motor/crates/wp-cli-core" }
-#wp-data-utils = { path = "../wp-motor/crates/wp-data-utils"  }
-#wp-proj       = { path = "../wp-motor/crates/wp-proj" }
-
 
 semver = "1.0.27"
