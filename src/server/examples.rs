@@ -1,9 +1,9 @@
 use crate::{OmlFormatter, WplFormatter, utils::format::remove_annotations};
 use serde::{Deserialize, Serialize};
 use std::{collections::BTreeMap, fs::File, io::Read, path::PathBuf};
-use wp_lang::WplCode;
 use wp_oml::parser::oml_parse;
 use wp_specs::WildArray;
+use wpl::WplCode;
 
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct WplExample {
@@ -74,7 +74,7 @@ pub fn wpl_examples(
     Ok(())
 }
 
-pub fn oml_examples(
+pub async fn oml_examples(
     oml_path: PathBuf,
 ) -> Result<Vec<(WildArray, String)>, Box<dyn std::error::Error>> {
     let mut results = Vec::new();
@@ -94,19 +94,17 @@ pub fn oml_examples(
 
         // 去除注释
         contents = remove_annotations(&contents);
-        let code = oml_parse(&mut contents.as_str(), "")?;
+        let mut parse_input = contents.as_str();
+        let code = oml_parse(&mut parse_input, "").await?;
         results.push((code.rules().clone(), oml_fmt));
         return Ok(results);
     }
-    oml_path.read_dir()?.for_each(|entry| {
-        if let Ok(entry) = entry {
-            let path = entry.path();
-            let res = oml_examples(path);
-            if let Ok(mut items) = res {
-                results.append(&mut items);
-            }
-        }
-    });
+    for entry in oml_path.read_dir()? {
+        let entry = entry?;
+        let path = entry.path();
+        let mut items = Box::pin(oml_examples(path)).await?;
+        results.append(&mut items);
+    }
     Ok(results)
 }
 #[cfg(test)]
@@ -115,8 +113,8 @@ mod tests {
     use std::fs;
     use tempfile::TempDir;
 
-    #[test]
-    fn test_wpl_examples_with_directory() {
+    #[tokio::test]
+    async fn test_wpl_examples_with_directory() {
         let temp_dir = TempDir::new().unwrap();
         let sub_dir = temp_dir.path().join("subdir");
         fs::create_dir(&sub_dir).unwrap();
@@ -131,7 +129,7 @@ mod tests {
         let mut examples = BTreeMap::new();
         let result = wpl_examples(
             temp_dir.path().to_path_buf(),
-            &oml_examples(temp_dir.path().to_path_buf()).unwrap(),
+            &oml_examples(temp_dir.path().to_path_buf()).await.unwrap(),
             &mut examples,
         );
 
@@ -139,8 +137,8 @@ mod tests {
         assert_eq!(examples.len(), 1);
     }
 
-    #[test]
-    fn test_wpl_examples_with_invalid_content() {
+    #[tokio::test]
+    async fn test_wpl_examples_with_invalid_content() {
         let temp_dir = TempDir::new().unwrap();
         let file_path = temp_dir.path().join("invalid.wpl");
         let invalid_content = "this is not valid wpl content";
@@ -149,20 +147,20 @@ mod tests {
         let mut examples = BTreeMap::new();
         let result = wpl_examples(
             file_path,
-            &oml_examples(temp_dir.path().to_path_buf()).unwrap(),
+            &oml_examples(temp_dir.path().to_path_buf()).await.unwrap(),
             &mut examples,
         );
         assert!(result.is_err());
     }
 
-    #[test]
-    fn test_wpl_examples_non_existent_path() {
+    #[tokio::test]
+    async fn test_wpl_examples_non_existent_path() {
         let non_existent = PathBuf::from("/non/existent/path/xyz.wpl");
         let mut examples = BTreeMap::new();
         let temp_dir = TempDir::new().unwrap();
         let result = wpl_examples(
             non_existent.clone(),
-            &oml_examples(temp_dir.path().to_path_buf()).unwrap(),
+            &oml_examples(temp_dir.path().to_path_buf()).await.unwrap(),
             &mut examples,
         );
         assert!(result.is_ok());

@@ -3,6 +3,34 @@
 本文件记录所有重要变更，格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，
 版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [1.18.0] - 2026-04-30
+
+### Changed
+
+- 版本更新至 1.18.0
+- 升级 wp-motor 依赖至 v1.20.7
+- 同步刷新 `Cargo.lock` 中的相关依赖版本，收敛依赖栈并移除旧的 `mysql`、`mysql_async`、`tokio-postgres` 依赖链
+
+## [1.13.0-alpha] - 2026-03-12
+
+### Changed
+
+- 更新 wp-motor 依赖至 v1.19.16
+- 版本号统一为 `1.13.0` / `v1.13.0-alpha`（同步更新 `Cargo.toml`、`Cargo.lock`、`version.txt`）
+- 更新 alpha 发布清单 `dist/install-manifest-alpha.json`，将发布版本标识由 `v1.14.0-alpha` 调整为 `v1.13.0-alpha`
+- 更新安装包文件名映射，覆盖以下制品：
+  - `wp-editor-v1.13.0-alpha-aarch64-apple-darwin.tar.gz`
+  - `wp-editor-v1.13.0-alpha-aarch64-unknown-linux-gnu.tar.gz`
+  - `wp-editor-v1.13.0-alpha-x86_64-unknown-linux-gnu.tar.gz`
+- 调整 `debug_examples` 与 `debug_transform` 的异步调用链，补齐 `await`
+
+### Fixed
+
+- 修复 `oml_examples` 目录递归时将 `Future` 当作 `Result` 使用的问题
+- 修复 OML 解析错误未透传的问题（`oml_parse(...).await?`）
+- 修复 `oml_parse` 入参借用方式（使用稳定的 `parse_input` 绑定）
+- 适配相关测试中的异步调用，将 OML 相关用例改为异步测试并补齐 `await`
+
 ## [1.13.0] - 2026-03-08
 
 ### Changed
