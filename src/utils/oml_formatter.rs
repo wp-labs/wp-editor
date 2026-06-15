@@ -283,8 +283,6 @@ fn format_tokens(tokens: &[Token], indent_spaces: usize) -> String {
     let mut paren_level = 0usize;
     let mut bracket_level = 0usize;
     let mut brace_level = 0usize;
-    let mut just_had_blank_line = false;
-
     let mut i = 0usize;
     while i < tokens.len() {
         let token = &tokens[i];
@@ -305,7 +303,6 @@ fn format_tokens(tokens: &[Token], indent_spaces: usize) -> String {
                 newline(&mut out, &mut line_empty);
                 // 头部与主体之间保留一个空行。
                 newline(&mut out, &mut line_empty);
-                just_had_blank_line = true;
                 i += 1;
                 continue;
             }
@@ -325,13 +322,6 @@ fn format_tokens(tokens: &[Token], indent_spaces: usize) -> String {
                 continue;
             }
             TokenKind::BlankLine => {
-                if !just_had_blank_line {
-                    if !line_empty {
-                        newline(&mut out, &mut line_empty);
-                    }
-                    newline(&mut out, &mut line_empty);
-                    just_had_blank_line = true;
-                }
                 i += 1;
                 continue;
             }
@@ -342,7 +332,6 @@ fn format_tokens(tokens: &[Token], indent_spaces: usize) -> String {
             newline(&mut out, &mut line_empty);
         }
 
-        just_had_blank_line = false;
         match &token.kind {
             TokenKind::Symbol(Symbol::LBrace) => {
                 if needs_space_before(token, tokens.get(i.wrapping_sub(1))) {
@@ -364,7 +353,7 @@ fn format_tokens(tokens: &[Token], indent_spaces: usize) -> String {
                     next.map(|t| &t.kind),
                     Some(TokenKind::Symbol(Symbol::Semicolon))
                 ) {
-                    write_raw(&mut out, &mut line_empty, ";");
+                    write_raw(&mut out, &mut line_empty, " ;");
                     newline(&mut out, &mut line_empty);
                     i += 1;
                 } else {
@@ -372,7 +361,7 @@ fn format_tokens(tokens: &[Token], indent_spaces: usize) -> String {
                 }
             }
             TokenKind::Symbol(Symbol::Semicolon) => {
-                write_raw(&mut out, &mut line_empty, ";");
+                write_raw(&mut out, &mut line_empty, " ;");
                 newline(&mut out, &mut line_empty);
             }
             TokenKind::Symbol(Symbol::Comma) => {

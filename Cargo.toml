@@ -6,7 +6,6 @@ build = "build.rs"
 
 
 [build-dependencies]
-serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 
 
@@ -16,24 +15,22 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 actix-web = "4.12"
 actix-web-prom = "0.10"
-actix-files = "0.6"
+
 tracing = "0.1"
 simple-log = "2.4"
-small_ctor = "0.1"
-cargo_metadata = "0.20"
+
+
 tokio = { version = "1.48", features = ["full"] }
-tokio-util = "=0.7.10"
+
 rust-embed = "8.9"
-zip = "0.6"
-zip-extract = "0.1"
-actix-multipart = "0.7"
-futures-util = "0.3"
+
+
 mime_guess = "2"
 config = "0.14"
 toml = "0.9"
 chrono = { version = "0.4", features = ["serde"] }
 thiserror = "2.0"
-strum = { version = "0.26", features = ["derive"] }
+
 regex = "1.12"
 base64 = "0.22"
 orion-error = "0.8"
@@ -49,31 +46,29 @@ sea-orm = { version = "1.1", features = [
     "with-chrono",
 ] }# --- External: Open API (Public Interfaces) ---
 
-wp-connector-api =  "0.10"
 #wp-parse-api     =  "0.8"
 wp-model-core    =  "0.8"
 
 # --- External: Infrastructure Libraries ---
-wp-log       =  "0.4"
+
 wp-error     =  "0.10"
 wp-specs     =  "0.10"
-wp-conf-base =  "0.4"
+
 wp-data-fmt  =  "0.2"
 wp-editor-migrations = { path = "crates/migrations" }
 wp-lang = "0.3"
-wp_knowledge  = { package = "wp-knowledge",  version = "0.13"}
 
-wp-engine     = {                            git = "https://github.com/wp-labs/wp-motor", tag = "v1.22.4" }
-wp-config     = { package = "wp-config",     git = "https://github.com/wp-labs/wp-motor", tag = "v1.22.4" }
-wp_oml         = { package = "wp-oml",       git = "https://github.com/wp-labs/wp-motor", tag = "v1.22.4" }
-wp_data_utils = { package = "wp-data-utils", git = "https://github.com/wp-labs/wp-motor", tag = "v1.22.4" }
-wp-proj       = { package = "wp-proj",       git = "https://github.com/wp-labs/wp-motor", tag = "v1.22.4" }
+wp_knowledge  = { package = "wp-knowledge",  version = "0.14"}
+
+wp-engine     = {                            git = "https://github.com/wp-labs/wp-motor", tag = "v1.23.0" }
+
+wp_oml         = { package = "wp-oml",       git = "https://github.com/wp-labs/wp-motor", tag = "v1.23.0" }
+wp_data_utils = { package = "wp-data-utils", git = "https://github.com/wp-labs/wp-motor", tag = "v1.23.0" }
+
 
 # wp-engine = { path = "../wp-motor" }
-# wp-config = { path = "../wp-motor/crates/wp-config" }
 # wp-oml    = { package = "wp-oml",    path = "../wp-motor/crates/wp-oml" }
 # wp-data-utils = { path = "../wp-motor/crates/wp-data-utils"  }
-# wp-proj       = { path = "../wp-motor/crates/wp-proj" }
 
 # wp-lang = {path = "../wp-lang"}
 # wp-knowledge  = { path = "../wp-motor/crates/wp-knowledge" }
