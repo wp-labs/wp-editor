@@ -6453,7 +6453,7 @@ dependencies = [
 
 [[package]]
 name = "wp-editor"
-version = "1.19.7"
+version = "1.19.8"
 dependencies = [
  "actix-web",
  "actix-web-prom",
