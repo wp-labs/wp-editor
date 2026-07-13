@@ -56,7 +56,7 @@ wp-specs     =  "0.10"
 
 wp-data-fmt  =  "0.2"
 wp-editor-migrations = { path = "crates/migrations" }
-wp-lang = "0.3"
+wp-lang = "0.4"
 
 wp_knowledge  = { package = "wp-knowledge",  version = "0.14"}
 

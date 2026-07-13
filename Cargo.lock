@@ -6360,7 +6360,7 @@ dependencies = [
  "wp-data-utils",
  "wp-error",
  "wp-knowledge",
- "wp-lang",
+ "wp-lang 0.3.5",
  "wp-log",
  "wp-model-core",
  "wp-primitives",
@@ -6483,7 +6483,7 @@ dependencies = [
  "wp-engine",
  "wp-error",
  "wp-knowledge",
- "wp-lang",
+ "wp-lang 0.4.0",
  "wp-model-core",
  "wp-oml",
  "wp-specs",
@@ -6567,7 +6567,7 @@ dependencies = [
  "wp-data-utils",
  "wp-error",
  "wp-knowledge",
- "wp-lang",
+ "wp-lang 0.3.5",
  "wp-log",
  "wp-model-core",
  "wp-oml",
@@ -6670,6 +6670,49 @@ dependencies = [
 ]
 
 [[package]]
+name = "wp-lang"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6da872cd962f34fafaf52f56a53dca613aa620fd24f935e2eb08b6a12521579f"
+dependencies = [
+ "ahash 0.8.12",
+ "base64 0.22.1",
+ "bytes",
+ "chrono",
+ "contracts",
+ "derive-getters",
+ "derive_more",
+ "glob",
+ "hex",
+ "ipnet",
+ "log",
+ "mailchecker",
+ "once_cell",
+ "orion-error",
+ "phone",
+ "rand 0.10.1",
+ "regex",
+ "serde",
+ "serde_json",
+ "smol_str",
+ "strfmt",
+ "thiserror 2.0.18",
+ "toml 1.1.2+spec-1.1.0",
+ "unicode-segmentation",
+ "url",
+ "wildmatch",
+ "winnow 1.0.3",
+ "wp-data-fmt",
+ "wp-error",
+ "wp-log",
+ "wp-model-core",
+ "wp-parse-api",
+ "wp-primitives",
+ "wp-source-types",
+ "wp-specs",
+]
+
+[[package]]
 name = "wp-log"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6755,7 +6798,7 @@ dependencies = [
  "wp-data-utils",
  "wp-error",
  "wp-knowledge",
- "wp-lang",
+ "wp-lang 0.3.5",
  "wp-log",
  "wp-model-core",
  "wp-primitives",
@@ -6784,6 +6827,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1baa39359b6c063ff60bf4d3c866636b890e0077aedc6fd14963b3bd7673fab9"
 dependencies = [
  "winnow 1.0.3",
+]
+
+[[package]]
+name = "wp-source-types"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c146480ccaeedaa5340f60dcb0a5b7a3b2e77c9c30b0c8e0f6ef5acfaa9e9e68"
+dependencies = [
+ "serde",
+ "smallvec",
+ "smol_str",
+ "wp-model-core",
 ]
 
 [[package]]
