@@ -60,7 +60,7 @@ wp-lang = "0.3"
 
 wp_knowledge  = { package = "wp-knowledge",  version = "0.14"}
 
-wp-engine     = {                            git = "https://github.com/wp-labs/wp-motor", tag = "v1.23.3" }
+wp-engine     = {                            git = "https://github.com/wp-labs/wp-motor", tag = "v1.23.7" }
 
 wp_oml         = { package = "wp-oml",       git = "https://github.com/wp-labs/wp-motor", tag = "v1.23.3" }
 wp_data_utils = { package = "wp-data-utils", git = "https://github.com/wp-labs/wp-motor", tag = "v1.23.3" }
