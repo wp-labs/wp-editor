@@ -1,0 +1,5 @@
+name : /learn/time
+rule :  /learn/time/*
+---
+
+* = take();

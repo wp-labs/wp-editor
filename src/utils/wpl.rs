@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use crate::error::AppError;
-use orion_error::UvsReason;
+use orion_error::UnifiedReason;
 use serde::{Deserialize, Serialize};
 use wp_engine::sources::event_id::next_event_id;
 use wp_model_core::model::{DataField, DataRecord, DataType};
@@ -38,8 +38,8 @@ pub fn record_to_fields(record: &DataRecord) -> Vec<ParsedField> {
 // 内部/其他模块使用：返回原始 DataRecord，供 OML 等后续处理
 pub fn warp_check_record(wpl: &str, data: &str) -> Result<DataRecord, AppError> {
     // 保留解析错误中的换行与指示符，避免转义
-    let code = WplCode::build(PathBuf::from(""), wpl).map_err(AppError::wpl_parse)?;
-    let wpl_package = code.parse_pkg().map_err(AppError::wpl_parse)?;
+    let code = WplCode::build(PathBuf::from(""), wpl)?;
+    let wpl_package = code.parse_pkg()?;
     // let wpl_package = parse_wpl_package(wpl)?;
     let rule_items = extract_rule_items(&wpl_package);
 
@@ -54,7 +54,7 @@ fn try_parse_with_rules(rule_items: Vec<RunParseProc>, data: &str) -> Result<Dat
     let mut max_depth = 0;
     let mut best_wpl = 1;
     for (index, (vm_unit, _funcs)) in rule_items.iter().enumerate() {
-        let evaluator = WplEvaluator::from(vm_unit, None).map_err(AppError::wpl_parse)?;
+        let evaluator = WplEvaluator::from(vm_unit, None)?;
         let raw = RawData::from_string(data.to_string());
         match evaluator.proc(0, raw, 0) {
             Ok((mut tdc, _pipeline)) => {
@@ -71,8 +71,8 @@ fn try_parse_with_rules(rule_items: Vec<RunParseProc>, data: &str) -> Result<Dat
             Err(e) => {
                 // 记录解析深度最高的错误
                 best_wpl = index + 1;
-                if matches!(e.reason(), WparseReason::Uvs(UvsReason::DataError)) {
-                    // 新版 UvsReason::DataError 不再携带位置参数，保底记为 1 表示已进入规则解析。
+                if matches!(e.reason(), WparseReason::Uvs(UnifiedReason::DataError)) {
+                    // UnifiedReason::DataError 不再携带位置参数，保底记为 1 表示已进入规则解析。
                     if max_depth == 0 {
                         max_depth = 1;
                     }

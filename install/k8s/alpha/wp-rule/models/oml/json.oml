@@ -1,0 +1,6 @@
+name : /lean/json
+rule : /learn/json/*
+---
+time_int =  pipe take(date) | Time::to_ts_ms ;
+ip_int   = pipe take(src_ip) | ip4_to_int ;
+* = take();

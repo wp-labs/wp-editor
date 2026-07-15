@@ -1,0 +1,5 @@
+package /learn/time {
+   rule time {
+        (time:timestamp<[,]>)
+   }
+}

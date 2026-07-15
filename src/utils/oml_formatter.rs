@@ -21,7 +21,6 @@ impl OmlFormatter {
         let tokens = tokenize(content)?;
         Ok(format_tokens(&tokens, self.indent))
     }
-
     /// 兼容旧行为：格式化失败时回退为原内容，保证调用方不崩溃。
     pub fn format_content_or_original(&self, content: &str) -> String {
         self.format_content(content)
@@ -58,6 +57,7 @@ enum TokenKind {
     Word,
     StringLiteral,
     Comment,
+    BlankLine,
     Symbol(Symbol),
 }
 
@@ -73,13 +73,23 @@ fn tokenize(input: &str) -> Result<Vec<Token>, OmlFormatError> {
     let mut tokens = Vec::new();
     let input_len = input.len();
 
+    let mut consecutive_newlines = 0u32;
     while let Some((idx, ch)) = iter.next() {
         if ch.is_whitespace() {
             if ch == '\n' {
                 line = line.saturating_add(1);
+                consecutive_newlines += 1;
             }
             continue;
         }
+
+        if consecutive_newlines >= 2 {
+            tokens.push(Token {
+                kind: TokenKind::BlankLine,
+                text: String::new(),
+            });
+        }
+        consecutive_newlines = 0;
 
         if ch == '#' {
             let start = idx;
@@ -273,7 +283,6 @@ fn format_tokens(tokens: &[Token], indent_spaces: usize) -> String {
     let mut paren_level = 0usize;
     let mut bracket_level = 0usize;
     let mut brace_level = 0usize;
-
     let mut i = 0usize;
     while i < tokens.len() {
         let token = &tokens[i];
@@ -312,6 +321,10 @@ fn format_tokens(tokens: &[Token], indent_spaces: usize) -> String {
                 i += 1;
                 continue;
             }
+            TokenKind::BlankLine => {
+                i += 1;
+                continue;
+            }
             _ => {}
         }
 
@@ -340,8 +353,7 @@ fn format_tokens(tokens: &[Token], indent_spaces: usize) -> String {
                     next.map(|t| &t.kind),
                     Some(TokenKind::Symbol(Symbol::Semicolon))
                 ) {
-                    write_raw(&mut out, &mut line_empty, " ");
-                    write_raw(&mut out, &mut line_empty, ";");
+                    write_raw(&mut out, &mut line_empty, " ;");
                     newline(&mut out, &mut line_empty);
                     i += 1;
                 } else {
@@ -349,10 +361,7 @@ fn format_tokens(tokens: &[Token], indent_spaces: usize) -> String {
                 }
             }
             TokenKind::Symbol(Symbol::Semicolon) => {
-                if !out.ends_with(' ') && !out.ends_with('\n') {
-                    write_raw(&mut out, &mut line_empty, " ");
-                }
-                write_raw(&mut out, &mut line_empty, ";");
+                write_raw(&mut out, &mut line_empty, " ;");
                 newline(&mut out, &mut line_empty);
             }
             TokenKind::Symbol(Symbol::Comma) => {
@@ -434,7 +443,7 @@ fn format_tokens(tokens: &[Token], indent_spaces: usize) -> String {
                     &token.text,
                 );
             }
-            TokenKind::Symbol(Symbol::Separator) | TokenKind::Comment => {}
+            TokenKind::Symbol(Symbol::Separator) | TokenKind::Comment | TokenKind::BlankLine => {}
         }
 
         i += 1;

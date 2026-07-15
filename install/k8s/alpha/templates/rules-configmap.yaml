@@ -1,0 +1,17 @@
+{{- if not .Values.rules.existingConfigMap }}
+{{- $ruleFiles := .Files.Glob "wp-rule/models/**" }}
+{{- if not $ruleFiles }}
+{{- fail "no built-in rule files found under wp-rule/models; add rule files or set rules.existingConfigMap" }}
+{{- end }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "wp-editor.fullname" . }}-rules
+  labels:
+    {{- include "wp-editor.labels" . | nindent 4 }}
+data:
+{{- range $path, $_ := $ruleFiles }}
+  {{ trimPrefix "wp-rule/models/" $path | replace "/" "__" }}: |-
+{{ $.Files.Get $path | indent 4 }}
+{{- end }}
+{{- end }}

@@ -1,0 +1,36 @@
+package /raw/cloud {
+   rule aws {
+        (
+            symbol(http),
+            chars:Timestamp,
+            chars:elb,
+            chars:client_host,
+            chars:target_host,
+            chars:request_processing_time,
+            chars:target_processing_time,
+            chars:response_processing_time,
+            chars:elb_status_code,
+            chars:target_status_code,
+            chars:received_bytes,
+            chars:sent_bytes,
+            chars:request | (chars:request_method, chars:request_url, chars:request_protocol),
+            chars:user_agent,
+            chars:ssl_cipher,
+            chars:ssl_protocol,
+            chars:target_group_arn,
+            chars:trace_id,
+            chars:domain_name,
+            chars:chosen_cert_arn,
+            chars:matched_rule_priority,
+            chars:request_creation_time,
+            chars:actions_executed,
+            chars:redirect_url,
+            chars:error_reason,
+            chars:target_port_list,
+            chars:target_status_code_list,
+            chars:classification,
+            chars:classification_reason,
+            chars:traceability_id,
+        )
+   }
+   }

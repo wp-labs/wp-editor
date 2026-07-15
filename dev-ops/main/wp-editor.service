@@ -1,0 +1,15 @@
+[Unit]
+Description=wp-editor
+After=network.target
+
+[Service]
+Type=simple  
+ExecStart=${WORK_DIR}/wp-editor
+WorkingDirectory=${WORK_DIR}
+Restart=on-failure
+User=root
+Environment=PATH=/usr/bin:/usr/local/bin
+
+
+[Install]
+WantedBy=multi-user.target

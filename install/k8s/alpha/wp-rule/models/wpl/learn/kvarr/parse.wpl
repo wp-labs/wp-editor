@@ -1,0 +1,8 @@
+package /learn/kvarr {
+    rule kvarr_1 {
+        (
+            kvarr(ip@d)<[,]>,
+            kvarr(_@*,ip@d:d2)<{,}>
+        )
+    }
+}

@@ -1,0 +1,6 @@
+package /fb/web {
+
+  rule nginx {
+    (json | take(log) | json_unescape() | (ip:sip,2*_,time:recv_time<[,]>,http/request",http/status,digit,chars",http/agent",_")  )
+  }
+}

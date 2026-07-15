@@ -50,7 +50,7 @@ pub fn sql_knowdb_list(_connection_id: i32) -> AnyResult<Vec<String>> {
 pub fn load_knowledge(project_dir: &str) -> AnyResult<()> {
     let root = PathBuf::from(&project_dir).canonicalize().map_err(|e| {
         error!("无法解析项目目录路径: {}", e);
-        AppError::internal(e)
+        AppError::internal(e).into_std()
     })?;
 
     let knowdb_path = root.join("models/knowledge/knowdb.toml");
@@ -66,7 +66,7 @@ pub fn load_knowledge(project_dir: &str) -> AnyResult<()> {
     );
     if let Err(e) = facade::init_thread_cloned_from_knowdb(&root, &knowdb_path, &auth_uri) {
         error!("初始化知识库失败：{:?}", e);
-        return Err(AppError::internal(e).into());
+        return Err(AppError::internal(e).into_std().into());
     }
     Ok(())
 }

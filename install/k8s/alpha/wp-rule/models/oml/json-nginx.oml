@@ -1,0 +1,5 @@
+name : /fb/web
+rule : /fb/web/*
+---
+
+* = take();

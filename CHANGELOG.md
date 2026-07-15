@@ -11,6 +11,220 @@
 - 升级 wp-motor 依赖至 v1.20.7
 - 同步刷新 `Cargo.lock` 中的相关依赖版本，收敛依赖栈并移除旧的 `mysql`、`mysql_async`、`tokio-postgres` 依赖链
 
+## [1.19.3] - 2026-05-07
+
+### Changed
+
+- 更新logo资源，替换 `favicon.png`、`home.png`、`index.png` 的展示素材。
+- 同步刷新 `web/public/assets/images` 与 `web/dist/assets/images` 中对应图片，确保源码资源与构建产物保持一致。
+
+## [1.19.2] - 2026-05-05
+
+### Changed
+
+- 升级错误与 WP 依赖主线：`orion-error 0.8`、`wp-motor v1.21.11`、`wp-lang 0.3`。
+- 调整 alpha 环境 `systemd` 服务配置，`ExecStart` 与 `WorkingDirectory` 改为直接指向 `${WORK_DIR}` 下的 `wp-editor` 与工作目录，简化部署路径约束
+
+
+## [1.17.2-alpha] - 2026-04-23
+
+### Changed
+
+- 版本号统一为 `1.17.2` / `v1.17.2-alpha`（同步更新 `Cargo.toml`、`Cargo.lock`、`version.txt`、`dist/install-manifest-alpha.json`）
+- 升级 wp-motor 相关依赖至 v1.21.4
+- 补齐 `1.17.2-alpha` 的中英文变更记录
+
+## [1.17.0-alpha] - 2026-04-16
+
+### Changed
+
+- 升级 wp-motor 依赖至 v1.20.3
+- 同步 `Cargo.lock` 中 wp-motor 相关依赖的版本与源码引用
+- 同步 `wp-lang` 锁定版本至 `0.1.10`
+
+## [1.16.0-beta] - 2026-04-16
+
+### Added
+
+- 新增 `/metrics` Prometheus 指标暴露端点
+
+### Changed
+
+- 合并 `alpha` 分支变更到 `beta`
+- 升级 wp-motor 依赖至 v1.19.16
+- 恢复 `Cargo.lock` 并同步 beta 版本的依赖锁定结果
+- 更新 beta 发布清单 `dist/install-manifest-beta.json`，发布版本调整为 `v1.16.0-beta`
+- 更新 WPL Tree-sitter 高亮查询与 `tree-sitter-wpl.wasm` 资源，适配新的语法节点
+- 将 OML 转换与示例加载链路调整为异步实现，覆盖 `debug_transform`、`debug_examples`、`oml_examples` 与 `convert_record`
+
+### Fixed
+
+- 适配 `OMLCodeError`、`WparseReason`、`FieldQueryCache` 等上游 API 变更
+- 修复 OML 示例目录递归加载与错误透传问题
+- 修复 `/metrics` 请求日志过滤，避免干扰常规接口日志
+
+## [1.15.4-alpha] - 2026-04-08
+
+### Changed
+
+- 版本号统一为 `1.15.4` / `v1.15.4-alpha`（同步更新 `Cargo.toml`、`version.txt`、`dist/install-manifest-alpha.json`）
+- 恢复 `web/package-lock.json` 并调整忽略规则，确保前端依赖锁定结果随版本发布
+
+## [1.15.3-alpha] - 2026-04-08
+
+### Added
+
+- 新增 `/metrics` Prometheus 指标暴露端点
+
+### Changed
+
+- 为 Actix HTTP 指标设置稳定的指标名称
+- 调整访问日志过滤规则，排除 `/metrics`
+- 调整锁文件提交策略，移除 `Cargo.lock` 与 `web/package-lock.json`
+
+## [1.15.2-alpha] - 2026-04-07
+
+### Changed
+
+- 版本号统一为 `1.15.2` / `v1.15.2-alpha`（同步更新 `Cargo.toml`、`Cargo.lock`、`version.txt`、`dist/install-manifest-alpha.json`）
+- 重构 README 并更新发布流程说明，收敛为单文件双语文档
+- 优化前端构建拆包与开发态依赖预构建策略，减少刷新时碎片化请求
+- 为静态资源补充分级缓存策略，区分入口页、哈希资源与其他静态文件
+
+### Fixed
+
+- `/api/*` 未匹配路由改为返回 JSON 404，避免回退到前端页面
+
+### Performance
+
+- 自动启用 gzip/deflate 压缩，降低前端资源传输体积
+
+### Removed
+
+- 移除独立 `README.en.md`
+
+## [1.15.1-alpha] - 2026-04-03
+
+### Changed
+
+- 版本号统一为 `1.15.1` / `v1.15.1-alpha`（同步更新 `Cargo.toml`、`Cargo.lock`、`version.txt`、`dist/install-manifest-alpha.json`）
+
+### Fixed
+
+- 更新 `Cargo.lock`，同步依赖锁定结果
+
+## [1.15.0-alpha] - 2026-04-03
+
+### Changed
+
+- 版本号统一为 `1.15.0` / `v1.15.0-alpha`（同步更新 `Cargo.toml`、`Cargo.lock`、`version.txt`、`dist/install-manifest-alpha.json`）
+- 升级 wp-motor 依赖至 v1.19.16
+- `wp-lang`、`wp-knowledge` 改为独立版本依赖，适配上游包拆分
+- 将 OML 转换与示例加载链路调整为异步实现，覆盖 `debug_transform`、`debug_examples`、`oml_examples` 与 `convert_record`
+
+### Fixed
+
+- 修复 OML 示例目录递归加载时的错误透传与 `Future` 处理问题
+- 适配 `OMLCodeError`、`WparseReason` 等导入路径变化
+- 将相关集成测试与示例测试切换为异步用例并补齐 `await`
+
+## [1.14.2] - 2026-04-07
+
+### Changed
+
+- 版本更新至 1.14.2
+- 重构 README 并更新发布流程说明，收敛为单文件双语文档
+- 优化前端构建拆包与开发态依赖预构建策略，减少刷新时碎片化请求
+- 为静态资源补充分级缓存策略，区分入口页、哈希资源与其他静态文件
+
+### Fixed
+
+- `/api/*` 未匹配路由改为返回 JSON 404，避免回退到前端页面
+
+### Performance
+
+- 自动启用 gzip/deflate 压缩，降低前端资源传输体积
+
+### Removed
+
+- 移除独立 `README.en.md`
+
+## [1.14.2-beta] - 2026-04-07
+
+### Changed
+
+- 版本号统一为 `1.14.2` / `v1.14.2-beta`（同步更新 `Cargo.toml`、`Cargo.lock`、`version.txt`、`dist/install-manifest-beta.json`）
+- 重构 README 并更新发布流程说明，收敛为单文件双语文档
+- 优化前端构建拆包与开发态依赖预构建策略，减少刷新时碎片化请求
+- 为静态资源补充分级缓存策略，区分入口页、哈希资源与其他静态文件
+
+### Fixed
+
+- `/api/*` 未匹配路由改为返回 JSON 404，避免回退到前端页面
+
+### Performance
+
+- 自动启用 gzip/deflate 压缩，降低前端资源传输体积
+
+### Removed
+
+- 移除独立 `README.en.md`
+
+## [1.14.1] - 2026-04-03
+
+### Changed
+
+- 版本更新至 1.14.1
+- 微调 `README.md` 与 `README.en.md` 文案
+- 更新正式发布清单 `dist/install-manifest.json`
+
+### Fixed
+
+- 更新 `Cargo.lock`，同步依赖锁定结果
+
+## [1.14.1-beta] - 2026-04-03
+
+### Changed
+
+- 版本号统一为 `1.14.1` / `v1.14.1-beta`（同步更新 `Cargo.toml`、`Cargo.lock`、`version.txt`、`dist/install-manifest-beta.json`）
+
+### Fixed
+
+- 更新 `Cargo.lock`，同步依赖锁定结果
+
+## [1.14.0] - 2026-04-03
+
+### Added
+
+- 新增 `CONTRIBUTING.md`，补充贡献指南与协作说明
+
+### Changed
+
+- 版本更新至 1.14.0
+- 许可证由 Elastic License 2.0 调整为 Apache 2.0
+- 重构 README，补充双语说明并对齐中英文内容
+- 更新正式发布清单 `dist/install-manifest.json`
+
+### Removed
+
+- 删除 README 中的 Test Coverage badge、使用指南与 API 文档章节
+
+## [1.14.0-beta] - 2026-04-01
+
+### Added
+
+- 代码编辑器新增一键复制/粘贴能力
+
+### Changed
+
+- 版本号统一为 `1.14.0` / `v1.14.0-beta`（同步更新 `Cargo.toml`、`Cargo.lock`、`version.txt`、`dist/install-manifest-beta.json`）
+- 升级 wp-motor 依赖至 v1.18.3
+
+### Fixed
+
+- 修复编辑器 `Tab` 键行为异常
+- 新增 `Shift+Tab` 反向缩进支持
+
 ## [1.13.0-alpha] - 2026-03-12
 
 ### Changed
