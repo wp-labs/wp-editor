@@ -39,7 +39,7 @@ tree-sitter = "0.26"
 tree-sitter-wpl = { package = "tree-sitter-wpl", git = "https://github.com/wp-labs/tree-sitter-wpl.git", branch = "main" }
 
 # PostgreSQL 数据库支持 - SeaORM
-sea-orm = { version = "1.1", features = [
+sea-orm = { version = "2.0", features = [
     "sqlx-postgres",
     "runtime-tokio-rustls",
     "macros",
