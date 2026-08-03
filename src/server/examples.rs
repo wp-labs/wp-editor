@@ -1,4 +1,4 @@
-use crate::{OmlFormatter, WplFormatter, utils::format::remove_annotations};
+use crate::{OmlFormatter, WplFormatter, error::AppError, utils::format::remove_annotations};
 use serde::{Deserialize, Serialize};
 use std::{collections::BTreeMap, fs::File, io::Read, path::PathBuf};
 use wp_oml::parser::oml_parse;
@@ -17,7 +17,7 @@ pub fn wpl_examples(
     wpl_path: PathBuf,
     oml_examples: &Vec<(WildArray, String)>,
     examples: &mut BTreeMap<String, WplExample>,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<(), AppError> {
     if !wpl_path.exists() {
         return Ok(());
     }
@@ -27,23 +27,25 @@ pub fn wpl_examples(
         }
         let wpl_formatter = WplFormatter::new();
         let mut example = WplExample::default();
-        let mut file = File::open(&wpl_path)?;
+        let mut file = File::open(&wpl_path).map_err(AppError::FileNotFound)?;
         // 获取原始的wpl代码
         let mut contents = String::new();
-        file.read_to_string(&mut contents)?;
-        example.wpl_code = wpl_formatter.format_content_or_original(&contents);
+        file.read_to_string(&mut contents)
+            .map_err(AppError::FileRead)?;
+        example.wpl_code = wpl_formatter.format_or_original(&contents);
         // 获取日志示例数据
         let sample_data_dir = wpl_path.parent().unwrap().join("sample.dat");
         let mut sample_data = String::new();
         if sample_data_dir.is_file() {
-            let mut file = File::open(&sample_data_dir)?;
-            file.read_to_string(&mut sample_data)?;
+            let mut file = File::open(&sample_data_dir).map_err(AppError::FileNotFound)?;
+            file.read_to_string(&mut sample_data)
+                .map_err(AppError::FileRead)?;
         }
         example.sample_data = sample_data.clone();
 
-        let code = WplCode::build(wpl_path.clone(), &contents)?;
+        let code = WplCode::build(wpl_path.clone(), &contents).map_err(AppError::WplParseStruct)?;
 
-        let pkg = code.parse_pkg()?;
+        let pkg = code.parse_pkg().map_err(AppError::WplParseStruct)?;
         let pkg_name_raw = pkg.name().to_string();
         let mut pkg_name = pkg_name_raw.trim();
         pkg_name = pkg_name.strip_suffix('/').unwrap_or(pkg_name);
@@ -65,12 +67,15 @@ pub fn wpl_examples(
         examples.insert(example.name.clone(), example);
         return Ok(());
     }
-    wpl_path.read_dir()?.for_each(|entry| {
-        if let Ok(entry) = entry {
-            let path = entry.path();
-            let _ = wpl_examples(path, oml_examples, examples);
-        }
-    });
+    wpl_path
+        .read_dir()
+        .map_err(AppError::FileRead)?
+        .for_each(|entry| {
+            if let Ok(entry) = entry {
+                let path = entry.path();
+                let _ = wpl_examples(path, oml_examples, examples);
+            }
+        });
     Ok(())
 }
 
@@ -90,12 +95,14 @@ pub async fn oml_examples(
         // 获取原始的oml代码
         let mut contents = String::new();
         file.read_to_string(&mut contents)?;
-        let oml_fmt = oml_formatter.format_content_or_original(&contents);
+        let oml_fmt = oml_formatter.format_or_original(&contents);
 
         // 去除注释
         contents = remove_annotations(&contents);
         let mut parse_input = contents.as_str();
-        let code = oml_parse(&mut parse_input, "").await?;
+        let code = oml_parse(&mut parse_input, "")
+            .await
+            .map_err(AppError::OmlParseOrion)?;
         results.push((code.rules().clone(), oml_fmt));
         return Ok(results);
     }

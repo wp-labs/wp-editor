@@ -16,29 +16,9 @@ import { useTranslation } from 'react-i18next';
 import styles from './CodeEditor.module.css';
 import { editorTheme } from './editorTheme';
 import {
-  buildWplCompletionOptions,
-  WPL_COMPLETION_VALID_FOR,
-} from './wpl/wplLanguage';
-import { wplHighlightExtension } from './wpl/wplTreeSitterHighlight';
-import {
-  buildOmlCompletionOptions,
-  OML_COMPLETION_VALID_FOR,
-} from './oml/omlLanguage';
-import { omlHighlightExtension } from './oml/omlTreeSitterHighlight';
-
-const createCompletionSource = (options, validFor) => (context) => {
-  const word = context.matchBefore(validFor);
-  const pipe = context.matchBefore(/\|/);
-  if (!word && !pipe && !context.explicit) {
-    return null;
-  }
-  const from = (pipe || word)?.from ?? context.pos;
-  return {
-    from,
-    options,
-    validFor,
-  };
-};
+  createBundleCompletionSource,
+} from './treeSitter/completionSource';
+import { createTreeSitterHighlightExtension } from './treeSitter/highlightExtension';
 
 function CodeEditor(props, ref) {
   const editorRef = useRef(null);
@@ -49,15 +29,13 @@ function CodeEditor(props, ref) {
   const { i18n, t } = useTranslation();
   const uiLanguage = i18n.language;
   const showQuickPaste = props.showQuickPaste !== false;
-  const wplCompletionOptions = useMemo(() => buildWplCompletionOptions(uiLanguage), [uiLanguage]);
-  const omlCompletionOptions = useMemo(() => buildOmlCompletionOptions(uiLanguage), [uiLanguage]);
   const wplCompletionSource = useMemo(
-    () => createCompletionSource(wplCompletionOptions, WPL_COMPLETION_VALID_FOR),
-    [wplCompletionOptions],
+    () => createBundleCompletionSource('wpl', uiLanguage),
+    [uiLanguage],
   );
   const omlCompletionSource = useMemo(
-    () => createCompletionSource(omlCompletionOptions, OML_COMPLETION_VALID_FOR),
-    [omlCompletionOptions],
+    () => createBundleCompletionSource('oml', uiLanguage),
+    [uiLanguage],
   );
   const colorTheme = useMemo(() => {
     if (!textColor) return null;
@@ -161,7 +139,7 @@ function CodeEditor(props, ref) {
       extensions.splice(
         6,
         0,
-        wplHighlightExtension(),
+        createTreeSitterHighlightExtension('wpl'),
         autocompletion({ override: [wplCompletionSource] }),
       );
     }
@@ -169,7 +147,7 @@ function CodeEditor(props, ref) {
       extensions.splice(
         6,
         0,
-        omlHighlightExtension(),
+        createTreeSitterHighlightExtension('oml'),
         autocompletion({ override: [omlCompletionSource] }),
       );
     }

@@ -1,8 +1,17 @@
+//! WPL 解析与格式化模块。
+//!
+//! 对外保留三类能力：
+//! - WPL 规则校验与日志解析；
+//! - `DataRecord` 到字段列表的转换；
+//! - WPL 文本格式化（直接复用 tree-sitter-wpl 提供的格式化器）。
+
 use std::path::PathBuf;
 
 use crate::error::AppError;
-use orion_error::UvsReason;
+
+use orion_error::UnifiedReason;
 use serde::{Deserialize, Serialize};
+pub use tree_sitter_wpl::{WplFormatError, WplFormatter};
 use wp_engine::sources::event_id::next_event_id;
 use wp_model_core::model::{DataField, DataRecord, DataType};
 use wp_model_core::raw::RawData;
@@ -71,7 +80,7 @@ fn try_parse_with_rules(rule_items: Vec<RunParseProc>, data: &str) -> Result<Dat
             Err(e) => {
                 // 记录解析深度最高的错误
                 best_wpl = index + 1;
-                if matches!(e.reason(), WparseReason::Uvs(UvsReason::DataError)) {
+                if matches!(e.reason(), WparseReason::Uvs(UnifiedReason::DataError)) {
                     // 新版 UvsReason::DataError 不再携带位置参数，保底记为 1 表示已进入规则解析。
                     if max_depth == 0 {
                         max_depth = 1;

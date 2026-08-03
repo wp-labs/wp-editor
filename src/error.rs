@@ -2,7 +2,7 @@ use actix_web::{HttpResponse, ResponseError};
 use serde::Serialize;
 use std::fmt::Display;
 use wp_error::parse_error::OMLCodeError;
-use wpl::WparseReason;
+use wpl::{WparseReason, parser::error::WplCodeReason};
 
 #[derive(Debug, Serialize)]
 pub struct ErrorBody<T = serde_json::Value> {
@@ -48,14 +48,17 @@ pub enum AppError {
     WplParse(String),
 
     #[error("Wpl 解析失败: {0}")]
-    WplParseOrion(#[from] orion_error::StructError<WparseReason>),
+    WplParseOrion(orion_error::StructError<WparseReason>),
+
+    #[error("WPL 解析失败: {0}")]
+    WplParseStruct(orion_error::StructError<WplCodeReason>),
 
     // OML 转换相关错误
     #[error("OML 转换失败: {0}")]
     OmlTransform(String),
     //OmlTransform(anyhow::Error),
     #[error("OML 解析失败: {0}")]
-    OmlParseOrion(#[from] OMLCodeError),
+    OmlParseOrion(OMLCodeError),
 
     // 调试相关错误
     #[error("未找到解析结果，请先执行日志解析")]
@@ -70,6 +73,12 @@ pub enum AppError {
 
     #[error("Base64 解码失败: {0}")]
     InvalidBase64(String),
+
+    #[error("文件不存在或已删除: {0}")]
+    FileNotFound(std::io::Error),
+
+    #[error("文件读取失败: {0}")]
+    FileRead(std::io::Error),
 }
 
 impl AppError {
@@ -146,6 +155,7 @@ impl AppError {
             AppError::Internal(_) => "INTERNAL_ERROR",
             AppError::Git(_) => "GIT_ERROR",
             AppError::WplParse(_) => "WPL_PARSE_ERROR",
+            AppError::WplParseStruct(_) => "WPL_PARSE_STRUCT_ERROR",
             AppError::OmlTransform(_) => "OML_TRANSFORM_ERROR",
             AppError::NoParseResult => "NO_PARSE_RESULT",
             AppError::PortUnreachable { .. } => "PORT_UNREACHABLE",
@@ -153,6 +163,8 @@ impl AppError {
             AppError::InvalidBase64(_) => "INVALID_BASE64",
             AppError::WplParseOrion(_) => "WPL_PARSE_ORION_ERROR",
             AppError::OmlParseOrion(_) => "OML_PARSE_ORION_ERROR",
+            AppError::FileNotFound(_) => "FILE_NOT_FOUND",
+            AppError::FileRead(_) => "FILE_READ_ERROR",
         }
     }
 }
@@ -166,6 +178,7 @@ impl ResponseError for AppError {
             AppError::InvalidConnection { .. }
             | AppError::Validation(_)
             | AppError::WplParse(_)
+            | AppError::WplParseStruct(_)
             | AppError::OmlTransform(_)
             | AppError::NoParseResult
             | AppError::PortUnreachable { .. }
@@ -178,6 +191,8 @@ impl ResponseError for AppError {
 
             // 404 Not Found - 资源不存在
             AppError::NotFound(_) => StatusCode::NOT_FOUND,
+            AppError::FileNotFound(_) => StatusCode::NOT_FOUND,
+            AppError::FileRead(_) => StatusCode::NOT_FOUND,
 
             // 500 Internal Server Error - 服务器内部错误
             AppError::Internal(_) | AppError::Git(_) => StatusCode::INTERNAL_SERVER_ERROR,

@@ -1,13 +1,23 @@
+//! OML 数据处理与格式化模块。
+//!
+//! 对外保留两类能力：
+//! - 基于 OML 模型的 `DataRecord` 异步转换；
+//! - OML 文本格式化（直接复用 tree-sitter-oml 提供的格式化器）。
+
 use crate::{error::AppError, utils::format::remove_annotations};
 use wp_knowledge::cache::FieldQueryCache;
 use wp_model_core::model::DataRecord;
 use wp_oml::AsyncDataTransformer;
 use wp_oml::parser::oml_parse;
 
+pub use tree_sitter_oml::{OmlFormatError, OmlFormatter};
+
 pub async fn convert_record(oml: &str, record: DataRecord) -> Result<DataRecord, AppError> {
     // 预处理：去除注释
     let filter_oml = remove_annotations(oml);
-    let model = oml_parse(&mut filter_oml.as_str(), "").await?;
+    let model = oml_parse(&mut filter_oml.as_str(), "")
+        .await
+        .map_err(AppError::OmlParseOrion)?;
     let mut cache = FieldQueryCache::with_capacity(10);
     let target = model.transform_ref_async(&record, &mut cache).await;
     Ok(target)

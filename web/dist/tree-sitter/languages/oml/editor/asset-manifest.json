@@ -1,0 +1,6 @@
+{
+  "language_id": "oml",
+  "parser_wasm": "tree-sitter-oml.wasm",
+  "highlights_query": "highlights.scm",
+  "completion_bundle": "completions.json"
+}

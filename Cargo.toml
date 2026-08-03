@@ -20,54 +20,55 @@ actix-files = "0.6"
 tracing = "0.1"
 simple-log = "2.4"
 small_ctor = "0.1"
-cargo_metadata = "0.20"
+cargo_metadata = "0.23"
 tokio = { version = "1.48", features = ["full"] }
-tokio-util = "=0.7.10"
+tokio-util = "0.7"
 rust-embed = "8.9"
-zip = "0.6"
-zip-extract = "0.1"
-actix-multipart = "0.7"
+zip = "8.6"
+zip-extract = "0.4"
+actix-multipart = "0.8"
 futures-util = "0.3"
 mime_guess = "2"
-config = "0.14"
-toml = "0.9"
+config = "0.15"
+toml = "1.1"
 chrono = { version = "0.4", features = ["serde"] }
 thiserror = "2.0"
-strum = { version = "0.26", features = ["derive"] }
+strum = { version = "0.28", features = ["derive"] }
 regex = "1.12"
-base64 = "0.22"
-orion-error = "0.6"
+base64 = "0.23"
+orion-error = "0.8"
 tempfile = "3.24"
 tree-sitter = "0.26.6"
 tree-sitter-wpl = { package = "tree-sitter-wpl", git = "https://github.com/wp-labs/tree-sitter-wpl.git", branch = "main" }
+tree-sitter-oml = { package = "tree-sitter-oml", git = "https://github.com/wp-labs/tree-sitter-oml.git", branch = "main" }
 
 # PostgreSQL 数据库支持 - SeaORM
-sea-orm = { version = "1.1", features = [
+sea-orm = { version = "2.0", features = [
     "sqlx-postgres",
     "runtime-tokio-rustls",
     "macros",
     "with-chrono",
 ] }# --- External: Open API (Public Interfaces) ---
 
-wp-connector-api =  "0.8"
+wp-connector-api =  "0.11"
 #wp-parse-api     =  "0.8"
 wp-model-core    =  "0.8"
 
 # --- External: Infrastructure Libraries ---
-wp-log       =  "0.2"
-wp-error     =  "0.8"
-wp-specs     =  "0.8"
-wp-conf-base =  "0.2"
+wp-log       =  "0.4"
+wp-error     =  "0.10"
+wp-specs     =  "0.10"
+wp-conf-base =  "0.4"
 wp-data-fmt  =  "0.2"
 wp-editor-migrations = { path = "crates/migrations" }
-wp-lang = "0.1"
-wp_knowledge  = { package = "wp-knowledge",  version = "0.11"}
+wp-lang = "0.4"
+wp_knowledge  = { package = "wp-knowledge",  version = "0.14"}
 
-wp-engine     = {                            git = "https://github.com/wp-labs/wp-motor", tag = "v1.20.7" }
-wp-config     = { package = "wp-config",     git = "https://github.com/wp-labs/wp-motor", tag = "v1.20.7" }
-wp_oml         = { package = "wp-oml",       git = "https://github.com/wp-labs/wp-motor", tag = "v1.20.7" }
-wp_data_utils = { package = "wp-data-utils", git = "https://github.com/wp-labs/wp-motor", tag = "v1.20.7" }
-wp-proj       = { package = "wp-proj",       git = "https://github.com/wp-labs/wp-motor", tag = "v1.20.7" }
+wp-engine     = {                            git = "https://github.com/wp-labs/wp-motor", tag = "v1.23.8" }
+wp-config     = { package = "wp-config",     git = "https://github.com/wp-labs/wp-motor", tag = "v1.23.8" }
+wp_oml         = { package = "wp-oml",       git = "https://github.com/wp-labs/wp-motor", tag = "v1.23.8" }
+wp_data_utils = { package = "wp-data-utils", git = "https://github.com/wp-labs/wp-motor", tag = "v1.23.8" }
+wp-proj       = { package = "wp-proj",       git = "https://github.com/wp-labs/wp-motor", tag = "v1.23.8" }
 
 #wp-engine = { path = "../wp-motor" }
 #wp-config = { path = "../wp-motor/crates/wp-config" }

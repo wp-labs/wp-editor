@@ -13,5 +13,6 @@ pub mod utils;
 pub use db::DbPool;
 pub use server::{Setting, WebConf};
 pub use utils::{
-    OmlFormatter, ParsedField, WplFormatter, convert_record, record_to_fields, warp_check_record,
+    OmlFormatError, OmlFormatter, ParsedField, WplFormatError, WplFormatter, convert_record,
+    record_to_fields, warp_check_record,
 };

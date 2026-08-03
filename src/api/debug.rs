@@ -174,7 +174,7 @@ pub async fn debug_examples() -> HttpResponse {
 #[post("/api/debug/wpl/format")]
 pub async fn wpl_format(req: String) -> HttpResponse {
     let formatter = WplFormatter::new();
-    match formatter.format_with_error(&req) {
+    match formatter.format(&req) {
         Ok(formatted) => HttpResponse::Ok().json(formatted),
         Err(err) => HttpResponse::BadRequest().json(serde_json::json!({
             "success": false,
@@ -190,7 +190,7 @@ pub async fn wpl_format(req: String) -> HttpResponse {
 #[post("/api/debug/oml/format")]
 pub async fn oml_format(req: String) -> HttpResponse {
     let formatter = OmlFormatter::new();
-    match formatter.format_with_error(&req) {
+    match formatter.format(&req) {
         Ok(formatted) => HttpResponse::Ok().json(formatted),
         Err(err) => HttpResponse::BadRequest().json(serde_json::json!({
             "success": false,

@@ -14,8 +14,8 @@ rule r{
 }
 "#;
 
-    let once = formatter.format_content(raw).expect("格式化失败");
-    let twice = formatter.format_content(&once).expect("格式化失败");
+    let once = formatter.format(raw).expect("格式化失败");
+    let twice = formatter.format(&once).expect("格式化失败");
     assert_eq!(once, twice, "多次格式化应保持输出不变");
     assert!(
         once.contains("| decode/base64 |"),
@@ -47,7 +47,7 @@ package log_pkg {
 }
 "#;
 
-    let formatted = formatter.format_content(raw).expect("格式化失败");
+    let formatted = formatter.format(raw).expect("格式化失败");
     assert!(
         formatted.contains("opt(domain)@host:host_name"),
         "可选子字段与路径应保留：{}",
@@ -96,7 +96,7 @@ package huawei {
 }
 "#;
 
-    let formatted = formatter.format_content(raw).expect("格式化失败");
+    let formatted = formatter.format(raw).expect("格式化失败");
     assert!(
         formatted.contains(r")\("),
         "转义括号不应触发分组重排：{}",
@@ -131,7 +131,7 @@ package skyeye_platform {
 }
 "#;
 
-    let formatted = formatter.format_content(raw).expect("格式化失败");
+    let formatted = formatter.format(raw).expect("格式化失败");
     let expected = r#"#[tag(dev_vendor: "天眼分析平台", dev_name: "天眼分析平台", dev_type: "syslog"), copy_raw(name:"raw_msg")]
 package skyeye_platform {
     #[tag(log_desc: "告警日志", log_type: "skyeye_platform_sensor_alert", alert_src: "52")]
@@ -169,7 +169,7 @@ package demo {
 }
 "#;
 
-    let formatted = formatter.format_content(raw).expect("格式化失败");
+    let formatted = formatter.format(raw).expect("格式化失败");
     let expected = r#"package demo {
     rule r {
         f_chars_not_has(a|b|c),
@@ -197,7 +197,7 @@ package demo {
 }
 "#;
 
-    let formatted = formatter.format_content(raw).expect("格式化失败");
+    let formatted = formatter.format(raw).expect("格式化失败");
     let expected = r#"package demo {
     rule r {
         chars\,literal,
@@ -234,7 +234,7 @@ package all {
 }
 "#;
 
-    let formatted = formatter.format_content(raw).expect("格式化失败");
+    let formatted = formatter.format(raw).expect("格式化失败");
     assert!(
         formatted.contains("){,\\s(\\S=)}"),
         "分隔符语法应保持行内：{}",
@@ -256,7 +256,7 @@ package demo {
 }
 "#;
 
-    let formatted = formatter.format_content(raw).expect("格式化失败");
+    let formatted = formatter.format(raw).expect("格式化失败");
     let expected = r#"package demo {
     rule r {
         symbol(LOGONFAIL)\(,
@@ -295,7 +295,7 @@ package /raw/web {
 }
 "#;
 
-    let formatted = formatter.format_content(raw).expect("格式化失败");
+    let formatted = formatter.format(raw).expect("格式化失败");
     let expected = r#"package /raw/web {
     rule nginx {
         (
@@ -401,7 +401,7 @@ package nsg {
 }
 "#;
 
-    let formatted = formatter.format_content(raw).expect("格式化失败");
+    let formatted = formatter.format(raw).expect("格式化失败");
     assert!(
         formatted.contains("\n    rule ty_secgate_alert_ioc {"),
         "包内多个 rule 不应顶格：{}",
@@ -422,7 +422,7 @@ package /path/ {
 }
 "#;
 
-    let result = formatter.format_with_error(raw);
+    let result = formatter.format(raw);
     assert!(result.is_ok(), "括号成对闭合的 WPL 不应触发格式化错误");
 }
 
@@ -438,12 +438,13 @@ package /path/ {
 }
 "#;
 
-    let err = formatter
-        .format_with_error(raw)
-        .expect_err("缺少闭合括号应返回错误");
+    let err = formatter.format(raw).expect_err("缺少闭合括号应返回错误");
     let err_text = err.to_string();
     assert!(
-        err_text.contains("第 6 行") || err_text.contains("第 5 行"),
+        err_text.contains("line 6")
+            || err_text.contains("line 5")
+            || err_text.contains("第 6 行")
+            || err_text.contains("第 5 行"),
         "错误信息应包含行号，当前为：{}",
         err_text
     );
