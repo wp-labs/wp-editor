@@ -7407,7 +7407,7 @@ dependencies = [
 
 [[package]]
 name = "wp-editor"
-version = "1.19.1"
+version = "1.22.1"
 dependencies = [
  "actix-files",
  "actix-multipart",
