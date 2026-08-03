@@ -3,6 +3,19 @@
 本文件记录所有重要变更，格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，
 版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [1.19.0-alpha] - 2026-08-03
+
+### Changed
+
+- **高亮模块重构**：新增通用 `treeSitter/` 模块（`assetRegistry.js`、`highlightExtension.js`、`completionSource.js`），OML/WPL 共用统一的高亮与补全工厂函数，替代原有的语言独立实现
+- **补全数据外置化**：OML/WPL 补全数据从 JS 硬编码迁移为 JSON bundle（`completions.json`），支持按语言动态加载
+- **资产目录分层化**：tree-sitter 资源目录改为 `languages/{oml,wpl}/editor/` 结构，新增 `asset-manifest.json` 驱动资源加载，与 wp-station 保持一致
+- **后端格式化器统一**：删除自定义 `oml_formatter.rs`（567 行）和 `wpl_formatter.rs`（848 行），改用 `tree_sitter_oml::OmlFormatter` 和 `tree_sitter_wpl::WplFormatter`
+- 新增 `tree-sitter-oml` 依赖，对齐 wp-station 的格式化方案
+- 更新 `lib.rs` / `mod.rs` 的 re-export 路径，适配新 formatter 类型
+- 废弃 `predev`/`prebuild` shell 脚本（tree-sitter 资产改为 build.rs 直接管理）
+- 测试期望值匹配 tree-sitter crate formatter 实际输出
+
 ## [1.18.0] - 2026-04-30
 
 ### Changed
