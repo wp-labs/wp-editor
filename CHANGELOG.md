@@ -3,6 +3,12 @@
 本文件记录所有重要变更，格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，
 版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [1.22.1-alpha] - 2026-08-03
+
+### Changed
+
+- 版本更新至 1.22.1-alpha
+
 ## [1.21.1-alpha] - 2026-08-03
 
 ### Changed
@@ -16,6 +22,85 @@
 - 废弃 `predev`/`prebuild` shell 脚本（tree-sitter 资产改为 build.rs 直接管理）
 - 测试期望值匹配 tree-sitter crate formatter 实际输出
 
+## [1.19.1-alpha] - 2026-08-03
+
+### Changed
+
+- 版本更新至 1.19.1-alpha
+- 高亮/补全/格式化统一为 tree-sitter 驱动架构（详见 v1.21.1-alpha）
+- 升级 wp-motor 依赖
+
+## [1.19.9-alpha] - 2026-07-15
+
+### Changed
+
+- 版本更新至 1.19.9-alpha
+- 升级 wp-motor 与 tree-sitter 依赖
+
+## [1.18.1-beta] - 2026-07-15
+
+### Changed
+
+- 版本更新至 1.18.1-beta
+
+## [1.19.8-alpha] - 2026-06-26
+
+### Changed
+
+- 版本更新至 1.19.8-alpha
+- 升级 wp-motor 依赖版本
+
+## [1.19.7-alpha] - 2026-06-15
+
+### Changed
+
+- 版本更新至 1.19.7-alpha
+- 优化 OML 格式化输出
+- 清理未使用依赖
+- 修复 OML formatter 空行处理
+
+## [1.19.5-alpha] - 2026-06-01
+
+### Changed
+
+- 版本更新至 1.19.5-alpha
+- 升级 wp-motor 依赖版本
+
+## [1.19.4-alpha] - 2026-05-15
+
+### Changed
+
+- 版本更新至 1.19.4-alpha
+- 升级 wp-motor 依赖版本
+
+## [1.19.3-alpha] - 2026-05-07
+
+### Changed
+
+- 版本更新至 1.19.3-alpha
+- 更换应用 Logo
+
+## [1.19.2-alpha] - 2026-05-05
+
+### Changed
+
+- 版本更新至 1.19.2-alpha
+- 升级 orion-error 至 0.8
+- 错误系统重构为 orion-error 结构化体系
+
+## [1.19.0-alpha] - 2026-04-30
+
+### Changed
+
+- 版本更新至 1.19.0-alpha
+- CI/CD 流水线优化
+
+## [1.18.0-beta] - 2026-04-30
+
+### Changed
+
+- 版本更新至 1.18.0-beta
+
 ## [1.18.0] - 2026-04-30
 
 ### Changed
@@ -23,6 +108,143 @@
 - 版本更新至 1.18.0
 - 升级 wp-motor 依赖至 v1.20.7
 - 同步刷新 `Cargo.lock` 中的相关依赖版本，收敛依赖栈并移除旧的 `mysql`、`mysql_async`、`tokio-postgres` 依赖链
+
+## [1.17.3-alpha] - 2026-04-30
+
+### Changed
+
+- 版本更新至 1.17.3-alpha
+- CI/CD 流水线优化
+
+## [1.17.2-alpha] - 2026-04-23
+
+### Changed
+
+- 版本更新至 1.17.2-alpha
+- 升级 wp-motor 依赖至 v1.21.4
+
+## [1.17.1-alpha] - 2026-04-20
+
+### Changed
+
+- 版本更新至 1.17.1-alpha
+- 升级 wp-motor 依赖至 v1.20.2
+- 修复 OML `Time::to_ts_ms` 格式化问题
+
+## [1.16.1-beta] - 2026-04-20
+
+### Changed
+
+- 版本更新至 1.16.1-beta
+- 修复 OML `Time::to_ts_ms` 格式化问题
+
+## [1.14.3] - 2026-04-20
+
+### Changed
+
+- 版本更新至 1.14.3
+- 修复 OML `Time::to_ts_ms` 格式化问题
+
+## [1.17.0-alpha] - 2026-04-16
+
+### Changed
+
+- 版本更新至 1.17.0-alpha
+- 升级 wp-motor 依赖至 v1.20.2
+
+## [1.16.0-beta] - 2026-04-16
+
+### Changed
+
+- 版本更新至 1.16.0-beta
+- 更新 README 文档和发布流程
+- 前端添加缓存机制
+
+## [1.15.4-alpha] - 2026-04-08
+
+### Changed
+
+- 版本更新至 1.15.4-alpha
+
+## [1.15.3-alpha] - 2026-04-08
+
+### Changed
+
+- 版本更新至 1.15.3-alpha
+- 添加 Metrics 监控支持
+
+## [1.15.2-alpha] - 2026-04-07
+
+### Changed
+
+- 版本更新至 1.15.2-alpha
+- 更新 README 文档和发布流程
+- 前端添加缓存机制
+
+## [1.14.2-beta] - 2026-04-07
+
+### Changed
+
+- 版本更新至 1.14.2-beta
+- 更新 README 文档和发布流程
+- 前端添加缓存机制
+
+## [1.14.2] - 2026-04-07
+
+### Changed
+
+- 版本更新至 1.14.2
+- 更新 README 文档和发布流程
+- 前端添加缓存机制
+
+## [1.15.1-alpha] - 2026-04-03
+
+### Changed
+
+- 版本更新至 1.15.1-alpha
+- 修复 Cargo.lock 同步问题
+
+## [1.15.0-alpha] - 2026-04-03
+
+### Changed
+
+- 版本更新至 1.15.0-alpha
+- 升级 wp-motor 依赖版本
+
+## [1.14.1-beta] - 2026-04-03
+
+### Changed
+
+- 版本更新至 1.14.1-beta
+- 修复 Cargo.lock 同步问题
+
+## [1.14.1] - 2026-04-03
+
+### Changed
+
+- 版本更新至 1.14.1
+- 更新 README 文档
+- 修复 Cargo.lock 同步问题
+
+## [1.14.0] - 2026-04-03
+
+### Changed
+
+- 版本更新至 1.14.0
+- 重构 README.md，删除开发相关内容并添加双语版本
+- 移除 Test Coverage badge
+
+## [1.14.0-beta] - 2026-04-01
+
+### Added
+
+- 一键复制/粘贴功能
+
+### Changed
+
+- 版本更新至 1.14.0-beta
+- 升级 wp-motor 依赖至 v1.18.3
+- 修复编辑器 Tab 键异常，新增 Shift+Tab 反向缩进
 
 ## [1.13.0-alpha] - 2026-03-12
 
