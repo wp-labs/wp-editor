@@ -17,7 +17,9 @@
   --shadow-sm: 0 8px 24px rgba(33, 47, 75, 0.08);
 }
 
-* {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
@@ -28,6 +30,71 @@ body {
   color: var(--text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* ============================================
+   全局 macOS 风格滚动条
+   ============================================ */
+/* Firefox */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.25) transparent;
+}
+
+/* Webkit (Chrome / Edge / Safari) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.28);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.5);
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* 深色背景区域（代码编辑器等）使用浅色滚动条 */
+.warp-code-area,
+.warp-code-block,
+.code-area,
+.code-block,
+.cm-scroller {
+  scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+}
+
+.warp-code-area::-webkit-scrollbar-thumb,
+.warp-code-block::-webkit-scrollbar-thumb,
+.code-area::-webkit-scrollbar-thumb,
+.code-block::-webkit-scrollbar-thumb,
+.cm-scroller::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.25);
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+.warp-code-area::-webkit-scrollbar-thumb:hover,
+.warp-code-block::-webkit-scrollbar-thumb:hover,
+.code-area::-webkit-scrollbar-thumb:hover,
+.code-block::-webkit-scrollbar-thumb:hover,
+.cm-scroller::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.45);
+  border: 2px solid transparent;
+  background-clip: content-box;
 }
 
 /* 应用整体布局：头部固定在上方，内容区域单独滚动 */
