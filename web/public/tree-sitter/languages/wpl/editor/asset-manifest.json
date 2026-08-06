@@ -1,0 +1,6 @@
+{
+  "language_id": "wpl",
+  "parser_wasm": "editor/tree-sitter-wpl.wasm",
+  "highlights_query": "editor/highlights.scm",
+  "completion_bundle": "editor/completions.json"
+}

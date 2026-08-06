@@ -1,0 +1,1199 @@
+{
+  "locales": {
+    "zh-CN": [
+      {
+        "label": "chars()",
+        "type": "function",
+        "detail": "直接创建常量值",
+        "info": "chars(13)",
+        "insert_text": "chars(${chars})"
+      },
+      {
+        "label": "digit()",
+        "type": "function",
+        "detail": "直接创建常量值",
+        "info": "digit(13)",
+        "insert_text": "digit(${digit})"
+      },
+      {
+        "label": "float()",
+        "type": "function",
+        "detail": "浮点常量值",
+        "info": "float(3.14)",
+        "insert_text": "float(${float})"
+      },
+      {
+        "label": "time()",
+        "type": "function",
+        "detail": "时间常量值",
+        "info": "time(2026-01-19T12:34:56Z)",
+        "insert_text": "time(${time})"
+      },
+      {
+        "label": "bool()",
+        "type": "function",
+        "detail": "布尔常量值",
+        "info": "bool(true)",
+        "insert_text": "bool(${bool})"
+      },
+      {
+        "label": "ip()",
+        "type": "function",
+        "detail": "IP 常量值",
+        "info": "ip(192.168.1.1)",
+        "insert_text": "ip(${ip})"
+      },
+      {
+        "label": "read",
+        "type": "function",
+        "detail": "简单取值",
+        "info": "read(simple_chars)",
+        "insert_text": "read(${Variable})"
+      },
+      {
+        "label": "read(keys)",
+        "type": "function",
+        "detail": "通配符批量操作",
+        "info": "a_name_fields = read(keys:[A*/name])",
+        "insert_text": "a_name_fields = read(${keys:[A*/name]})"
+      },
+      {
+        "label": "read",
+        "type": "function",
+        "detail": "字段不存在时使用默认值",
+        "info": "read(optional_field) { _ : chars(DEFAULT_VALUE) }",
+        "insert_text": "read(${field}) { _ : chars(DEFAULT) }"
+      },
+      {
+        "label": "option:[]",
+        "type": "function",
+        "detail": "选择取值（按顺序尝试多个字段）",
+        "info": "read(option:[select_one, select_two])",
+        "insert_text": "option:[${select_one}]"
+      },
+      {
+        "label": "take",
+        "type": "function",
+        "detail": "破坏性读取并移除源字段",
+        "info": "field_taken = take(source_field)",
+        "insert_text": "take(${source_field})"
+      },
+      {
+        "label": "take",
+        "type": "function",
+        "detail": "take失败使用默认值",
+        "info": "field_taken_again = take(source_field) { _ : chars(already_taken) }",
+        "insert_text": "take(${source_field}) { _ : chars(DEFAULT) }"
+      },
+      {
+        "label": "take()",
+        "type": "function",
+        "detail": "取所有字段",
+        "info": "all_fields = take()",
+        "insert_text": "all_fields = take()"
+      },
+      {
+        "label": "take(keys)",
+        "type": "function",
+        "detail": "通配符批量操作",
+        "info": "path_fields = take(keys:[*/path])",
+        "insert_text": "path_fields = take(keys:[*/path])"
+      },
+      {
+        "label": "Now::time()",
+        "type": "function",
+        "detail": "获取当前完整时间",
+        "info": "current_time = Now::time()",
+        "insert_text": "current_time = Now::time()"
+      },
+      {
+        "label": "Now::date()",
+        "type": "function",
+        "detail": "获取当前日期",
+        "info": "current_date = Now::date()",
+        "insert_text": "Now::date()"
+      },
+      {
+        "label": "Now::hour()",
+        "type": "function",
+        "detail": "获取当前小时",
+        "info": "current_hour = Now::hour()",
+        "insert_text": "Now::hour()"
+      },
+      {
+        "label": "match",
+        "type": "function",
+        "detail": "范围判断",
+        "info": "num_range = match read(option:[num_range]) { in (digit(0), digit(1000)) => read(num_range) }",
+        "insert_text": "match read(option:[${num_range}]) { in (digit(0), digit(1000)) => read(num_range) }"
+      },
+      {
+        "label": "match",
+        "type": "function",
+        "detail": "字段匹配",
+        "info": "is_enabled : digit = match read(field) { bool(true) => digit(1) }",
+        "insert_text": "match read(${field}) {\n  _ => chars(defaule) \n}"
+      },
+      {
+        "label": "match",
+        "type": "function",
+        "detail": "双字段组合匹配",
+        "info": "location : chars = match (read(city1), read(city2)) { (chars(beijing), chars(shanghai)) => chars(east_region) }",
+        "insert_text": "location : chars = match (read(city1), read(city2)) { (chars(beijing), chars(shanghai)) => chars(east_region) }"
+      },
+      {
+        "label": "match + !",
+        "type": "function",
+        "detail": "否定条件匹配",
+        "info": "valid_status = match read(status) { !chars(error) => chars(ok) }",
+        "insert_text": "match read(status) { !chars(!{error}) => chars(ok) }"
+      },
+      {
+        "label": "Time::to_ts_zone",
+        "type": "function",
+        "detail": "时间转换（时区）",
+        "info": "timestamp_zone = pipe read(timestamp_zone) | Time::to_ts_zone(0, ms)",
+        "insert_text": "Time::to_ts_zone(${0}, ms)"
+      },
+      {
+        "label": "Time::to_ts",
+        "type": "function",
+        "detail": "时间转换（秒级）",
+        "info": "timestamp_s = pipe read(timestamp_zone) | Time::to_ts",
+        "insert_text": "Time::to_ts"
+      },
+      {
+        "label": "Time::to_ts_ms",
+        "type": "function",
+        "detail": "时间转换（毫秒）",
+        "info": "timestamp_ms = pipe @current_time | Time::to_ts_ms",
+        "insert_text": "Time::to_ts_ms"
+      },
+      {
+        "label": "Time::to_ts_us",
+        "type": "function",
+        "detail": "时间转换（微秒）",
+        "info": "timestamp_us = pipe @current_time | Time::to_ts_us",
+        "insert_text": "Time::to_ts_us"
+      },
+      {
+        "label": "base64_decode",
+        "type": "function",
+        "detail": "Base64 解码",
+        "info": "base64_decoded = pipe read(base64) | base64_decode(Utf8)",
+        "insert_text": "base64_decode(${Utf8})"
+      },
+      {
+        "label": "base64_encode",
+        "type": "function",
+        "detail": "Base64 编码",
+        "info": "base64_encoded = pipe read(base64) | base64_encode",
+        "insert_text": "base64_encode"
+      },
+      {
+        "label": "html_escape",
+        "type": "function",
+        "detail": "HTML 转义",
+        "info": "html_escaped = pipe read(html) | html_escape",
+        "insert_text": "html_escape"
+      },
+      {
+        "label": "html_unescape",
+        "type": "function",
+        "detail": "HTML 反转义",
+        "info": "html_unescaped = pipe read(html) | html_unescape",
+        "insert_text": "html_unescape"
+      },
+      {
+        "label": "json_escape",
+        "type": "function",
+        "detail": "JSON 转义",
+        "info": "json_escaped = pipe read(json_escape) | json_escape",
+        "insert_text": "json_escape"
+      },
+      {
+        "label": "json_unescape",
+        "type": "function",
+        "detail": "JSON 反转义",
+        "info": "json_unescaped = pipe @json_escaped | json_unescape",
+        "insert_text": "json_unescape"
+      },
+      {
+        "label": "str_escape",
+        "type": "function",
+        "detail": "字符串转义",
+        "info": "str_escaped = pipe read(str) | str_escape",
+        "insert_text": "str_escape"
+      },
+      {
+        "label": "to_str",
+        "type": "function",
+        "detail": "转为字符串",
+        "info": "to_str_result = pipe read(str) | to_str",
+        "insert_text": "to_str"
+      },
+      {
+        "label": "to_json",
+        "type": "function",
+        "detail": "转为 JSON",
+        "info": "array_json = pipe read(array_str) | to_json",
+        "insert_text": "to_json"
+      },
+      {
+        "label": "ip4_to_int",
+        "type": "function",
+        "detail": "IPv4 转整数",
+        "info": "ip_to_int = pipe read(simple_ip) | ip4_to_int",
+        "insert_text": "ip4_to_int"
+      },
+      {
+        "label": "nth",
+        "type": "function",
+        "detail": "数组取元素",
+        "info": "array_first = pipe read(array_str) | nth(0)",
+        "insert_text": "nth(${0})"
+      },
+      {
+        "label": "get",
+        "type": "function",
+        "detail": "对象嵌套取值",
+        "info": "obj_nested = pipe read(obj) | nth(0) | get(one/two)",
+        "insert_text": "get(${one/two})"
+      },
+      {
+        "label": "path(name)",
+        "type": "function",
+        "detail": "提取文件名",
+        "info": "file_name = pipe read(path) | path(name)",
+        "insert_text": "path(name)"
+      },
+      {
+        "label": "path(path)",
+        "type": "function",
+        "detail": "提取文件路径",
+        "info": "file_path = pipe read(path) | path(path)",
+        "insert_text": "path(path)"
+      },
+      {
+        "label": "starts_with",
+        "type": "function",
+        "detail": "字符串前缀检查",
+        "info": "is_http = read(url) | starts_with(\"http://\")",
+        "insert_text": "starts_with(${\"prefix\"})"
+      },
+      {
+        "label": "map_to",
+        "type": "function",
+        "detail": "映射到常量值",
+        "info": "status = read(code) | map_to(200)",
+        "insert_text": "map_to(${value})"
+      },
+      {
+        "label": "str_unescape",
+        "type": "function",
+        "detail": "字符串反转义",
+        "info": "text = read(escaped) | str_unescape",
+        "insert_text": "str_unescape"
+      },
+      {
+        "label": "extract_main_word",
+        "type": "function",
+        "detail": "提取主要单词",
+        "info": "keyword = read(message) | extract_main_word",
+        "insert_text": "extract_main_word"
+      },
+      {
+        "label": "extract_subject_object",
+        "type": "function",
+        "detail": "提取主客体结构",
+        "info": "log_struct = read(message) | extract_subject_object",
+        "insert_text": "extract_subject_object"
+      },
+      {
+        "label": "url(domain)",
+        "type": "function",
+        "detail": "提取 URL domain",
+        "info": "url_domain = pipe read(url) | url(domain)",
+        "insert_text": "url(domain)"
+      },
+      {
+        "label": "url(host)",
+        "type": "function",
+        "detail": "提取 URL host",
+        "info": "url_host = pipe read(url) | url(host)",
+        "insert_text": "url(host)"
+      },
+      {
+        "label": "url(uri)",
+        "type": "function",
+        "detail": "提取 URL uri",
+        "info": "url_uri = pipe read(url) | url(uri)",
+        "insert_text": "url(uri)"
+      },
+      {
+        "label": "url(path)",
+        "type": "function",
+        "detail": "提取 URL path",
+        "info": "url_path = pipe read(url) | url(path)",
+        "insert_text": "url(path)"
+      },
+      {
+        "label": "url(params)",
+        "type": "function",
+        "detail": "提取 URL params",
+        "info": "url_params = pipe read(url) | url(params)",
+        "insert_text": "url(params)"
+      },
+      {
+        "label": "skip_empty",
+        "type": "function",
+        "detail": "跳过空值",
+        "info": "skip_empty_result = pipe read(empty_chars) | skip_empty",
+        "insert_text": "skip_empty"
+      },
+      {
+        "label": "pipe",
+        "type": "function",
+        "detail": "流处理",
+        "info": "pipe simple_transform = read(data) | to_json",
+        "insert_text": "pipe"
+      },
+      {
+        "label": "fmt",
+        "type": "function",
+        "detail": "字符串格式化",
+        "info": "splice = fmt(\"{one}:{two}|{three}:{four}\", read(one), read(two), read(three), read(four))",
+        "insert_text": "fmt"
+      },
+      {
+        "label": "object",
+        "type": "function",
+        "detail": "对象创建",
+        "info": "extends = object { extend1, extend2 = read() }",
+        "insert_text": "object { }"
+      },
+      {
+        "label": "collect",
+        "type": "function",
+        "detail": "数组收集",
+        "info": "collected_ports : array = collect read(keys:[sport, dport, extra_port])",
+        "insert_text": "collect read(keys:[${sport}])"
+      },
+      {
+        "label": "collect + 通配符",
+        "type": "function",
+        "detail": "通配符收集",
+        "info": "wildcard_items : array = collect take(keys:[details[*]/process_name])",
+        "insert_text": "collect take(keys:[${details[*]/process_name}])"
+      },
+      {
+        "label": "|",
+        "type": "function",
+        "detail": "时间转换（时区）",
+        "info": "timestamp_zone = pipe read(timestamp_zone) | Time::to_ts_zone(0, ms)",
+        "insert_text": "| Time::to_ts_zone(${0}, ms)"
+      },
+      {
+        "label": "|",
+        "type": "function",
+        "detail": "时间转换（秒级）",
+        "info": "timestamp_s = pipe read(timestamp_zone) | Time::to_ts",
+        "insert_text": "| Time::to_ts"
+      },
+      {
+        "label": "|",
+        "type": "function",
+        "detail": "时间转换（毫秒）",
+        "info": "timestamp_ms = pipe @current_time | Time::to_ts_ms",
+        "insert_text": "| Time::to_ts_ms"
+      },
+      {
+        "label": "|",
+        "type": "function",
+        "detail": "时间转换（微秒）",
+        "info": "timestamp_us = pipe @current_time | Time::to_ts_us",
+        "insert_text": "| Time::to_ts_us"
+      },
+      {
+        "label": "|",
+        "type": "function",
+        "detail": "Base64 解码",
+        "info": "base64_decoded = pipe read(base64) | base64_decode(Utf8)",
+        "insert_text": "| base64_decode(${Utf8})"
+      },
+      {
+        "label": "|",
+        "type": "function",
+        "detail": "Base64 编码",
+        "info": "base64_encoded = pipe read(base64) | base64_encode",
+        "insert_text": "| base64_encode"
+      },
+      {
+        "label": "|",
+        "type": "function",
+        "detail": "HTML 转义",
+        "info": "html_escaped = pipe read(html) | html_escape",
+        "insert_text": "| html_escape"
+      },
+      {
+        "label": "|",
+        "type": "function",
+        "detail": "HTML 反转义",
+        "info": "html_unescaped = pipe read(html) | html_unescape",
+        "insert_text": "| html_unescape"
+      },
+      {
+        "label": "|",
+        "type": "function",
+        "detail": "JSON 转义",
+        "info": "json_escaped = pipe read(json_escape) | json_escape",
+        "insert_text": "| json_escape"
+      },
+      {
+        "label": "|",
+        "type": "function",
+        "detail": "JSON 反转义",
+        "info": "json_unescaped = pipe @json_escaped | json_unescape",
+        "insert_text": "| json_unescape"
+      },
+      {
+        "label": "|",
+        "type": "function",
+        "detail": "字符串转义",
+        "info": "str_escaped = pipe read(str) | str_escape",
+        "insert_text": "| str_escape"
+      },
+      {
+        "label": "|",
+        "type": "function",
+        "detail": "转为字符串",
+        "info": "to_str_result = pipe read(str) | to_str",
+        "insert_text": "| to_str"
+      },
+      {
+        "label": "|",
+        "type": "function",
+        "detail": "转为 JSON",
+        "info": "array_json = pipe read(array_str) | to_json",
+        "insert_text": "| to_json"
+      },
+      {
+        "label": "|",
+        "type": "function",
+        "detail": "IPv4 转整数",
+        "info": "ip_to_int = pipe read(simple_ip) | ip4_to_int",
+        "insert_text": "| ip4_to_int"
+      },
+      {
+        "label": "|",
+        "type": "function",
+        "detail": "数组取元素",
+        "info": "array_first = pipe read(array_str) | nth(0)",
+        "insert_text": "| nth(${0})"
+      },
+      {
+        "label": "|",
+        "type": "function",
+        "detail": "对象嵌套取值",
+        "info": "obj_nested = pipe read(obj) | nth(0) | get(one/two)",
+        "insert_text": "| get(${one/two})"
+      },
+      {
+        "label": "|",
+        "type": "function",
+        "detail": "提取文件名",
+        "info": "file_name = pipe read(path) | path(name)",
+        "insert_text": "| path(name)"
+      },
+      {
+        "label": "|",
+        "type": "function",
+        "detail": "提取文件路径",
+        "info": "file_path = pipe read(path) | path(path)",
+        "insert_text": "| path(path)"
+      },
+      {
+        "label": "|",
+        "type": "function",
+        "detail": "字符串前缀检查",
+        "info": "is_http = read(url) | starts_with(\"http://\")",
+        "insert_text": "| starts_with(${\"prefix\"})"
+      },
+      {
+        "label": "|",
+        "type": "function",
+        "detail": "映射到常量值",
+        "info": "status = read(code) | map_to(200)",
+        "insert_text": "| map_to(${value})"
+      },
+      {
+        "label": "|",
+        "type": "function",
+        "detail": "字符串反转义",
+        "info": "text = read(escaped) | str_unescape",
+        "insert_text": "| str_unescape"
+      },
+      {
+        "label": "|",
+        "type": "function",
+        "detail": "提取主要单词",
+        "info": "keyword = read(message) | extract_main_word",
+        "insert_text": "| extract_main_word"
+      },
+      {
+        "label": "|",
+        "type": "function",
+        "detail": "提取主客体结构",
+        "info": "log_struct = read(message) | extract_subject_object",
+        "insert_text": "| extract_subject_object"
+      },
+      {
+        "label": "|",
+        "type": "function",
+        "detail": "提取 URL domain",
+        "info": "url_domain = pipe read(url) | url(domain)",
+        "insert_text": "| url(domain)"
+      },
+      {
+        "label": "|",
+        "type": "function",
+        "detail": "提取 URL host",
+        "info": "url_host = pipe read(url) | url(host)",
+        "insert_text": "| url(host)"
+      },
+      {
+        "label": "|",
+        "type": "function",
+        "detail": "提取 URL uri",
+        "info": "url_uri = pipe read(url) | url(uri)",
+        "insert_text": "| url(uri)"
+      },
+      {
+        "label": "|",
+        "type": "function",
+        "detail": "提取 URL path",
+        "info": "url_path = pipe read(url) | url(path)",
+        "insert_text": "| url(path)"
+      },
+      {
+        "label": "|",
+        "type": "function",
+        "detail": "提取 URL params",
+        "info": "url_params = pipe read(url) | url(params)",
+        "insert_text": "| url(params)"
+      },
+      {
+        "label": "|",
+        "type": "function",
+        "detail": "跳过空值",
+        "info": "skip_empty_result = pipe read(empty_chars) | skip_empty",
+        "insert_text": "| skip_empty"
+      },
+      {
+        "label": "|",
+        "type": "function",
+        "detail": "流处理",
+        "info": "pipe simple_transform = read(data) | to_json",
+        "insert_text": "| pipe"
+      }
+    ],
+    "en-US": [
+      {
+        "label": "chars()",
+        "type": "function",
+        "detail": "Create constant value",
+        "info": "chars(13)",
+        "insert_text": "chars(${chars})"
+      },
+      {
+        "label": "digit()",
+        "type": "function",
+        "detail": "Create constant value",
+        "info": "digit(13)",
+        "insert_text": "digit(${digit})"
+      },
+      {
+        "label": "float()",
+        "type": "function",
+        "detail": "Create float constant value",
+        "info": "float(3.14)",
+        "insert_text": "float(${float})"
+      },
+      {
+        "label": "time()",
+        "type": "function",
+        "detail": "Create time constant value",
+        "info": "time(2026-01-19T12:34:56Z)",
+        "insert_text": "time(${time})"
+      },
+      {
+        "label": "bool()",
+        "type": "function",
+        "detail": "Create boolean constant value",
+        "info": "bool(true)",
+        "insert_text": "bool(${bool})"
+      },
+      {
+        "label": "ip()",
+        "type": "function",
+        "detail": "Create IP constant value",
+        "info": "ip(192.168.1.1)",
+        "insert_text": "ip(${ip})"
+      },
+      {
+        "label": "read",
+        "type": "function",
+        "detail": "Simple read",
+        "info": "read(simple_chars)",
+        "insert_text": "read(${Variable})"
+      },
+      {
+        "label": "read(keys)",
+        "type": "function",
+        "detail": "Wildcard batch operation",
+        "info": "a_name_fields = read(keys:[A*/name])",
+        "insert_text": "read(${keys:[A*/name]})"
+      },
+      {
+        "label": "read",
+        "type": "function",
+        "detail": "Use default when field missing",
+        "info": "read(optional_field) { _ : chars(DEFAULT_VALUE) }",
+        "insert_text": "read(${field}) { _ : chars(DEFAULT) }"
+      },
+      {
+        "label": "option:[]",
+        "type": "function",
+        "detail": "Select values in order",
+        "info": "read(option:[select_one, select_two])",
+        "insert_text": "option:[${select_one}]"
+      },
+      {
+        "label": "take",
+        "type": "function",
+        "detail": "Destructive read and remove source field",
+        "info": "field_taken = take(source_field)",
+        "insert_text": "take(${source_field})"
+      },
+      {
+        "label": "take",
+        "type": "function",
+        "detail": "Use default when take fails",
+        "info": "field_taken_again = take(source_field) { _ : chars(already_taken) }",
+        "insert_text": "take(${source_field}) { _ : chars(DEFAULT) }"
+      },
+      {
+        "label": "take()",
+        "type": "function",
+        "detail": "Take all fields",
+        "info": "all_fields = take()",
+        "insert_text": "all_fields = take()"
+      },
+      {
+        "label": "take(keys)",
+        "type": "function",
+        "detail": "Wildcard batch operation",
+        "info": "path_fields = take(keys:[*/path])",
+        "insert_text": "path_fields = take(keys:[*/path])"
+      },
+      {
+        "label": "Now::time()",
+        "type": "function",
+        "detail": "Get current full time",
+        "info": "current_time = Now::time()",
+        "insert_text": "current_time = Now::time()"
+      },
+      {
+        "label": "Now::date()",
+        "type": "function",
+        "detail": "Get current date",
+        "info": "current_date = Now::date()",
+        "insert_text": "Now::date()"
+      },
+      {
+        "label": "Now::hour()",
+        "type": "function",
+        "detail": "Get current hour",
+        "info": "current_hour = Now::hour()",
+        "insert_text": "Now::hour()"
+      },
+      {
+        "label": "match",
+        "type": "function",
+        "detail": "Range match",
+        "info": "num_range = match read(option:[num_range]) { in (digit(0), digit(1000)) => read(num_range) }",
+        "insert_text": "match read(option:[${num_range}]) { in (digit(0), digit(1000)) => read(num_range) }"
+      },
+      {
+        "label": "match",
+        "type": "function",
+        "detail": "Field match",
+        "info": "is_enabled : digit = match read(enabled) { bool(true) => digit(1) }",
+        "insert_text": "match read(${field}) {\n  _ => chars(default)\n}"
+      },
+      {
+        "label": "match",
+        "type": "function",
+        "detail": "Two-field tuple match",
+        "info": "location : chars = match (read(city1), read(city2)) { (chars(beijing), chars(shanghai)) => chars(east_region) }",
+        "insert_text": "location : chars = match (read(city1), read(city2)) { (chars(beijing), chars(shanghai)) => chars(east_region) }"
+      },
+      {
+        "label": "match + !",
+        "type": "function",
+        "detail": "Negation match",
+        "info": "valid_status = match read(status) { !chars(error) => chars(ok) }",
+        "insert_text": "match read(status) { !chars(!{error}) => chars(ok) }"
+      },
+      {
+        "label": "Time::to_ts_zone",
+        "type": "function",
+        "detail": "Time conversion (timezone)",
+        "info": "timestamp_zone = pipe read(timestamp_zone) | Time::to_ts_zone(0, ms)",
+        "insert_text": "Time::to_ts_zone(${0}, ms)"
+      },
+      {
+        "label": "Time::to_ts",
+        "type": "function",
+        "detail": "Time conversion (seconds)",
+        "info": "timestamp_s = pipe read(timestamp_zone) | Time::to_ts",
+        "insert_text": "Time::to_ts"
+      },
+      {
+        "label": "Time::to_ts_ms",
+        "type": "function",
+        "detail": "Time conversion (milliseconds)",
+        "info": "timestamp_ms = pipe @current_time | Time::to_ts_ms",
+        "insert_text": "Time::to_ts_ms"
+      },
+      {
+        "label": "Time::to_ts_us",
+        "type": "function",
+        "detail": "Time conversion (microseconds)",
+        "info": "timestamp_us = pipe @current_time | Time::to_ts_us",
+        "insert_text": "Time::to_ts_us"
+      },
+      {
+        "label": "base64_decode",
+        "type": "function",
+        "detail": "Base64 decode",
+        "info": "base64_decoded = pipe read(base64) | base64_decode(Utf8)",
+        "insert_text": "base64_decode(${Utf8})"
+      },
+      {
+        "label": "base64_encode",
+        "type": "function",
+        "detail": "Base64 encode",
+        "info": "base64_encoded = pipe read(base64) | base64_encode",
+        "insert_text": "base64_encode"
+      },
+      {
+        "label": "html_escape",
+        "type": "function",
+        "detail": "HTML escape",
+        "info": "html_escaped = pipe read(html) | html_escape",
+        "insert_text": "html_escape"
+      },
+      {
+        "label": "html_unescape",
+        "type": "function",
+        "detail": "HTML unescape",
+        "info": "html_unescaped = pipe read(html) | html_unescape",
+        "insert_text": "html_unescape"
+      },
+      {
+        "label": "json_escape",
+        "type": "function",
+        "detail": "JSON escape",
+        "info": "json_escaped = pipe read(json_escape) | json_escape",
+        "insert_text": "json_escape"
+      },
+      {
+        "label": "json_unescape",
+        "type": "function",
+        "detail": "JSON unescape",
+        "info": "json_unescaped = pipe @json_escaped | json_unescape",
+        "insert_text": "json_unescape"
+      },
+      {
+        "label": "str_escape",
+        "type": "function",
+        "detail": "String escape",
+        "info": "str_escaped = pipe read(str) | str_escape",
+        "insert_text": "str_escape"
+      },
+      {
+        "label": "to_str",
+        "type": "function",
+        "detail": "Convert to string",
+        "info": "to_str_result = pipe read(str) | to_str",
+        "insert_text": "to_str"
+      },
+      {
+        "label": "to_json",
+        "type": "function",
+        "detail": "Convert to JSON",
+        "info": "array_json = pipe read(array_str) | to_json",
+        "insert_text": "to_json"
+      },
+      {
+        "label": "ip4_to_int",
+        "type": "function",
+        "detail": "IPv4 to integer",
+        "info": "ip_to_int = pipe read(simple_ip) | ip4_to_int",
+        "insert_text": "ip4_to_int"
+      },
+      {
+        "label": "nth",
+        "type": "function",
+        "detail": "Get array element",
+        "info": "array_first = pipe read(array_str) | nth(0)",
+        "insert_text": "nth(${0})"
+      },
+      {
+        "label": "get",
+        "type": "function",
+        "detail": "Get nested object value",
+        "info": "obj_nested = pipe read(obj) | nth(0) | get(one/two)",
+        "insert_text": "get(${one/two})"
+      },
+      {
+        "label": "path(name)",
+        "type": "function",
+        "detail": "Extract filename",
+        "info": "file_name = pipe read(path) | path(name)",
+        "insert_text": "path(name)"
+      },
+      {
+        "label": "path(path)",
+        "type": "function",
+        "detail": "Extract file path",
+        "info": "file_path = pipe read(path) | path(path)",
+        "insert_text": "path(path)"
+      },
+      {
+        "label": "starts_with",
+        "type": "function",
+        "detail": "String prefix check",
+        "info": "is_http = read(url) | starts_with(\"http://\")",
+        "insert_text": "starts_with(${\"prefix\"})"
+      },
+      {
+        "label": "map_to",
+        "type": "function",
+        "detail": "Map to constant value",
+        "info": "status = read(code) | map_to(200)",
+        "insert_text": "map_to(${value})"
+      },
+      {
+        "label": "str_unescape",
+        "type": "function",
+        "detail": "String unescape",
+        "info": "text = read(escaped) | str_unescape",
+        "insert_text": "str_unescape"
+      },
+      {
+        "label": "extract_main_word",
+        "type": "function",
+        "detail": "Extract main word",
+        "info": "keyword = read(message) | extract_main_word",
+        "insert_text": "extract_main_word"
+      },
+      {
+        "label": "extract_subject_object",
+        "type": "function",
+        "detail": "Extract subject-object structure",
+        "info": "log_struct = read(message) | extract_subject_object",
+        "insert_text": "extract_subject_object"
+      },
+      {
+        "label": "url(domain)",
+        "type": "function",
+        "detail": "Extract URL domain",
+        "info": "url_domain = pipe read(url) | url(domain)",
+        "insert_text": "url(domain)"
+      },
+      {
+        "label": "url(host)",
+        "type": "function",
+        "detail": "Extract URL host",
+        "info": "url_host = pipe read(url) | url(host)",
+        "insert_text": "url(host)"
+      },
+      {
+        "label": "url(uri)",
+        "type": "function",
+        "detail": "Extract URL uri",
+        "info": "url_uri = pipe read(url) | url(uri)",
+        "insert_text": "url(uri)"
+      },
+      {
+        "label": "url(path)",
+        "type": "function",
+        "detail": "Extract URL path",
+        "info": "url_path = pipe read(url) | url(path)",
+        "insert_text": "url(path)"
+      },
+      {
+        "label": "url(params)",
+        "type": "function",
+        "detail": "Extract URL params",
+        "info": "url_params = pipe read(url) | url(params)",
+        "insert_text": "url(params)"
+      },
+      {
+        "label": "skip_empty",
+        "type": "function",
+        "detail": "Skip empty values",
+        "info": "skip_empty_result = pipe read(empty_chars) | skip_empty",
+        "insert_text": "skip_empty"
+      },
+      {
+        "label": "pipe",
+        "type": "function",
+        "detail": "Stream processing",
+        "info": "pipe simple_transform = read(data) | to_json",
+        "insert_text": "pipe"
+      },
+      {
+        "label": "fmt",
+        "type": "function",
+        "detail": "String format",
+        "info": "splice = fmt(\"{one}:{two}|{three}:{four}\", read(one), read(two), read(three), read(four))",
+        "insert_text": "fmt"
+      },
+      {
+        "label": "object",
+        "type": "function",
+        "detail": "Create object",
+        "info": "extends = object { extend1, extend2 = read() }",
+        "insert_text": "object { }"
+      },
+      {
+        "label": "collect",
+        "type": "function",
+        "detail": "Collect array",
+        "info": "collected_ports : array = collect read(keys:[sport, dport, extra_port])",
+        "insert_text": "collect read(keys:[${sport}])"
+      },
+      {
+        "label": "collect + 通配符",
+        "type": "function",
+        "detail": "Collect with wildcard",
+        "info": "wildcard_items : array = collect take(keys:[details[*]/process_name])",
+        "insert_text": "collect take(keys:[${details[*]/process_name}])"
+      },
+      {
+        "label": "|",
+        "type": "function",
+        "detail": "Time conversion (timezone)",
+        "info": "timestamp_zone = pipe read(timestamp_zone) | Time::to_ts_zone(0, ms)",
+        "insert_text": "| Time::to_ts_zone(${0}, ms)"
+      },
+      {
+        "label": "|",
+        "type": "function",
+        "detail": "Time conversion (seconds)",
+        "info": "timestamp_s = pipe read(timestamp_zone) | Time::to_ts",
+        "insert_text": "| Time::to_ts"
+      },
+      {
+        "label": "|",
+        "type": "function",
+        "detail": "Time conversion (milliseconds)",
+        "info": "timestamp_ms = pipe @current_time | Time::to_ts_ms",
+        "insert_text": "| Time::to_ts_ms"
+      },
+      {
+        "label": "|",
+        "type": "function",
+        "detail": "Time conversion (microseconds)",
+        "info": "timestamp_us = pipe @current_time | Time::to_ts_us",
+        "insert_text": "| Time::to_ts_us"
+      },
+      {
+        "label": "|",
+        "type": "function",
+        "detail": "Base64 decode",
+        "info": "base64_decoded = pipe read(base64) | base64_decode(Utf8)",
+        "insert_text": "| base64_decode(${Utf8})"
+      },
+      {
+        "label": "|",
+        "type": "function",
+        "detail": "Base64 encode",
+        "info": "base64_encoded = pipe read(base64) | base64_encode",
+        "insert_text": "| base64_encode"
+      },
+      {
+        "label": "|",
+        "type": "function",
+        "detail": "HTML escape",
+        "info": "html_escaped = pipe read(html) | html_escape",
+        "insert_text": "| html_escape"
+      },
+      {
+        "label": "|",
+        "type": "function",
+        "detail": "HTML unescape",
+        "info": "html_unescaped = pipe read(html) | html_unescape",
+        "insert_text": "| html_unescape"
+      },
+      {
+        "label": "|",
+        "type": "function",
+        "detail": "JSON escape",
+        "info": "json_escaped = pipe read(json_escape) | json_escape",
+        "insert_text": "| json_escape"
+      },
+      {
+        "label": "|",
+        "type": "function",
+        "detail": "JSON unescape",
+        "info": "json_unescaped = pipe @json_escaped | json_unescape",
+        "insert_text": "| json_unescape"
+      },
+      {
+        "label": "|",
+        "type": "function",
+        "detail": "String escape",
+        "info": "str_escaped = pipe read(str) | str_escape",
+        "insert_text": "| str_escape"
+      },
+      {
+        "label": "|",
+        "type": "function",
+        "detail": "Convert to string",
+        "info": "to_str_result = pipe read(str) | to_str",
+        "insert_text": "| to_str"
+      },
+      {
+        "label": "|",
+        "type": "function",
+        "detail": "Convert to JSON",
+        "info": "array_json = pipe read(array_str) | to_json",
+        "insert_text": "| to_json"
+      },
+      {
+        "label": "|",
+        "type": "function",
+        "detail": "IPv4 to integer",
+        "info": "ip_to_int = pipe read(simple_ip) | ip4_to_int",
+        "insert_text": "| ip4_to_int"
+      },
+      {
+        "label": "|",
+        "type": "function",
+        "detail": "Get array element",
+        "info": "array_first = pipe read(array_str) | nth(0)",
+        "insert_text": "| nth(${0})"
+      },
+      {
+        "label": "|",
+        "type": "function",
+        "detail": "Get nested object value",
+        "info": "obj_nested = pipe read(obj) | nth(0) | get(one/two)",
+        "insert_text": "| get(${one/two})"
+      },
+      {
+        "label": "|",
+        "type": "function",
+        "detail": "Extract filename",
+        "info": "file_name = pipe read(path) | path(name)",
+        "insert_text": "| path(name)"
+      },
+      {
+        "label": "|",
+        "type": "function",
+        "detail": "Extract file path",
+        "info": "file_path = pipe read(path) | path(path)",
+        "insert_text": "| path(path)"
+      },
+      {
+        "label": "|",
+        "type": "function",
+        "detail": "String prefix check",
+        "info": "is_http = read(url) | starts_with(\"http://\")",
+        "insert_text": "| starts_with(${\"prefix\"})"
+      },
+      {
+        "label": "|",
+        "type": "function",
+        "detail": "Map to constant value",
+        "info": "status = read(code) | map_to(200)",
+        "insert_text": "| map_to(${value})"
+      },
+      {
+        "label": "|",
+        "type": "function",
+        "detail": "String unescape",
+        "info": "text = read(escaped) | str_unescape",
+        "insert_text": "| str_unescape"
+      },
+      {
+        "label": "|",
+        "type": "function",
+        "detail": "Extract main word",
+        "info": "keyword = read(message) | extract_main_word",
+        "insert_text": "| extract_main_word"
+      },
+      {
+        "label": "|",
+        "type": "function",
+        "detail": "Extract subject-object structure",
+        "info": "log_struct = read(message) | extract_subject_object",
+        "insert_text": "| extract_subject_object"
+      },
+      {
+        "label": "|",
+        "type": "function",
+        "detail": "Extract URL domain",
+        "info": "url_domain = pipe read(url) | url(domain)",
+        "insert_text": "| url(domain)"
+      },
+      {
+        "label": "|",
+        "type": "function",
+        "detail": "Extract URL host",
+        "info": "url_host = pipe read(url) | url(host)",
+        "insert_text": "| url(host)"
+      },
+      {
+        "label": "|",
+        "type": "function",
+        "detail": "Extract URL uri",
+        "info": "url_uri = pipe read(url) | url(uri)",
+        "insert_text": "| url(uri)"
+      },
+      {
+        "label": "|",
+        "type": "function",
+        "detail": "Extract URL path",
+        "info": "url_path = pipe read(url) | url(path)",
+        "insert_text": "| url(path)"
+      },
+      {
+        "label": "|",
+        "type": "function",
+        "detail": "Extract URL params",
+        "info": "url_params = pipe read(url) | url(params)",
+        "insert_text": "| url(params)"
+      },
+      {
+        "label": "|",
+        "type": "function",
+        "detail": "Skip empty values",
+        "info": "skip_empty_result = pipe read(empty_chars) | skip_empty",
+        "insert_text": "| skip_empty"
+      },
+      {
+        "label": "|",
+        "type": "function",
+        "detail": "Stream processing",
+        "info": "pipe simple_transform = read(data) | to_json",
+        "insert_text": "| pipe"
+      }
+    ]
+  },
+  "valid_for": "[\\w/:\\[\\]]+|\\|"
+}
