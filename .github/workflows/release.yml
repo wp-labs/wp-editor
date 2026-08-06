@@ -109,6 +109,8 @@ jobs:
         run: |
           cd web
           npm ci
+          bash scripts/prepare-wpl-assets.sh
+          bash scripts/prepare-oml-assets.sh
           npm run build
 
       - name: Extract binaries
