@@ -38,7 +38,7 @@ regex = "1.12"
 base64 = "0.23"
 orion-error = "0.8"
 tempfile = "3.24"
-tree-sitter = "0.26.6"
+tree-sitter = "0.27"
 tree-sitter-wpl = { package = "tree-sitter-wpl", git = "https://github.com/wp-labs/tree-sitter-wpl.git", branch = "main" }
 tree-sitter-oml = { package = "tree-sitter-oml", git = "https://github.com/wp-labs/tree-sitter-oml.git", branch = "main" }
 
@@ -62,13 +62,13 @@ wp-conf-base =  "0.5"
 wp-data-fmt  =  "0.9"
 wp-editor-migrations = { path = "crates/migrations" }
 wp-lang = "0.5"
-wp_knowledge  = { package = "wp-knowledge",  version = "0.15"}
+wp_knowledge  = { package = "wp-knowledge",  version = "0.16"}
 
-wp-engine     = {                            git = "https://github.com/wp-labs/wp-motor", tag = "v1.25.3" }
-wp-config     = { package = "wp-config",     git = "https://github.com/wp-labs/wp-motor", tag = "v1.25.3" }
-wp_oml         = { package = "wp-oml",       git = "https://github.com/wp-labs/wp-motor", tag = "v1.25.3" }
-wp_data_utils = { package = "wp-data-utils", git = "https://github.com/wp-labs/wp-motor", tag = "v1.25.3" }
-wp-proj       = { package = "wp-proj",       git = "https://github.com/wp-labs/wp-motor", tag = "v1.25.3" }
+wp-engine     = {                            git = "https://github.com/wp-labs/wp-motor", tag = "v1.26.0" }
+wp-config     = { package = "wp-config",     git = "https://github.com/wp-labs/wp-motor", tag = "v1.26.0" }
+wp_oml         = { package = "wp-oml",       git = "https://github.com/wp-labs/wp-motor", tag = "v1.26.0" }
+wp_data_utils = { package = "wp-data-utils", git = "https://github.com/wp-labs/wp-motor", tag = "v1.26.0" }
+wp-proj       = { package = "wp-proj",       git = "https://github.com/wp-labs/wp-motor", tag = "v1.26.0" }
 
 #wp-engine = { path = "../wp-motor" }
 #wp-config = { path = "../wp-motor/crates/wp-config" }

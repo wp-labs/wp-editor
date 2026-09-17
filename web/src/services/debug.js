@@ -236,12 +236,17 @@ const processFields = (fields, formatJson = '') => {
       }
     }
     
-    return {
-      ...field,
-      no: index + 1,
-      meta: metaDisplay,
-      value: extractValueFromObj(field?.value, field?.name, formatJson),
-    };
+      return {
+        ...field,
+        no: index + 1,
+        meta: metaDisplay,
+        name: extractValueFromObj(field?.name, '', formatJson),
+        value: extractValueFromObj(
+          field?.value,
+          extractValueFromObj(field?.name, '', formatJson),
+          formatJson,
+        ),
+      };
   });
 };
 

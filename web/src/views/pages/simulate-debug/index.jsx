@@ -524,7 +524,7 @@ function SimulateDebugPage() {
           maxWidth: '300px',
           whiteSpace: 'pre-wrap'
         }}>
-          {text}
+          {typeof text === 'object' ? JSON.stringify(text) : String(text ?? '')}
         </div>
       ),
     },
@@ -672,7 +672,12 @@ function SimulateDebugPage() {
         ...field,
         no: index + 1,
         meta: metaDisplay,
-        value: extractValueFromObj(field?.value, field?.name, formatJson),
+        name: extractValueFromObj(field?.name, '', formatJson),
+        value: extractValueFromObj(
+          field?.value,
+          extractValueFromObj(field?.name, '', formatJson),
+          formatJson,
+        ),
       };
     });
   };
@@ -992,7 +997,7 @@ function SimulateDebugPage() {
                               columns={resultColumns}
                               dataSource={filterFieldsByShowEmpty(result.fields, showEmpty)}
                               pagination={false}
-                              rowKey="no"
+                              rowKey={(record) => record.no ?? record.name ?? JSON.stringify(record)}
                               className="data-table compact"
                               scroll={{ y: 'calc(100vh - 450px)', scrollToFirstRowOnChange: true }}
                             />
@@ -1162,7 +1167,7 @@ function SimulateDebugPage() {
                               transformParseShowEmpty
                             )}
                             pagination={false}
-                            rowKey="no"
+                            rowKey={(record) => record.no ?? record.name ?? JSON.stringify(record)}
                             className="data-table compact"
                             scroll={{ y: 'calc(50vh - 300px)', scrollToFirstRowOnChange: true }}
                           />
@@ -1265,7 +1270,7 @@ function SimulateDebugPage() {
                               transformResultShowEmpty
                             )}
                             pagination={false}
-                            rowKey="no"
+                            rowKey={(record) => record.no ?? record.name ?? JSON.stringify(record)}
                             className="data-table compact"
                             scroll={{ y: 'calc(50vh - 300px)', scrollToFirstRowOnChange: true }}
                           />
