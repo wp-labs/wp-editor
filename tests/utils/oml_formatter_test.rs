@@ -38,7 +38,7 @@ fn format_content_should_split_by_semicolon_outside_string() {
     // tree-sitter-oml 行为：分号拆行，不在 `;` 前加空格
     let expected = "\
 pos_sn = read(option:[serial_num]);
-access_ip : ip = read(access_ip);
+access_ip: ip = read(access_ip);
 ";
 
     assert_eq!(
@@ -96,20 +96,20 @@ data_src_system = digit(13);
 ";
 
     let formatted = formatter.format(raw).expect("格式化失败");
-    // tree-sitter-oml 行为：不在 `;` 前加空格，`---` 后不加空行
+    // tree-sitter-oml 行为：不在 `;` 前加空格，字段类型前的冒号不补空格。
     let expected = "\
 name : flow_ssl
 rule : skyeye/flow_ssl_kafka
 ---
-vlan_id : digit = match read(vlan_id) {
+vlan_id: digit = match read(vlan_id) {
     in(digit(0), digit(4095)) => read(vlan_id);
     _ => digit(0);
 };
-vxlan_id : digit = match read(option:[vxlan_id]) {
+vxlan_id: digit = match read(option:[vxlan_id]) {
     in(digit(0), digit(16777215)) => read(vxlan_id);
     _ => digit(0);
 };
-gre_key : digit = match read(option:[gre_key]) {
+gre_key: digit = match read(option:[gre_key]) {
     in(digit(0), digit(4294967295)) => read(gre_key);
     _ => digit(0);
 };
@@ -323,16 +323,27 @@ pos_sn = read(dev_sn);
 ";
 
     let formatted = formatter.format(raw).expect("格式化失败");
-    // tree-sitter-oml 行为：多行 rule 值合并到同一行
+    // tree-sitter-oml 行为：多行 rule 值按语法结构缩进并保留换行。
     let expected = "\
 name : nsf_probes_flow_log
-rule : nsf/nsf_probes_flow_http_log nsf/nsf_probes_flow_ftp_log nsf/nsf_probes_flow_dns_log nsf/nsf_probes_flow_mail_log nsf/nsf_probes_flow_ssl_log nsf/nsf_probes_flow_telnet_log nsf/nsf_probes_flow_tcpudp_log nsf/nsf_probes_flow_icmp_log nsf/nsf_probes_flow_dbop_log nsf/nsf_probes_flow_filetransfer_log nsf/nsf_probes_flow_login_log
+rule :
+    nsf/nsf_probes_flow_http_log
+    nsf/nsf_probes_flow_ftp_log
+    nsf/nsf_probes_flow_dns_log
+    nsf/nsf_probes_flow_mail_log
+    nsf/nsf_probes_flow_ssl_log
+    nsf/nsf_probes_flow_telnet_log
+    nsf/nsf_probes_flow_tcpudp_log
+    nsf/nsf_probes_flow_icmp_log
+    nsf/nsf_probes_flow_dbop_log
+    nsf/nsf_probes_flow_filetransfer_log
+    nsf/nsf_probes_flow_login_log
 ---
 
 pos_sn = read(dev_sn);
 ";
 
-    assert_eq!(formatted, expected, "rule 的多行值应收敛到同一行，保持顺序");
+    assert_eq!(formatted, expected, "rule 的多行值应按层级缩进并保持顺序");
 }
 
 #[test]

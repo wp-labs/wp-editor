@@ -132,7 +132,7 @@ package skyeye_platform {
 "#;
 
     let formatted = formatter.format(raw).expect("格式化失败");
-    let expected = r#"#[tag(dev_vendor: "天眼分析平台", dev_name: "天眼分析平台", dev_type: "syslog"), copy_raw(name:"raw_msg")]
+    let expected = r#"#[tag(dev_vendor: "天眼分析平台", dev_name: "天眼分析平台", dev_type: "syslog"), copy_raw(name: "raw_msg")]
 package skyeye_platform {
     #[tag(log_desc: "告警日志", log_type: "skyeye_platform_sensor_alert", alert_src: "52")]
     rule skyeye_platform_sensor_alert {
