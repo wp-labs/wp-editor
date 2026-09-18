@@ -6,7 +6,8 @@ use std::hash::{Hash, Hasher};
 use std::io::Result as IoResult;
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use std::time::SystemTime;
+use std::thread;
+use std::time::{Duration, SystemTime};
 
 #[derive(Debug, serde::Deserialize)]
 struct EditorAssetManifest {
@@ -35,12 +36,55 @@ const TREE_SITTER_ASSET_SOURCES: &[TreeSitterAssetSource] = &[
     },
 ];
 
+/// 获取 Cargo 依赖元数据。
+///
+/// 构建脚本中嵌套调用 Cargo 时，CI runner 可能因 Cargo 锁竞争或瞬态网络
+/// 问题返回空输出。这里重试并保留退出状态与 stderr，避免把实际原因隐藏
+/// 成无法定位的 JSON EOF 错误。
 fn get_cargo_metadata() -> Value {
-    let output = Command::new("cargo")
-        .args(["metadata", "--format-version", "1"])
-        .output()
-        .expect("Failed to run cargo metadata");
-    serde_json::from_slice(&output.stdout).expect("Failed to parse cargo metadata JSON")
+    const MAX_ATTEMPTS: usize = 3;
+    let mut last_error = String::from("未知错误");
+
+    for attempt in 1..=MAX_ATTEMPTS {
+        let output = match Command::new("cargo")
+            .args(["metadata", "--format-version", "1", "--locked"])
+            .output()
+        {
+            Ok(output) => output,
+            Err(error) => {
+                last_error = format!("启动 cargo metadata 失败: {error}");
+                if attempt < MAX_ATTEMPTS {
+                    thread::sleep(Duration::from_secs(attempt as u64));
+                    continue;
+                }
+                break;
+            }
+        };
+
+        if output.status.success() {
+            match serde_json::from_slice(&output.stdout) {
+                Ok(metadata) => return metadata,
+                Err(error) => {
+                    last_error = format!(
+                        "cargo metadata 输出解析失败: {error}; stderr: {}",
+                        String::from_utf8_lossy(&output.stderr).trim()
+                    );
+                }
+            }
+        } else {
+            last_error = format!(
+                "cargo metadata 退出状态为 {}; stderr: {}",
+                output.status,
+                String::from_utf8_lossy(&output.stderr).trim()
+            );
+        }
+
+        if attempt < MAX_ATTEMPTS {
+            thread::sleep(Duration::from_secs(attempt as u64));
+        }
+    }
+
+    panic!("cargo metadata 执行失败（已重试 {MAX_ATTEMPTS} 次）: {last_error}");
 }
 
 fn get_package_version<'a>(packages: &'a [Value], name: &str) -> &'a str {
